@@ -1,5 +1,6 @@
-import { IHandlerError } from '../routes/bloggers-route';
-
+export interface IHandlerError {
+  errorsMessages: ICurrentError[];
+}
 export interface ICurrentError {
   message: string;
   field: string;
