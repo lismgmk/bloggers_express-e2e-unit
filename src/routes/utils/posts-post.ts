@@ -3,11 +3,10 @@ import { errorResponse, IHandlerError } from '../../utils/error-util';
 export const postsPost = (req: any, res: any, handlerErrorInit: IHandlerError) => {
   if (req.body !== null && res !== null) {
     const helperErrorLength = (bodyKeyParam: string, bodyValueParam: string, length: number) => {
-      bodyValueParam && bodyValueParam.trim();
       if (
         bodyValueParam !== null &&
         Object.keys(req.body).find((el) => el === bodyKeyParam) &&
-        bodyValueParam.length > length
+        (bodyValueParam.length > length || bodyValueParam.length === 0)
       ) {
         errorResponse(`${bodyKeyParam} length more than ${bodyValueParam}`, bodyKeyParam, handlerErrorInit);
       }
@@ -18,9 +17,13 @@ export const postsPost = (req: any, res: any, handlerErrorInit: IHandlerError) =
       }
     };
 
-    helperErrorLength('title', req.body.title, 30);
-    helperErrorLength('shortDescription', req.body.shortDescription, 100);
-    helperErrorLength('content', req.body.content, 1000);
+    helperErrorLength('title', req.body.title ? req.body.title.trim() : req.body.title, 30);
+    helperErrorLength(
+      'shortDescription',
+      req.body.shortDescription ? req.body.shortDescription.trim() : req.body.shortDescription,
+      100,
+    );
+    helperErrorLength('content', req.body.content ? req.body.content.trim() : req.body.content, 1000);
 
     helperErrorNullKey('title', req.body.title);
     helperErrorNullKey('shortDescription', req.body.shortDescription);
