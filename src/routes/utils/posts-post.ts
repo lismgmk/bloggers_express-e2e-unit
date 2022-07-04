@@ -3,6 +3,7 @@ import { errorResponse, IHandlerError } from '../../utils/error-util';
 export const postsPost = (req: any, res: any, handlerErrorInit: IHandlerError) => {
   if (req.body !== null && res !== null) {
     const helperErrorLength = (bodyKeyParam: string, bodyValueParam: string, length: number) => {
+      bodyValueParam && bodyValueParam.trim();
       if (
         bodyValueParam !== null &&
         Object.keys(req.body).find((el) => el === bodyKeyParam) &&
@@ -17,9 +18,9 @@ export const postsPost = (req: any, res: any, handlerErrorInit: IHandlerError) =
       }
     };
 
-    helperErrorLength('title', req.body.title.trim(), 30);
-    helperErrorLength('shortDescription', req.body.shortDescription.trim(), 100);
-    helperErrorLength('content', req.body.content.trim(), 1000);
+    helperErrorLength('title', req.body.title, 30);
+    helperErrorLength('shortDescription', req.body.shortDescription, 100);
+    helperErrorLength('content', req.body.content, 1000);
 
     helperErrorNullKey('title', req.body.title);
     helperErrorNullKey('shortDescription', req.body.shortDescription);
@@ -35,7 +36,7 @@ export const postsPost = (req: any, res: any, handlerErrorInit: IHandlerError) =
     if (!Object.keys(req.body).find((el) => el === 'bloggerId' || req.body.bloggerId === null)) {
       errorResponse('bloggerId is invalid', 'bloggerId', handlerErrorInit);
     }
-
+    console.log(handlerErrorInit);
     if (handlerErrorInit.errorsMessages.length > 0) {
       res.status(400).send(handlerErrorInit);
     }
