@@ -23,9 +23,7 @@ blogsRouter.post('/', (req, res) => {
   } else if (
     req.body.youtubeUrl !== null &&
     (req.body.youtubeUrl.length > 100 ||
-      !new RegExp(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).test(
-        req.body.youtubeUrl.length,
-      ))
+      !new RegExp(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).test(req.body.youtubeUrl))
   ) {
     res.status(400).send(errorResponse('youtubeUrl length more than 100 or error pattern', 'youtubeUrl'));
   } else if (req.body.name === null) {
@@ -48,13 +46,11 @@ blogsRouter.put('/:id', (req, res) => {
     res.send(404);
   } else {
     if (req.body.name !== null && req.body.name.length > 15) {
-      res.status(400).send(errorResponse('ame length more than 15', 'тфьу'));
+      res.status(400).send(errorResponse('ame length more than 15', 'name'));
     } else if (
       req.body.youtubeUrl !== null &&
       (req.body.youtubeUrl.length > 100 ||
-        !new RegExp(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).test(
-          req.body.youtubeUrl.length,
-        ))
+        !new RegExp(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).test(req.body.youtubeUrl))
     ) {
       res.status(400).send(errorResponse('youtubeUrl length more than 100 or error pattern', 'youtubeUrl'));
     } else if (req.body.name === null) {
