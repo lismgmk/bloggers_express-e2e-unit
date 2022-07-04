@@ -1,35 +1,37 @@
 import { Router } from 'express';
 import { bloggersRepository } from '../repositories/bloggers-repository';
+import { errorResponse, ICurrentError } from '../utils/error-util';
 
 export const bloggersRouter = Router({});
 
-const errorResponse = (explanation: string, fieldError: string) => {
-  return {
-    errorsMessages: [
-      {
-        message: explanation,
-        field: fieldError,
-      },
-    ],
-  };
-};
+export interface IHandlerError {
+  errorsMessages: ICurrentError[];
+}
+const handlerErrorInit: IHandlerError = { errorsMessages: [] };
 
 bloggersRouter.get('/', (req, res) => {
   res.status(200).send(bloggersRepository.getAllBloggers());
 });
 bloggersRouter.post('/', (req, res) => {
-  if (req.body.name !== null && req.body.name.length > 15) {
-    res.status(400).send(errorResponse('ame length more than 15', 'name'));
-  } else if (
+  if (req.body.name !== null && Object.keys(req.body).find((el) => el === 'name') && req.body.name.length > 15) {
+    errorResponse('name length more than 15', 'name', handlerErrorInit);
+  }
+  if (
     req.body.youtubeUrl !== null &&
+    Object.keys(req.body).find((el) => el === 'youtubeUrl') &&
     (req.body.youtubeUrl.length > 100 ||
       !new RegExp(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).test(req.body.youtubeUrl))
   ) {
-    res.status(400).send(errorResponse('youtubeUrl length more than 100 or error pattern', 'youtubeUrl'));
-  } else if (req.body.name === null) {
-    res.status(400).send(errorResponse('name equal null', 'name'));
-  } else if (req.body.youtubesUrl === null) {
-    res.status(400).send(errorResponse('youtubeUrl equal null', 'youtubeUrl'));
+    errorResponse('youtubeUrl length more than 100 or error pattern', 'youtubeUrl', handlerErrorInit);
+  }
+  if (req.body.name === null || !Object.keys(req.body).find((el) => el === 'name')) {
+    errorResponse('name equal null', 'name', handlerErrorInit);
+  }
+  if (req.body.youtubesUrl === null || !Object.keys(req.body).find((el) => el === 'youtubesUrl')) {
+    errorResponse('youtubeUrl equal null', 'youtubeUrl', handlerErrorInit);
+  }
+  if (handlerErrorInit.errorsMessages.length > 0) {
+    res.status(400).send(handlerErrorInit);
   } else {
     res.status(201).send(bloggersRepository.createBlogger(req.body.name, req.body.youtubeUrl));
   }
@@ -46,17 +48,23 @@ bloggersRouter.put('/:id', (req, res) => {
     res.send(404);
   } else {
     if (req.body.name !== null && req.body.name.length > 15) {
-      res.status(400).send(errorResponse('ame length more than 15', 'name'));
-    } else if (
+      errorResponse('ame length more than 15', 'name', handlerErrorInit);
+    }
+    if (
       req.body.youtubeUrl !== null &&
       (req.body.youtubeUrl.length > 100 ||
         !new RegExp(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).test(req.body.youtubeUrl))
     ) {
-      res.status(400).send(errorResponse('youtubeUrl length more than 100 or error pattern', 'youtubeUrl'));
-    } else if (req.body.name === null) {
-      res.status(400).send(errorResponse('name equal null', 'name'));
-    } else if (req.body.youtubesUrl === null) {
-      res.status(400).send(errorResponse('youtubeUrl equal null', 'youtubeUrl'));
+      errorResponse('youtubeUrl length more than 100 or error pattern', 'youtubeUrl', handlerErrorInit);
+    }
+    if (req.body.name === null) {
+      errorResponse('name equal null', 'name', handlerErrorInit);
+    }
+    if (req.body.youtubesUrl === null) {
+      errorResponse('youtubeUrl equal null', 'youtubeUrl', handlerErrorInit);
+    }
+    if (handlerErrorInit.errorsMessages.length > 0) {
+      res.status(400).send(handlerErrorInit);
     } else {
       bloggersRepository.upDateBlogger(req.body.name, req.body.youtubeUrl, +req.params.id);
       res.send(204);
