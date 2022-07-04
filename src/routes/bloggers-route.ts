@@ -13,13 +13,13 @@ bloggersRouter.get('/', (req, res) => {
 });
 bloggersRouter.post('/', (req, res) => {
   const handlerErrorInit: IHandlerError = { errorsMessages: [] };
-  if (req.body.name !== null && Object.keys(req.body).find((el) => el === 'name') && req.body.name.length > 15) {
+  if (req.body.name !== null && Object.keys(req.body).find((el) => el === 'name') && req.body.name.trim().length > 15) {
     errorResponse('name length more than 15', 'name', handlerErrorInit);
   }
   if (
     req.body.youtubeUrl !== null &&
     Object.keys(req.body).find((el) => el === 'youtubeUrl') &&
-    (req.body.youtubeUrl.length > 100 ||
+    (req.body.youtubeUrl.trim().length > 100 ||
       !new RegExp(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).test(req.body.youtubeUrl))
   ) {
     errorResponse('youtubeUrl length more than 100 or error pattern', 'youtubeUrl', handlerErrorInit);
@@ -48,12 +48,17 @@ bloggersRouter.put('/:id', (req, res) => {
   if (!bloggersRepository.getBloggerById(+req.params.id)) {
     res.send(404);
   } else {
-    if (req.body.name !== null && req.body.name.length > 15) {
+    if (
+      req.body.name !== null &&
+      Object.keys(req.body).find((el) => el === 'name') &&
+      req.body.name.trim().length > 15
+    ) {
       errorResponse('ame length more than 15', 'name', handlerErrorInit);
     }
     if (
       req.body.youtubeUrl !== null &&
-      (req.body.youtubeUrl.length > 100 ||
+      Object.keys(req.body).find((el) => el === 'youtubeUrl') &&
+      (req.body.youtubeUrl.trim().length > 100 ||
         !new RegExp(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/).test(req.body.youtubeUrl))
     ) {
       errorResponse('youtubeUrl length more than 100 or error pattern', 'youtubeUrl', handlerErrorInit);

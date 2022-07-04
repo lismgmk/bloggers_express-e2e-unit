@@ -28,9 +28,9 @@ postsRouter.post('/', (req, res) => {
     }
   };
 
-  helperErrorLength('title', req.body.title, 30);
-  helperErrorLength('shortDescription', req.body.shortDescription, 100);
-  helperErrorLength('content', req.body.content, 1000);
+  helperErrorLength('title', req.body.title.trim(), 30);
+  helperErrorLength('shortDescription', req.body.shortDescription.trim(), 100);
+  helperErrorLength('content', req.body.content.trim(), 1000);
 
   helperErrorNullKey('title', req.body.title);
   helperErrorNullKey('shortDescription', req.body.shortDescription);
@@ -80,9 +80,9 @@ postsRouter.put('/:id', (req, res) => {
       }
     };
 
-    helperErrorLength('title', req.body.title, 30);
-    helperErrorLength('shortDescription', req.body.shortDescription, 100);
-    helperErrorLength('content', req.body.content, 1000);
+    helperErrorLength('title', req.body.title.trim(), 30);
+    helperErrorLength('shortDescription', req.body.shortDescription.trim(), 100);
+    helperErrorLength('content', req.body.content.trim(), 1000);
 
     helperErrorNullKey('title', req.body.title);
     helperErrorNullKey('shortDescription', req.body.shortDescription);
