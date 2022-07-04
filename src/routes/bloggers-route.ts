@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { bloggersRepository } from '../repositories/bloggers-repository';
 
-export const blogsRouter = Router({});
+export const bloggersRouter = Router({});
 
 const errorResponse = (explanation: string, fieldError: string) => {
   return {
@@ -14,12 +14,12 @@ const errorResponse = (explanation: string, fieldError: string) => {
   };
 };
 
-blogsRouter.get('/', (req, res) => {
+bloggersRouter.get('/', (req, res) => {
   res.status(200).send(bloggersRepository.getAllBloggers());
 });
-blogsRouter.post('/', (req, res) => {
+bloggersRouter.post('/', (req, res) => {
   if (req.body.name !== null && req.body.name.length > 15) {
-    res.status(400).send(errorResponse('ame length more than 15', 'тфьу'));
+    res.status(400).send(errorResponse('ame length more than 15', 'name'));
   } else if (
     req.body.youtubeUrl !== null &&
     (req.body.youtubeUrl.length > 100 ||
@@ -35,13 +35,13 @@ blogsRouter.post('/', (req, res) => {
   }
 });
 
-blogsRouter.get('/:id', (req, res) => {
+bloggersRouter.get('/:id', (req, res) => {
   bloggersRepository.getBloggerById(+req.params.id)
     ? res.status(200).send(bloggersRepository.getBloggerById(+req.params.id))
     : res.send(404);
 });
 
-blogsRouter.put('/:id', (req, res) => {
+bloggersRouter.put('/:id', (req, res) => {
   if (!bloggersRepository.getBloggerById(+req.params.id)) {
     res.send(404);
   } else {
@@ -64,7 +64,7 @@ blogsRouter.put('/:id', (req, res) => {
   }
 });
 
-blogsRouter.delete('/:id', (req, res) => {
+bloggersRouter.delete('/:id', (req, res) => {
   if (!bloggersRepository.getBloggerById(+req.params.id)) {
     res.send(404);
   } else {
