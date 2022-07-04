@@ -7,12 +7,12 @@ export const postsRouter = Router({});
 export interface IHandlerError {
   errorsMessages: ICurrentError[];
 }
-const handlerErrorInit: IHandlerError = { errorsMessages: [] };
 
 postsRouter.get('/', (req, res) => {
   res.status(200).send(postsRepository.getAllPosts());
 });
 postsRouter.post('/', (req, res) => {
+  const handlerErrorInit: IHandlerError = { errorsMessages: [] };
   const helperErrorLength = (bodyKeyParam: string, bodyValueParam: string, length: number) => {
     if (
       bodyValueParam !== null &&
@@ -59,6 +59,7 @@ postsRouter.get('/:id', (req, res) => {
 });
 
 postsRouter.put('/:id', (req, res) => {
+  const handlerErrorInit: IHandlerError = { errorsMessages: [] };
   if (!postsRepository.getPostById(+req.params.id)) {
     res.send(404);
   } else {

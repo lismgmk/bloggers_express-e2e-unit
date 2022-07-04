@@ -7,12 +7,12 @@ export const bloggersRouter = Router({});
 export interface IHandlerError {
   errorsMessages: ICurrentError[];
 }
-const handlerErrorInit: IHandlerError = { errorsMessages: [] };
 
 bloggersRouter.get('/', (req, res) => {
   res.status(200).send(bloggersRepository.getAllBloggers());
 });
 bloggersRouter.post('/', (req, res) => {
+  const handlerErrorInit: IHandlerError = { errorsMessages: [] };
   if (req.body.name !== null && Object.keys(req.body).find((el) => el === 'name') && req.body.name.length > 15) {
     errorResponse('name length more than 15', 'name', handlerErrorInit);
   }
@@ -44,6 +44,7 @@ bloggersRouter.get('/:id', (req, res) => {
 });
 
 bloggersRouter.put('/:id', (req, res) => {
+  const handlerErrorInit: IHandlerError = { errorsMessages: [] };
   if (!bloggersRepository.getBloggerById(+req.params.id)) {
     res.send(404);
   } else {
