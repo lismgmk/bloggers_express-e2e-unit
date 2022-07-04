@@ -27,7 +27,7 @@ bloggersRouter.post('/', (req, res) => {
   if (req.body.name === null || !Object.keys(req.body).find((el) => el === 'name')) {
     errorResponse('name equal null', 'name', handlerErrorInit);
   }
-  if (req.body.youtubesUrl === null || !Object.keys(req.body).find((el) => el === 'youtubesUrl')) {
+  if (req.body.youtubeUrl === null || !Object.keys(req.body).find((el) => el === 'youtubeUrl')) {
     errorResponse('youtubeUrl equal null', 'youtubeUrl', handlerErrorInit);
   }
   if (handlerErrorInit.errorsMessages.length > 0) {
@@ -58,10 +58,10 @@ bloggersRouter.put('/:id', (req, res) => {
     ) {
       errorResponse('youtubeUrl length more than 100 or error pattern', 'youtubeUrl', handlerErrorInit);
     }
-    if (req.body.name === null) {
+    if (req.body.name === null || !Object.keys(req.body).find((el) => el === 'name')) {
       errorResponse('name equal null', 'name', handlerErrorInit);
     }
-    if (req.body.youtubesUrl === null) {
+    if (req.body.youtubeUrl === null || !Object.keys(req.body).find((el) => el === 'youtubeUrl')) {
       errorResponse('youtubeUrl equal null', 'youtubeUrl', handlerErrorInit);
     }
     if (handlerErrorInit.errorsMessages.length > 0) {

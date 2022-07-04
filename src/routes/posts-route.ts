@@ -31,11 +31,9 @@ postsRouter.post('/', (req, res) => {
   helperErrorLength('title', req.body.title, 30);
   helperErrorLength('shortDescription', req.body.shortDescription, 100);
   helperErrorLength('content', req.body.content, 1000);
-  helperErrorLength('content', req.body.content, 1000);
 
   helperErrorNullKey('title', req.body.title);
   helperErrorNullKey('shortDescription', req.body.shortDescription);
-  helperErrorNullKey('content', req.body.content);
   helperErrorNullKey('content', req.body.content);
 
   if (
@@ -45,6 +43,10 @@ postsRouter.post('/', (req, res) => {
   ) {
     errorResponse('bloggerId is not integer', 'bloggerId', handlerErrorInit);
   }
+  if (!Object.keys(req.body).find((el) => el === 'bloggerId' || req.body.bloggerId === null)) {
+    errorResponse('bloggerId is invalid', 'bloggerId', handlerErrorInit);
+  }
+
   if (handlerErrorInit.errorsMessages.length > 0) {
     res.status(400).send(handlerErrorInit);
   } else {
@@ -81,11 +83,9 @@ postsRouter.put('/:id', (req, res) => {
     helperErrorLength('title', req.body.title, 30);
     helperErrorLength('shortDescription', req.body.shortDescription, 100);
     helperErrorLength('content', req.body.content, 1000);
-    helperErrorLength('content', req.body.content, 1000);
 
     helperErrorNullKey('title', req.body.title);
     helperErrorNullKey('shortDescription', req.body.shortDescription);
-    helperErrorNullKey('content', req.body.content);
     helperErrorNullKey('content', req.body.content);
 
     if (
@@ -95,9 +95,14 @@ postsRouter.put('/:id', (req, res) => {
     ) {
       errorResponse('bloggerId is not integer', 'bloggerId', handlerErrorInit);
     }
+    if (!Object.keys(req.body).find((el) => el === 'bloggerId' || req.body.bloggerId === null)) {
+      errorResponse('bloggerId is invalid', 'bloggerId', handlerErrorInit);
+    }
+
     if (handlerErrorInit.errorsMessages.length > 0) {
       res.status(400).send(handlerErrorInit);
     } else {
+      postsRepository.upDatePost(req.body, +req.params.id);
       res.send(204);
     }
   }
