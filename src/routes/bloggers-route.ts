@@ -14,7 +14,7 @@ bloggersRouter.get('/', (req, res) => {
 });
 bloggersRouter.post('/', (req, res) => {
   const handlerErrorInit: IHandlerError = { errorsMessages: [] };
-  if (!req.headers) {
+  if (typeof req.headers === 'undefined') {
     res.status(404);
   } else {
     bloggersPost(req, res, handlerErrorInit);
@@ -32,7 +32,7 @@ bloggersRouter.get('/:id', (req, res) => {
 
 bloggersRouter.put('/:id', (req, res) => {
   const handlerErrorInit: IHandlerError = { errorsMessages: [] };
-  if (!req.headers) {
+  if (typeof req.headers === 'undefined') {
     res.status(404);
   } else {
     bloggersPost(req, res, handlerErrorInit);
