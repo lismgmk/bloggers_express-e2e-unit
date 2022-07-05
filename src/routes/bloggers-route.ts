@@ -6,38 +6,27 @@ import { bloggersPost } from './utils/bloggers-post';
 export const bloggersRouter = Router({});
 
 bloggersRouter.get('/', (req, res) => {
-  if (typeof req.headers === 'undefined') {
-    res.status(404);
-  } else {
-    res.status(200).send(bloggersRepository.getAllBloggers());
-  }
+  res.status(200).send(bloggersRepository.getAllBloggers());
 });
 bloggersRouter.post('/', (req, res) => {
   const handlerErrorInit: IHandlerError = { errorsMessages: [] };
-  if (typeof req.headers === 'undefined') {
-    res.status(404);
-  } else {
-    bloggersPost(req, res, handlerErrorInit);
-    if (handlerErrorInit.errorsMessages.length === 0) {
-      res.status(201).send(bloggersRepository.createBlogger(req.body.name, req.body.youtubeUrl));
-    }
+
+  bloggersPost(req, res, handlerErrorInit);
+  if (handlerErrorInit.errorsMessages.length === 0) {
+    res.status(201).send(bloggersRepository.createBlogger(req.body.name, req.body.youtubeUrl));
   }
 });
 
 bloggersRouter.get('/:id', (req, res) => {
-  if (typeof req.headers === 'undefined') {
-    res.status(404);
-  } else {
-    bloggersRepository.getBloggerById(+req.params.id)
-      ? res.status(200).send(bloggersRepository.getBloggerById(+req.params.id))
-      : res.send(404);
-  }
+  bloggersRepository.getBloggerById(+req.params.id)
+    ? res.status(200).send(bloggersRepository.getBloggerById(+req.params.id))
+    : res.send(404);
 });
 
 bloggersRouter.put('/:id', (req, res) => {
   const handlerErrorInit: IHandlerError = { errorsMessages: [] };
-  if (typeof req.headers === 'undefined') {
-    res.status(404);
+  if (!bloggersRepository.getBloggerById(+req.params.id)) {
+    res.send(404);
   } else {
     bloggersPost(req, res, handlerErrorInit);
     if (handlerErrorInit.errorsMessages.length === 0) {

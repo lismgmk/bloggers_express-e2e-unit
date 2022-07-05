@@ -3,7 +3,7 @@ export interface IBloggers {
   name: string | null;
   youtubeUrl: string | null;
 }
-let bloggers: IBloggers[] = [];
+export let bloggers: IBloggers[] = [];
 
 export const bloggersRepository = {
   getAllBloggers() {
@@ -22,15 +22,22 @@ export const bloggersRepository = {
     return bloggers.find((el) => el.id === id);
   },
   upDateBlogger(name: string, youtubeUrl: string, id: number) {
-    bloggers = bloggers.map((el) => {
-      return el.id === id ? { ...el, name, youtubeUrl } : el;
-    });
+    const elem = bloggers.find((el) => el.id === id);
+    if (elem) {
+      bloggers = bloggers.map((el) => {
+        return el.id === id ? { ...el, name, youtubeUrl } : el;
+      });
+    } else {
+      return false;
+    }
   },
   deleteBlogger(id: number) {
     const elem = bloggers.find((el) => el.id === id);
     if (elem) {
       const index = bloggers.indexOf(elem);
       bloggers.splice(index, 1);
+    } else {
+      return false;
     }
   },
 };
