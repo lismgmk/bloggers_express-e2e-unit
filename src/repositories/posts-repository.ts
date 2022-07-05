@@ -7,7 +7,7 @@ export interface IPosts {
   bloggerName: string | null;
 }
 
-let posts: IPosts[] = [];
+export let posts: IPosts[] = [];
 
 export const postsRepository = {
   getAllPosts() {
