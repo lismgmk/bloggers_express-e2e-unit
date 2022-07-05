@@ -25,9 +25,13 @@ bloggersRouter.post('/', (req, res) => {
 });
 
 bloggersRouter.get('/:id', (req, res) => {
-  bloggersRepository.getBloggerById(+req.params.id) || typeof req.headers === 'undefined'
-    ? res.status(200).send(bloggersRepository.getBloggerById(+req.params.id))
-    : res.send(404);
+  if (typeof req.headers === 'undefined') {
+    res.status(404);
+  } else {
+    bloggersRepository.getBloggerById(+req.params.id)
+      ? res.status(200).send(bloggersRepository.getBloggerById(+req.params.id))
+      : res.send(404);
+  }
 });
 
 bloggersRouter.put('/:id', (req, res) => {
