@@ -6,7 +6,7 @@ import { bloggersPost } from './utils/bloggers-post';
 export const bloggersRouter = Router({});
 
 bloggersRouter.get('/', (req, res) => {
-  if (!req.headers) {
+  if (typeof req.headers === 'undefined') {
     res.status(404);
   } else {
     res.status(200).send(bloggersRepository.getAllBloggers());
@@ -25,7 +25,7 @@ bloggersRouter.post('/', (req, res) => {
 });
 
 bloggersRouter.get('/:id', (req, res) => {
-  bloggersRepository.getBloggerById(+req.params.id) || !req.headers
+  bloggersRepository.getBloggerById(+req.params.id) || typeof req.headers === 'undefined'
     ? res.status(200).send(bloggersRepository.getBloggerById(+req.params.id))
     : res.send(404);
 });
@@ -44,7 +44,7 @@ bloggersRouter.put('/:id', (req, res) => {
 });
 
 bloggersRouter.delete('/:id', (req, res) => {
-  if (!bloggersRepository.getBloggerById(+req.params.id) || !req.headers) {
+  if (!bloggersRepository.getBloggerById(+req.params.id) || typeof req.headers === 'undefined') {
     res.send(404);
   } else {
     bloggersRepository.deleteBlogger(+req.params.id);
