@@ -44,7 +44,6 @@ export const postsPost = (req: any, res: any, handlerErrorInit: IHandlerError) =
     ) {
       errorResponse('bloggerId is invalid', 'bloggerId', handlerErrorInit);
     }
-    console.log(handlerErrorInit);
     if (handlerErrorInit.errorsMessages.length > 0) {
       res.status(400).send(handlerErrorInit);
     }

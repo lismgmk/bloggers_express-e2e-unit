@@ -1,8 +1,7 @@
 import { Router } from 'express';
 import { postsRepository } from '../repositories/posts-repository';
-import { errorResponse, IHandlerError } from '../utils/error-util';
+import { IHandlerError } from '../utils/error-util';
 import { postsPost } from './utils/posts-post';
-import { bloggersRepository } from '../repositories/bloggers-repository';
 
 export const postsRouter = Router({});
 
@@ -11,14 +10,14 @@ postsRouter.get('/', (req, res) => {
 });
 postsRouter.post('/', (req, res) => {
   const handlerErrorInit: IHandlerError = { errorsMessages: [] };
-  if (!bloggersRepository.getBloggerById(+req.body.bloggerId)) {
-    res.status(400).send(errorResponse(`is null or incorrect`, 'bloggerId', handlerErrorInit));
-  } else {
-    postsPost(req, res, handlerErrorInit);
-    if (handlerErrorInit.errorsMessages.length === 0) {
-      res.status(201).send(postsRepository.createPost(req.body));
-    }
+  // if (!bloggersRepository.getBloggerById(+req.body.bloggerId)) {
+  //   res.status(400).send(errorResponse(`is null or incorrect`, 'bloggerId', handlerErrorInit));
+  // } else {
+  postsPost(req, res, handlerErrorInit);
+  if (handlerErrorInit.errorsMessages.length === 0) {
+    res.status(201).send(postsRepository.createPost(req.body));
   }
+  // }
 });
 
 postsRouter.get('/:id', (req, res) => {
