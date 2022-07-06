@@ -30,7 +30,7 @@ postsRouter.get('/:id', (req, res) => {
 postsRouter.put('/:id', (req, res) => {
   const handlerErrorInit: IHandlerError = { errorsMessages: [] };
   if (!postsRepository.getPostById(+req.params.id)) {
-    res.status(400).send(errorResponse(`is null or incorrect`, 'bloggerId', handlerErrorInit));
+    res.send(404);
   } else {
     postsPost(req, res, handlerErrorInit);
     if (handlerErrorInit.errorsMessages.length === 0) {

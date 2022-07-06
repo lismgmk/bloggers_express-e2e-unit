@@ -1,4 +1,5 @@
 import { errorResponse, IHandlerError } from '../../utils/error-util';
+import { bloggers } from '../../repositories/bloggers-repository';
 
 export const postsPost = (req: any, res: any, handlerErrorInit: IHandlerError) => {
   if (req.body !== null && res !== null) {
@@ -36,7 +37,11 @@ export const postsPost = (req: any, res: any, handlerErrorInit: IHandlerError) =
     ) {
       errorResponse('bloggerId is not integer', 'bloggerId', handlerErrorInit);
     }
-    if (!Object.keys(req.body).find((el) => el === 'bloggerId' || req.body.bloggerId === null)) {
+    if (
+      !Object.keys(req.body).find((el) => el === 'bloggerId') ||
+      req.body.bloggerId === null ||
+      !bloggers.find((el) => el.id === +req.body.bloggerId)
+    ) {
       errorResponse('bloggerId is invalid', 'bloggerId', handlerErrorInit);
     }
     console.log(handlerErrorInit);
