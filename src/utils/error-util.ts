@@ -1,15 +1,8 @@
-export interface IHandlerError {
-  errorsMessages: ICurrentError[];
-}
-export interface ICurrentError {
-  message: string;
-  field: string;
-}
+import { ValidationError } from 'express-validator';
 
-export const errorResponse = (explanation: string, fieldError: string, handlerError: IHandlerError) => {
-  const currentError: ICurrentError = {
-    message: explanation,
-    field: fieldError,
+export const errorFormatter = ({ msg, param }: ValidationError) => {
+  return {
+    message: msg,
+    field: param,
   };
-  return handlerError.errorsMessages?.push(currentError);
 };
