@@ -1,24 +1,30 @@
 import { Router } from 'express';
 import { postsRepository } from '../repositories/posts-repository';
-import { IHandlerError } from '../utils/error-util';
-import { postsPost } from './utils/posts-post';
+import { errorFormatter } from '../utils/error-util';
+import { body, validationResult } from 'express-validator';
+import { bloggers } from '../repositories/bloggers-repository';
 
 export const postsRouter = Router({});
 
 postsRouter.get('/', (req, res) => {
   res.status(200).send(postsRepository.getAllPosts());
 });
-postsRouter.post('/', (req, res) => {
-  const handlerErrorInit: IHandlerError = { errorsMessages: [] };
-  // if (!bloggersRepository.getBloggerById(+req.body.bloggerId)) {
-  //   res.status(400).send(errorResponse(`is null or incorrect`, 'bloggerId', handlerErrorInit));
-  // } else {
-  postsPost(req, res, handlerErrorInit);
-  if (handlerErrorInit.errorsMessages.length === 0) {
+postsRouter.post(
+  '/',
+  body('title').trim().isLength({ min: 1, max: 30 }).exists().withMessage('invalid title'),
+  body('shortDescription').trim().isLength({ min: 1, max: 100 }).exists().withMessage('invalid shortDescription'),
+  body('content').trim().isLength({ min: 1, max: 1000 }).exists().withMessage('invalid content'),
+  body('bloggerId')
+    .custom((value) => bloggers.find((el) => el.id === +value))
+    .withMessage('invalid bloggerId'),
+  (req, res) => {
+    const result = validationResult(req).formatWith(errorFormatter);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ errors: result.array() });
+    }
     res.status(201).send(postsRepository.createPost(req.body));
-  }
-  // }
-});
+  },
+);
 
 postsRouter.get('/:id', (req, res) => {
   postsRepository.getPostById(+req.params.id)
@@ -26,18 +32,27 @@ postsRouter.get('/:id', (req, res) => {
     : res.send(404);
 });
 
-postsRouter.put('/:id', (req, res) => {
-  const handlerErrorInit: IHandlerError = { errorsMessages: [] };
-  if (!postsRepository.getPostById(+req.params.id)) {
-    res.send(404);
-  } else {
-    postsPost(req, res, handlerErrorInit);
-    if (handlerErrorInit.errorsMessages.length === 0) {
-      postsRepository.upDatePost(req.body, +req.params.id);
+postsRouter.put(
+  '/:id',
+  body('title').trim().isLength({ min: 1, max: 30 }).exists().withMessage('invalid title'),
+  body('shortDescription').trim().isLength({ min: 1, max: 100 }).exists().withMessage('invalid shortDescription'),
+  body('content').trim().isLength({ min: 1, max: 1000 }).exists().withMessage('invalid content'),
+  body('bloggerId')
+    .custom((value) => bloggers.find((el) => el.id === +value))
+    .withMessage('invalid bloggerId'),
+  (req, res) => {
+    if (!postsRepository.getPostById(+req.params?.id)) {
+      res.send(404);
+    } else {
+      const result = validationResult(req).formatWith(errorFormatter);
+      if (!result.isEmpty()) {
+        return res.status(400).send({ errors: result.array() });
+      }
+      postsRepository.upDatePost(req.body, +req.params?.id);
       res.send(204);
     }
-  }
-});
+  },
+);
 
 postsRouter.delete('/:id', (req, res) => {
   if (!postsRepository.getPostById(+req.params.id)) {
