@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { bloggersRepository } from '../repositories/bloggers-repository';
 import { body, validationResult } from 'express-validator';
 import { errorFormatter } from '../utils/error-util';
+import basicAuth from 'express-basic-auth';
 
 export const bloggersRouter = Router({});
 
@@ -11,6 +12,9 @@ bloggersRouter.get('/', (req, res) => {
 
 bloggersRouter.post(
   '/',
+  basicAuth({
+    users: { admin: 'qwerty' },
+  }),
   body('name').trim().isLength({ min: 1, max: 15 }).exists().withMessage('invalid length'),
   body('youtubeUrl')
     .isLength({ min: 1, max: 100 })
@@ -34,6 +38,9 @@ bloggersRouter.get('/:id', (req, res) => {
 
 bloggersRouter.put(
   '/:id',
+  basicAuth({
+    users: { admin: 'qwerty' },
+  }),
   body('name').trim().isLength({ min: 1, max: 15 }).exists().withMessage('invalid length'),
   body('youtubeUrl')
     .isLength({ min: 1, max: 100 })
@@ -53,11 +60,17 @@ bloggersRouter.put(
   },
 );
 
-bloggersRouter.delete('/:id', (req, res) => {
-  if (!bloggersRepository.getBloggerById(+req.params.id)) {
-    res.send(404);
-  } else {
-    bloggersRepository.deleteBlogger(+req.params.id);
-    res.send(204);
-  }
-});
+bloggersRouter.delete(
+  '/:id',
+  basicAuth({
+    users: { admin: 'qwerty' },
+  }),
+  (req, res) => {
+    if (!bloggersRepository.getBloggerById(+req.params.id)) {
+      res.send(404);
+    } else {
+      bloggersRepository.deleteBlogger(+req.params.id);
+      res.send(204);
+    }
+  },
+);
