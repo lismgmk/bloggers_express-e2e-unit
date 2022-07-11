@@ -15,9 +15,14 @@ postsRouter.post(
   basicAuth({
     users: { admin: 'qwerty' },
   }),
-  body('title').trim().isLength({ min: 1, max: 30 }).exists().withMessage('invalid title'),
-  body('shortDescription').trim().isLength({ min: 1, max: 100 }).exists().withMessage('invalid shortDescription'),
-  body('content').trim().isLength({ min: 1, max: 1000 }).exists().withMessage('invalid content'),
+  body('title').trim().isLength({ min: 1, max: 30 }).bail().exists().withMessage('invalid title'),
+  body('shortDescription')
+    .trim()
+    .isLength({ min: 1, max: 100 })
+    .bail()
+    .exists()
+    .withMessage('invalid shortDescription'),
+  body('content').trim().isLength({ min: 1, max: 1000 }).bail().exists().withMessage('invalid content'),
   body('bloggerId')
     .custom((value) => bloggers.find((el) => el.id === +value))
     .withMessage('invalid bloggerId'),
@@ -41,9 +46,14 @@ postsRouter.put(
   basicAuth({
     users: { admin: 'qwerty' },
   }),
-  body('title').trim().isLength({ min: 1, max: 30 }).exists().withMessage('invalid title'),
-  body('shortDescription').trim().isLength({ min: 1, max: 100 }).exists().withMessage('invalid shortDescription'),
-  body('content').trim().isLength({ min: 1, max: 1000 }).exists().withMessage('invalid content'),
+  body('title').trim().isLength({ min: 1, max: 30 }).bail().exists().withMessage('invalid title'),
+  body('shortDescription')
+    .trim()
+    .isLength({ min: 1, max: 100 })
+    .bail()
+    .exists()
+    .withMessage('invalid shortDescription'),
+  body('content').trim().isLength({ min: 1, max: 1000 }).bail().exists().withMessage('invalid content'),
   body('bloggerId')
     .custom((value) => bloggers.find((el) => el.id === +value))
     .withMessage('invalid bloggerId'),
