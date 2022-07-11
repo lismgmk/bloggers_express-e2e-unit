@@ -3,6 +3,7 @@ import { postsRepository } from '../repositories/posts-repository';
 import { errorFormatter } from '../utils/error-util';
 import { body, validationResult } from 'express-validator';
 import { bloggers } from '../repositories/bloggers-repository';
+import basicAuth from 'express-basic-auth';
 
 export const postsRouter = Router({});
 
@@ -11,6 +12,9 @@ postsRouter.get('/', (req, res) => {
 });
 postsRouter.post(
   '/',
+  basicAuth({
+    users: { admin: 'qwerty' },
+  }),
   body('title').trim().isLength({ min: 1, max: 30 }).exists().withMessage('invalid title'),
   body('shortDescription').trim().isLength({ min: 1, max: 100 }).exists().withMessage('invalid shortDescription'),
   body('content').trim().isLength({ min: 1, max: 1000 }).exists().withMessage('invalid content'),
@@ -34,6 +38,9 @@ postsRouter.get('/:id', (req, res) => {
 
 postsRouter.put(
   '/:id',
+  basicAuth({
+    users: { admin: 'qwerty' },
+  }),
   body('title').trim().isLength({ min: 1, max: 30 }).exists().withMessage('invalid title'),
   body('shortDescription').trim().isLength({ min: 1, max: 100 }).exists().withMessage('invalid shortDescription'),
   body('content').trim().isLength({ min: 1, max: 1000 }).exists().withMessage('invalid content'),
@@ -54,11 +61,17 @@ postsRouter.put(
   },
 );
 
-postsRouter.delete('/:id', (req, res) => {
-  if (!postsRepository.getPostById(+req.params.id)) {
-    res.send(404);
-  } else {
-    postsRepository.deletePost(+req.params.id);
-    res.send(204);
-  }
-});
+postsRouter.delete(
+  '/:id',
+  basicAuth({
+    users: { admin: 'qwerty' },
+  }),
+  (req, res) => {
+    if (!postsRepository.getPostById(+req.params.id)) {
+      res.send(404);
+    } else {
+      postsRepository.deletePost(+req.params.id);
+      res.send(204);
+    }
+  },
+);
