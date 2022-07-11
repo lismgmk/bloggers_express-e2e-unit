@@ -24,7 +24,7 @@ postsRouter.post(
   (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
-      return res.status(400).send({ errors: result.array() });
+      return res.status(400).send({ errorsMessages: result.array() });
     }
     res.status(201).send(postsRepository.createPost(req.body));
   },
@@ -53,7 +53,7 @@ postsRouter.put(
     } else {
       const result = validationResult(req).formatWith(errorFormatter);
       if (!result.isEmpty()) {
-        return res.status(400).send({ errors: result.array() });
+        return res.status(400).send({ errorsMessages: result.array() });
       }
       postsRepository.upDatePost(req.body, +req.params?.id);
       res.send(204);
