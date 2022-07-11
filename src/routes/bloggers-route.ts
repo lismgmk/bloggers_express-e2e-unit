@@ -18,7 +18,9 @@ bloggersRouter.post(
   body('name').trim().isLength({ min: 1, max: 15 }).exists().withMessage('invalid length'),
   body('youtubeUrl')
     .isLength({ min: 1, max: 100 })
+    .bail()
     .exists()
+    .bail()
     .matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/)
     .withMessage('invalid url'),
   (req, res) => {
@@ -44,7 +46,9 @@ bloggersRouter.put(
   body('name').trim().isLength({ min: 1, max: 15 }).exists().withMessage('invalid length'),
   body('youtubeUrl')
     .isLength({ min: 1, max: 100 })
+    .bail()
     .exists()
+    .bail()
     .matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/)
     .withMessage('invalid url'),
   (req, res) => {
