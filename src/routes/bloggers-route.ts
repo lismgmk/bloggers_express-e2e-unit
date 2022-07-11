@@ -24,7 +24,7 @@ bloggersRouter.post(
   (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
-      return res.status(400).send({ errors: result.array() });
+      return res.status(400).send({ errorsMessages: result.array() });
     }
     res.status(201).send(bloggersRepository.createBlogger(req.body.name, req.body.youtubeUrl));
   },
@@ -50,7 +50,7 @@ bloggersRouter.put(
   (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
-      return res.status(400).send({ errors: result.array() });
+      return res.status(400).send({ errorsMessages: result.array() });
     }
     if (!bloggersRepository.getBloggerById(+req.params?.id)) {
       res.send(404);
