@@ -7,8 +7,10 @@ import { bloggersRepositoryDB } from '../repositories/bloggers-repository-db';
 export const bloggersRouter = Router({});
 
 bloggersRouter.get('/', async (req, res) => {
-  // res.status(200).send(bloggersRepository.getAllBloggers());
-  res.status(200).send(await bloggersRepositoryDB.getAllBloggers());
+  const limit = parseInt(req.query?.pageSize as string) || 5;
+  const pageNumber = parseInt(req.query?.pageNumber as string) || 5;
+  const SearchNameTerm = req.query?.SearchNameTerm as string;
+  res.status(200).send(await bloggersRepositoryDB.getAllBloggers(limit, pageNumber, SearchNameTerm));
 });
 
 bloggersRouter.post(
@@ -29,7 +31,6 @@ bloggersRouter.post(
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
-    // res.status(201).send(bloggersRepository.createBlogger(req.body.name, req.body.youtubeUrl));
     const newBlogger = await bloggersRepositoryDB.createBlogger(req.body.name, req.body.youtubeUrl);
     res.status(201).send(newBlogger);
   },
@@ -40,18 +41,24 @@ bloggersRouter.get('/:id', async (req, res) => {
   blogger ? res.status(200).send(blogger) : res.send(404);
 });
 
-bloggersRouter.get('/:bloggerId/posts', async (req, res) => {
-  const blogger = await bloggersRepositoryDB.getBloggerById(+req.params.bloggerId);
-  if (blogger) {
-    const limit = parseInt(req.query?.pageSize as string) || 5;
-    const pageNumber = parseInt(req.query?.pageNumber as string) || 5;
-    const bloggerId = parseInt(req.params.bloggerId as string) || 5;
-    const bloggersPostsSlice = await bloggersRepositoryDB.getAllPostsBloggers(limit, pageNumber, bloggerId);
-    bloggersPostsSlice ? res.status(200).send(bloggersPostsSlice) : res.status(500).send('error DB operation');
-  } else {
-    res.send(404);
-  }
-});
+bloggersRouter.get(
+  '/:bloggerId/posts',
+  basicAuth({
+    users: { admin: 'qwerty' },
+  }),
+  async (req, res) => {
+    const blogger = await bloggersRepositoryDB.getBloggerById(+req.params.bloggerId);
+    if (blogger) {
+      const limit = parseInt(req.query?.pageSize as string) || 5;
+      const pageNumber = parseInt(req.query?.pageNumber as string) || 5;
+      const bloggerId = parseInt(req.params.bloggerId as string) || 5;
+      const bloggersPostsSlice = await bloggersRepositoryDB.getAllPostsBloggers(limit, pageNumber, bloggerId);
+      bloggersPostsSlice ? res.status(200).send(bloggersPostsSlice) : res.status(500).send('error DB operation');
+    } else {
+      res.send(404);
+    }
+  },
+);
 
 bloggersRouter.put(
   '/:id',

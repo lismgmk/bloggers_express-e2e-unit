@@ -1,5 +1,6 @@
 import { collections } from '../connect-db';
 import { Posts } from '../models/bloggers';
+import { IPaginationResponse } from '../types';
 
 export interface IPosts {
   id: number;
@@ -13,8 +14,27 @@ export interface IPosts {
 export const posts: IPosts[] = [];
 
 export const postsRepositoryDB = {
-  async getAllPosts(): Promise<Posts[]> {
-    return (await collections.posts?.find({}).toArray()) as unknown as Posts[];
+  async getAllPosts(pageSize: number, pageNumber: number): Promise<IPaginationResponse<Posts>> {
+    let postsPortion: Posts[] | undefined = [];
+    let totalCount: number | undefined = 0;
+    let totalPages = 0;
+    const allBloggersPosts = await collections.posts?.find();
+    if (allBloggersPosts) {
+      postsPortion = await collections.posts
+        ?.find()
+        .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
+        .limit(pageSize)
+        .toArray();
+      totalCount = await collections.posts?.find().count();
+      totalPages = Math.ceil((totalCount || 0) / pageSize);
+    }
+    return {
+      pagesCount: totalPages,
+      page: pageNumber,
+      pageSize,
+      totalCount,
+      items: postsPortion,
+    };
   },
   async createPost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>): Promise<Omit<Posts, '_id'> | undefined> {
     const newPost: Omit<Posts, '_id'> = {

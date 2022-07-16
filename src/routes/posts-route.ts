@@ -8,7 +8,9 @@ import { collections } from '../connect-db';
 export const postsRouter = Router({});
 
 postsRouter.get('/', async (req, res) => {
-  res.status(200).send(await postsRepositoryDB.getAllPosts());
+  const limit = parseInt(req.query?.pageSize as string) || 5;
+  const pageNumber = parseInt(req.query?.pageNumber as string) || 5;
+  res.status(200).send(await postsRepositoryDB.getAllPosts(limit, pageNumber));
 });
 postsRouter.post(
   '/',
@@ -70,7 +72,7 @@ postsRouter.put(
       if (!result.isEmpty()) {
         return res.status(400).send({ errorsMessages: result.array() });
       }
-      const updatePost = await postsRepositoryDB.upDatePost(req.body, +req.params?.id);
+      await postsRepositoryDB.upDatePost(req.body, +req.params?.id);
       res.send(204);
     }
   },

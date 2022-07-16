@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 
 export class Bloggers {
-  constructor(public name: string, public youtubeUrl: string, public id: number, public _id?: ObjectId) {}
+  constructor(public name?: string, public youtubeUrl?: string, public id?: number, public _id?: ObjectId) {}
 }
 
 export class Posts {
