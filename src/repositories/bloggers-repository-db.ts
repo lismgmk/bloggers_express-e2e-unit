@@ -83,7 +83,7 @@ export const bloggersRepositoryDB = {
   },
   async getBloggerById(id: number) {
     const blogger = (await collections.bloggers?.findOne({ id })) as Bloggers;
-    delete blogger._id;
+    blogger && delete blogger._id;
     return blogger;
   },
   async upDateBlogger(name: string, youtubeUrl: string, id: number) {
