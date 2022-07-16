@@ -1,9 +1,4 @@
-export interface IBloggers {
-  id: number;
-  name: string | null;
-  youtubeUrl: string | null;
-}
-export let bloggers: IBloggers[] = [];
+export let bloggers: any[] = [];
 
 export const bloggersRepository = {
   getAllBloggers() {
