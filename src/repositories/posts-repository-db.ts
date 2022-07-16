@@ -56,7 +56,7 @@ export const postsRepositoryDB = {
   },
   async getPostById(id: number): Promise<Posts | undefined> {
     const post = (await collections.posts?.findOne({ id })) as unknown as Posts;
-    delete post._id;
+    post && delete post._id;
     return post;
   },
   async upDatePost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>, id: number) {
