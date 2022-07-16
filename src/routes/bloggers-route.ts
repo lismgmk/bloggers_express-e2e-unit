@@ -1,13 +1,16 @@
 import { Router } from 'express';
-import { bloggersRepository } from '../repositories/bloggers-repository';
 import { body, validationResult } from 'express-validator';
 import { errorFormatter } from '../utils/error-util';
 import basicAuth from 'express-basic-auth';
+import { bloggersRepositoryDB } from '../repositories/bloggers-repository-db';
 
 export const bloggersRouter = Router({});
 
-bloggersRouter.get('/', (req, res) => {
-  res.status(200).send(bloggersRepository.getAllBloggers());
+bloggersRouter.get('/', async (req, res) => {
+  const limit = parseInt(req.query?.pageSize as string) || 5;
+  const pageNumber = parseInt(req.query?.pageNumber as string) || 5;
+  const SearchNameTerm = req.query?.SearchNameTerm as string;
+  res.status(200).send(await bloggersRepositoryDB.getAllBloggers(limit, pageNumber, SearchNameTerm));
 });
 
 bloggersRouter.post(
@@ -23,20 +26,39 @@ bloggersRouter.post(
     .bail()
     .matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/)
     .withMessage('invalid url'),
-  (req, res) => {
+  async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
-    res.status(201).send(bloggersRepository.createBlogger(req.body.name, req.body.youtubeUrl));
+    const newBlogger = await bloggersRepositoryDB.createBlogger(req.body.name, req.body.youtubeUrl);
+    res.status(201).send(newBlogger);
   },
 );
 
-bloggersRouter.get('/:id', (req, res) => {
-  bloggersRepository.getBloggerById(+req.params.id)
-    ? res.status(200).send(bloggersRepository.getBloggerById(+req.params.id))
-    : res.send(404);
+bloggersRouter.get('/:id', async (req, res) => {
+  const blogger = await bloggersRepositoryDB.getBloggerById(+req.params.id);
+  blogger ? res.status(200).send(blogger) : res.send(404);
 });
+
+bloggersRouter.get(
+  '/:bloggerId/posts',
+  basicAuth({
+    users: { admin: 'qwerty' },
+  }),
+  async (req, res) => {
+    const blogger = await bloggersRepositoryDB.getBloggerById(+req.params.bloggerId);
+    if (blogger) {
+      const limit = parseInt(req.query?.pageSize as string) || 5;
+      const pageNumber = parseInt(req.query?.pageNumber as string) || 5;
+      const bloggerId = parseInt(req.params.bloggerId as string) || 5;
+      const bloggersPostsSlice = await bloggersRepositoryDB.getAllPostsBloggers(limit, pageNumber, bloggerId);
+      bloggersPostsSlice ? res.status(200).send(bloggersPostsSlice) : res.status(500).send('error DB operation');
+    } else {
+      res.send(404);
+    }
+  },
+);
 
 bloggersRouter.put(
   '/:id',
@@ -51,15 +73,16 @@ bloggersRouter.put(
     .bail()
     .matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/)
     .withMessage('invalid url'),
-  (req, res) => {
+  async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
-    if (!bloggersRepository.getBloggerById(+req.params?.id)) {
+    const blogger = await bloggersRepositoryDB.getBloggerById(+req.params?.id);
+    if (!blogger) {
       res.send(404);
     }
-    bloggersRepository.upDateBlogger(req.body.name, req.body.youtubeUrl, +req.params?.id);
+    await bloggersRepositoryDB.upDateBlogger(req.body.name, req.body.youtubeUrl, +req.params?.id);
     res.send(204);
   },
 );
@@ -69,11 +92,13 @@ bloggersRouter.delete(
   basicAuth({
     users: { admin: 'qwerty' },
   }),
-  (req, res) => {
-    if (!bloggersRepository.getBloggerById(+req.params.id)) {
+  async (req, res) => {
+    const blogger = await bloggersRepositoryDB.getBloggerById(+req.params?.id);
+    if (!blogger) {
       res.send(404);
-    } else {
-      bloggersRepository.deleteBlogger(+req.params.id);
+    }
+    const deletedBlogger = await bloggersRepositoryDB.deleteBlogger(+req.params.id);
+    if (deletedBlogger.deleteCount === 1 && deletedBlogger.deleteState) {
       res.send(204);
     }
   },
