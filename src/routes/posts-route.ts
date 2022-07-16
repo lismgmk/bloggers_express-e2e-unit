@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { postsRepository } from '../repositories/posts-repository';
 import { errorFormatter } from '../utils/error-util';
 import { body, validationResult } from 'express-validator';
-import { bloggers } from '../repositories/bloggers-repository';
 import basicAuth from 'express-basic-auth';
+import { postsRepositoryDB } from '../repositories/posts-repository-db';
+import { collections } from '../connect-db';
 
 export const postsRouter = Router({});
 
-postsRouter.get('/', (req, res) => {
-  res.status(200).send(postsRepository.getAllPosts());
+postsRouter.get('/', async (req, res) => {
+  res.status(200).send(await postsRepositoryDB.getAllPosts());
 });
 postsRouter.post(
   '/',
@@ -24,21 +24,23 @@ postsRouter.post(
     .withMessage('invalid shortDescription'),
   body('content').trim().isLength({ min: 1, max: 1000 }).bail().exists().withMessage('invalid content'),
   body('bloggerId')
-    .custom((value) => bloggers.find((el) => el.id === +value))
+    .custom(async (value) => {
+      return await collections.bloggers?.find({ id: value });
+    })
     .withMessage('invalid bloggerId'),
-  (req, res) => {
+  async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
-    res.status(201).send(postsRepository.createPost(req.body));
+    const newPost = await postsRepositoryDB.createPost(req.body);
+    newPost && res.status(201).send(newPost);
   },
 );
 
-postsRouter.get('/:id', (req, res) => {
-  postsRepository.getPostById(+req.params.id)
-    ? res.status(200).send(postsRepository.getPostById(+req.params.id))
-    : res.send(404);
+postsRouter.get('/:id', async (req, res) => {
+  const post = await postsRepositoryDB.getPostById(+req.params.id);
+  post ? res.status(200).send(post) : res.send(404);
 });
 
 postsRouter.put(
@@ -55,17 +57,20 @@ postsRouter.put(
     .withMessage('invalid shortDescription'),
   body('content').trim().isLength({ min: 1, max: 1000 }).bail().exists().withMessage('invalid content'),
   body('bloggerId')
-    .custom((value) => bloggers.find((el) => el.id === +value))
+    .custom(async (value) => {
+      return await collections.bloggers?.find({ id: value });
+    })
     .withMessage('invalid bloggerId'),
-  (req, res) => {
-    if (!postsRepository.getPostById(+req.params?.id)) {
+  async (req, res) => {
+    const post = await postsRepositoryDB.getPostById(+req.params?.id);
+    if (!post) {
       res.send(404);
     } else {
       const result = validationResult(req).formatWith(errorFormatter);
       if (!result.isEmpty()) {
         return res.status(400).send({ errorsMessages: result.array() });
       }
-      postsRepository.upDatePost(req.body, +req.params?.id);
+      const updatePost = await postsRepositoryDB.upDatePost(req.body, +req.params?.id);
       res.send(204);
     }
   },
@@ -76,11 +81,12 @@ postsRouter.delete(
   basicAuth({
     users: { admin: 'qwerty' },
   }),
-  (req, res) => {
-    if (!postsRepository.getPostById(+req.params.id)) {
+  async (req, res) => {
+    const post = await postsRepositoryDB.getPostById(+req.params?.id);
+    if (!post) {
       res.send(404);
     } else {
-      postsRepository.deletePost(+req.params.id);
+      await postsRepositoryDB.deletePost(+req.params.id);
       res.send(204);
     }
   },
