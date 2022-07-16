@@ -21,7 +21,14 @@ export const postsRepositoryDB = {
     const allBloggersPosts = await collections.posts?.find();
     if (allBloggersPosts) {
       postsPortion = await collections.posts
-        ?.find()
+        ?.find(
+          {},
+          {
+            projection: {
+              _id: 0,
+            },
+          },
+        )
         .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
         .limit(pageSize)
         .toArray();
@@ -49,10 +56,11 @@ export const postsRepositoryDB = {
   },
   async getPostById(id: number): Promise<Posts | undefined> {
     const post = (await collections.posts?.findOne({ id })) as unknown as Posts;
+    delete post._id;
     return post;
   },
   async upDatePost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>, id: number) {
-    const newPost = {
+    const newPost: Omit<Posts, '_id'> = {
       title: bodyParams.title,
       shortDescription: bodyParams.shortDescription,
       content: bodyParams.content,

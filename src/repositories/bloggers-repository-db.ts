@@ -1,6 +1,6 @@
 import { collections } from '../connect-db';
 import { Bloggers, Posts } from '../models/bloggers';
-import { IPaginationResponse } from '../types';
+import { IBloggers, IPaginationResponse } from '../types';
 
 export const bloggersRepositoryDB = {
   async getAllBloggers(
@@ -15,7 +15,14 @@ export const bloggersRepositoryDB = {
     const allBloggers = await collections.bloggers?.find({ name: namePart });
     if (allBloggers) {
       bloggersPortion = await collections.bloggers
-        ?.find({ name: namePart })
+        ?.find(
+          { name: namePart },
+          {
+            projection: {
+              _id: 0,
+            },
+          },
+        )
         .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
         .limit(pageSize)
         .toArray();
@@ -41,7 +48,14 @@ export const bloggersRepositoryDB = {
     const allBloggersPosts = await collections.posts?.find({ bloggerId });
     if (allBloggersPosts) {
       postsPortion = await collections.posts
-        ?.find({ bloggerId })
+        ?.find(
+          { bloggerId },
+          {
+            projection: {
+              _id: 0,
+            },
+          },
+        )
         .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
         .limit(pageSize)
         .toArray();
@@ -57,18 +71,19 @@ export const bloggersRepositoryDB = {
     };
   },
 
-  async createBlogger(name: string, youtubeUrl: string) {
+  async createBlogger(name: string, youtubeUrl: string): Promise<IBloggers> {
     const newBlogger: Bloggers = {
       id: +new Date(),
       name,
       youtubeUrl,
     };
     await collections.bloggers?.insertOne(newBlogger);
-
+    delete newBlogger._id;
     return newBlogger;
   },
   async getBloggerById(id: number) {
     const blogger = (await collections.bloggers?.findOne({ id })) as Bloggers;
+    delete blogger._id;
     return blogger;
   },
   async upDateBlogger(name: string, youtubeUrl: string, id: number) {
