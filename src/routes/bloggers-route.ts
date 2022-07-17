@@ -31,9 +31,10 @@ bloggersRouter.post(
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
+    } else {
+      const newBlogger = await bloggersRepositoryDB.createBlogger(req.body.name, req.body.youtubeUrl);
+      res.status(201).send(newBlogger);
     }
-    const newBlogger = await bloggersRepositoryDB.createBlogger(req.body.name, req.body.youtubeUrl);
-    res.status(201).send(newBlogger);
   },
 );
 
@@ -109,9 +110,10 @@ bloggersRouter.put(
     const blogger = await bloggersRepositoryDB.getBloggerById(+req.params?.id);
     if (!blogger) {
       res.send(404);
+    } else {
+      await bloggersRepositoryDB.upDateBlogger(req.body.name, req.body.youtubeUrl, +req.params?.id);
+      res.send(204);
     }
-    await bloggersRepositoryDB.upDateBlogger(req.body.name, req.body.youtubeUrl, +req.params?.id);
-    res.send(204);
   },
 );
 

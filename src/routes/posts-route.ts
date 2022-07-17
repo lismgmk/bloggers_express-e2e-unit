@@ -38,9 +38,10 @@ postsRouter.post(
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
+    } else {
+      const newPost = await postsRepositoryDB.createPost(req.body);
+      newPost && res.status(201).send(newPost);
     }
-    const newPost = await postsRepositoryDB.createPost(req.body);
-    newPost && res.status(201).send(newPost);
   },
 );
 
@@ -79,9 +80,10 @@ postsRouter.put(
       const result = validationResult(req).formatWith(errorFormatter);
       if (!result.isEmpty()) {
         return res.status(400).send({ errorsMessages: result.array() });
+      } else {
+        await postsRepositoryDB.upDatePost(req.body, +req.params?.id);
+        res.send(204);
       }
-      await postsRepositoryDB.upDatePost(req.body, +req.params?.id);
-      res.send(204);
     }
   },
 );
