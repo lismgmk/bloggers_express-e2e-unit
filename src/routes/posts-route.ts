@@ -8,8 +8,8 @@ import { collections } from '../connect-db';
 export const postsRouter = Router({});
 
 postsRouter.get('/', async (req, res) => {
-  const limit = parseInt(req.query?.pageSize as string) || 10;
-  const pageNumber = parseInt(req.query?.pageNumber as string) || 1;
+  const limit = parseInt(req.query?.PageSize as string) || 10;
+  const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
   res.status(200).send(await postsRepositoryDB.getAllPosts(limit, pageNumber));
 });
 postsRouter.post(
