@@ -65,8 +65,7 @@ export const postsRepositoryDB = {
       shortDescription: bodyParams.shortDescription,
       content: bodyParams.content,
     };
-    const updatedPost = await collections.posts?.updateOne({ id }, { $set: newPost });
-    return updatedPost;
+    await collections.posts?.updateOne({ id }, { $set: newPost });
   },
   async deletePost(id: number) {
     const result = await collections.posts?.deleteOne({ id: id });
