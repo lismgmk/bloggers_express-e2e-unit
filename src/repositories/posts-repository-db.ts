@@ -64,8 +64,6 @@ export const postsRepositoryDB = {
       title: bodyParams.title,
       shortDescription: bodyParams.shortDescription,
       content: bodyParams.content,
-      bloggerId: bodyParams.bloggerId,
-      id: +new Date(),
     };
     const updatedPost = await collections.posts?.updateOne({ id }, { $set: newPost });
     return updatedPost;
