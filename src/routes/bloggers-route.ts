@@ -8,8 +8,8 @@ import { postsRepositoryDB } from '../repositories/posts-repository-db';
 export const bloggersRouter = Router({});
 
 bloggersRouter.get('/', async (req, res) => {
-  const limit = parseInt(req.query?.pageSize as string) || 10;
-  const pageNumber = parseInt(req.query?.pageNumber as string) || 1;
+  const limit = parseInt(req.query?.PageSize as string) || 10;
+  const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
   const SearchNameTerm = req.query?.SearchNameTerm as string;
   res.status(200).send(await bloggersRepositoryDB.getAllBloggers(limit, pageNumber, SearchNameTerm));
 });
@@ -45,8 +45,8 @@ bloggersRouter.get('/:id', async (req, res) => {
 bloggersRouter.get('/:bloggerId/posts', async (req, res) => {
   const blogger = await bloggersRepositoryDB.getBloggerById(+req.params.bloggerId);
   if (blogger) {
-    const limit = parseInt(req.query?.pageSize as string) || 10;
-    const pageNumber = parseInt(req.query?.pageNumber as string) || 1;
+    const limit = parseInt(req.query?.PageSize as string) || 10;
+    const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
     const bloggerId = parseInt(req.params.bloggerId as string);
     const bloggersPostsSlice = await bloggersRepositoryDB.getAllPostsBloggers(limit, pageNumber, bloggerId);
     bloggersPostsSlice ? res.status(200).send(bloggersPostsSlice) : res.status(500).send('error DB operation');
