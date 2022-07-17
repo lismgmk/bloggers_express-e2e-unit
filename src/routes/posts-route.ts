@@ -27,7 +27,11 @@ postsRouter.post(
   body('content').trim().isLength({ min: 1, max: 1000 }).bail().exists().withMessage('invalid content'),
   body('bloggerId')
     .custom(async (value) => {
-      return await collections.bloggers?.findOne({ id: value });
+      return collections.bloggers?.findOne({ id: value }).then((user) => {
+        if (!user) {
+          return Promise.reject();
+        }
+      });
     })
     .withMessage('invalid bloggerId'),
   async (req, res) => {
@@ -60,7 +64,11 @@ postsRouter.put(
   body('content').trim().isLength({ min: 1, max: 1000 }).bail().exists().withMessage('invalid content'),
   body('bloggerId')
     .custom(async (value) => {
-      return await collections.bloggers?.findOne({ id: value });
+      return collections.bloggers?.findOne({ id: value }).then((user) => {
+        if (!user) {
+          return Promise.reject();
+        }
+      });
     })
     .withMessage('invalid bloggerId'),
   async (req, res) => {
