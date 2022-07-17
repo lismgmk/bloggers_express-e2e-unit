@@ -40,7 +40,7 @@ bloggersRouter.post(
 bloggersRouter.get('/:id', async (req, res) => {
   const blogger = await bloggersRepositoryDB.getBloggerById(+req.params.id);
   if (!blogger) {
-    res.status(404).send('not found');
+    res.status(404).send('Not found');
   }
   res.status(200).send(blogger);
 });
