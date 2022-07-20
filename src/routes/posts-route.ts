@@ -4,6 +4,8 @@ import { body, validationResult } from 'express-validator';
 import basicAuth from 'express-basic-auth';
 import { postsRepositoryDB } from '../repositories/posts-repository-db';
 import { collections } from '../connect-db';
+import { jwtService } from '../application/jwt-service';
+import { commentsRepositoryDb } from '../repositories/comments-repository-db';
 
 export const postsRouter = Router({});
 
@@ -12,6 +14,7 @@ postsRouter.get('/', async (req, res) => {
   const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
   res.status(200).send(await postsRepositoryDB.getAllPosts(limit, pageNumber));
 });
+
 postsRouter.post(
   '/',
   basicAuth({
@@ -42,6 +45,36 @@ postsRouter.post(
       const newPost = await postsRepositoryDB.createPost(req.body);
       newPost && res.status(201).send(newPost);
     }
+  },
+);
+
+postsRouter.get('/:id/comments', async (req, res) => {
+  const postId = parseInt(req.params?.id);
+  const limit = parseInt(req.query?.PageSize as string) || 10;
+  const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
+  const post = await postsRepositoryDB.getPostById(postId);
+  if (!post) {
+    res.send(404);
+  }
+  res.status(200).send(await commentsRepositoryDb.getAllComments(limit, pageNumber));
+});
+
+postsRouter.post(
+  '/:id/comments',
+  jwtService,
+  body('content').trim().isLength({ min: 20, max: 300 }).bail().exists().withMessage('invalid content'),
+  async (req, res) => {
+    const postId = parseInt(req.params?.id);
+    const post = await postsRepositoryDB.getPostById(postId);
+    if (!post) {
+      res.send(404);
+    }
+    const result = validationResult(req).formatWith(errorFormatter);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ errorsMessages: result.array() });
+    }
+    const newComment = await commentsRepositoryDb.createComment(req.body.content, req.user!);
+    newComment && res.status(201).send(newComment);
   },
 );
 
