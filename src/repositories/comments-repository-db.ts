@@ -1,30 +1,27 @@
 import { collections } from '../connect-db';
-import { UsersModel } from '../models/bloggers';
 import { ICommentsRes, IPaginationResponse } from '../types';
 import { ObjectId } from 'mongodb';
 
 export const commentsRepositoryDb = {
-  async getAllUsers(pageSize: number, pageNumber: number): Promise<IPaginationResponse<UsersModel>> {
-    let usersPortion: UsersModel[] | undefined = [];
+  async getAllComments(pageSize: number, pageNumber: number): Promise<IPaginationResponse<ICommentsRes>> {
+    let commentsPortion: ICommentsRes[] | undefined = [];
     let totalCount: number | undefined = 0;
     let totalPages = 0;
-    usersPortion = await collections.users
+    commentsPortion = await collections.comments
       ?.find()
       .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
       .limit(pageSize)
       .toArray();
-    totalCount = await collections.users?.find().count();
+    totalCount = await collections.comments?.find().count();
     totalPages = Math.ceil((totalCount || 0) / pageSize);
     return {
       pagesCount: totalPages,
       page: pageNumber,
       pageSize,
       totalCount,
-      items:
-        usersPortion &&
-        usersPortion.map((el) => {
-          return { id: el._id, login: el.login };
-        }),
+      items: commentsPortion!.map((el) => {
+        return resComment(el);
+      }),
     };
   },
 
@@ -42,12 +39,26 @@ export const commentsRepositoryDb = {
     return newComment;
   },
 
-  async getUserById(id: string) {
-    return await collections.users?.findOne({ _id: new ObjectId(id) });
+  async updateComment(content: string, login: string) {
+    await collections.comments?.updateOne({ userLogin: login }, { $set: { content } });
+  },
+  async getCommentById(id: string) {
+    const comment = await collections.comments?.findOne({ _id: new ObjectId(id) });
+    return comment ? resComment(comment) : comment;
   },
 
-  async deleteUser(id: string) {
-    const result = await collections.users?.deleteOne({ _id: new ObjectId(id) });
+  async deleteComment(id: string) {
+    const result = await collections.comments?.deleteOne({ _id: new ObjectId(id) });
     return { deleteState: result?.acknowledged, deleteCount: result?.deletedCount };
   },
+};
+
+const resComment = (el: ICommentsRes) => {
+  return {
+    id: el._id!.toString(),
+    content: el.content,
+    userLogin: el.userLogin,
+    userId: el.userId,
+    addedAt: el.addedAt,
+  };
 };

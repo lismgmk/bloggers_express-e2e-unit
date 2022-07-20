@@ -47,6 +47,18 @@ postsRouter.post(
     }
   },
 );
+
+postsRouter.get('/:id/comments', async (req, res) => {
+  const postId = parseInt(req.params?.id);
+  const limit = parseInt(req.query?.PageSize as string) || 10;
+  const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
+  const post = await postsRepositoryDB.getPostById(postId);
+  if (!post) {
+    res.send(404);
+  }
+  res.status(200).send(await commentsRepositoryDb.getAllComments(limit, pageNumber));
+});
+
 postsRouter.post(
   '/:id/comments',
   jwtService,
