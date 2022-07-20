@@ -1,5 +1,8 @@
 import { ObjectId } from 'mongodb';
 
+export class UsersModel {
+  constructor(public login?: string, public hashPassword?: string, public _id?: ObjectId) {}
+}
 export class Bloggers {
   constructor(public name?: string, public youtubeUrl?: string, public id?: number, public _id?: ObjectId) {}
 }
