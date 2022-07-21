@@ -45,7 +45,7 @@ export const postsRepositoryDB = {
   },
   async createPost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>): Promise<Omit<Posts, '_id'> | undefined> {
     const newPost: Omit<Posts, '_id'> = {
-      id: +new Date(),
+      id: new Date().toString(),
       bloggerName: `blogger${posts.length + 1}`,
       ...bodyParams,
     };

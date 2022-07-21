@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 
 export interface IBloggers {
-  id?: number;
+  id?: string;
   name?: string | null;
   youtubeUrl?: string | null;
 }
@@ -25,7 +25,7 @@ export interface IPosts {
   title?: string | null;
   bloggerId?: number;
   bloggerName?: string | null;
-  id?: number;
+  id?: string;
 }
 export interface IPaginationResponse<Item> {
   pagesCount: number;

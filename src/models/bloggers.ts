@@ -4,7 +4,7 @@ export class UsersModel {
   constructor(public login?: string, public hashPassword?: string, public _id?: ObjectId) {}
 }
 export class Bloggers {
-  constructor(public name?: string, public youtubeUrl?: string, public id?: number, public _id?: ObjectId) {}
+  constructor(public name?: string, public youtubeUrl?: string, public id?: string, public _id?: ObjectId) {}
 }
 
 export class Posts {
@@ -14,7 +14,7 @@ export class Posts {
     public title?: string | null,
     public bloggerId?: number,
     public bloggerName?: string | null,
-    public id?: number,
+    public id?: string,
     public _id?: ObjectId,
   ) {}
 }
