@@ -1,9 +1,8 @@
 import { Router } from 'express';
-import { body, param, validationResult } from 'express-validator';
+import { body, validationResult } from 'express-validator';
 import { errorFormatter } from '../utils/error-util';
 import basicAuth from 'express-basic-auth';
 import { usersRepositoryDB } from '../repositories/users-repository-db';
-import { ObjectId } from 'mongodb';
 
 export const usersRouter = Router({});
 
@@ -34,11 +33,11 @@ usersRouter.post(
 
 usersRouter.delete(
   '/:id',
-  param('id')
-    .custom((value) => {
-      return ObjectId.isValid(value);
-    })
-    .withMessage('invalid Id'),
+  // param('id')
+  //   .custom((value) => {
+  //     return ObjectId.isValid(value);
+  //   })
+  //   .withMessage('invalid Id'),
   basicAuth({
     users: { admin: 'qwerty' },
   }),

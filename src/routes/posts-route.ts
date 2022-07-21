@@ -114,7 +114,7 @@ postsRouter.put(
       if (!result.isEmpty()) {
         return res.status(400).send({ errorsMessages: result.array() });
       } else {
-        await postsRepositoryDB.upDatePost(req.body, +req.params?.id);
+        await postsRepositoryDB.upDatePost(req.body, req.params?.id);
         res.send(204);
       }
     }
