@@ -73,7 +73,7 @@ export const bloggersRepositoryDB = {
 
   async createBlogger(name: string, youtubeUrl: string): Promise<IBloggers> {
     const newBlogger: Bloggers = {
-      id: +new Date(),
+      id: (+new Date()).toString(),
       name,
       youtubeUrl,
     };
