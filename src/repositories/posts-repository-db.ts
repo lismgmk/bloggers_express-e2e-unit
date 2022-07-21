@@ -1,17 +1,6 @@
 import { collections } from '../connect-db';
 import { Posts } from '../models/bloggers';
-import { IPaginationResponse } from '../types';
-
-export interface IPosts {
-  id: number;
-  title: string | null;
-  shortDescription: string;
-  content: string | null;
-  bloggerId: number;
-  bloggerName: string | null;
-}
-
-export const posts: IPosts[] = [];
+import { IPaginationResponse, IPosts } from '../types';
 
 export const postsRepositoryDB = {
   async getAllPosts(pageSize: number, pageNumber: number): Promise<IPaginationResponse<Posts>> {
@@ -46,7 +35,7 @@ export const postsRepositoryDB = {
   async createPost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>): Promise<Omit<Posts, '_id'> | undefined> {
     const newPost: Omit<Posts, '_id'> = {
       id: new Date().toString(),
-      bloggerName: `blogger${posts.length + 1}`,
+      bloggerName: `blogger${new Date().toString()}`,
       ...bodyParams,
     };
     const insertPost = await collections.posts?.insertOne({ ...newPost });
@@ -54,7 +43,7 @@ export const postsRepositoryDB = {
       return newPost;
     }
   },
-  async getPostById(id: number): Promise<Posts | undefined> {
+  async getPostById(id: string): Promise<Posts | undefined> {
     const post = (await collections.posts?.findOne({ id })) as unknown as Posts;
     post && delete post._id;
     return post;
@@ -67,7 +56,7 @@ export const postsRepositoryDB = {
     };
     await collections.posts?.updateOne({ id }, { $set: newPost });
   },
-  async deletePost(id: number) {
+  async deletePost(id: string) {
     const result = await collections.posts?.deleteOne({ id: id });
     return { deleteState: result?.acknowledged, deleteCount: result?.deletedCount };
   },

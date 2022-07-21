@@ -48,7 +48,6 @@ usersRouter.delete(
       return res.status(400).send({ errorsMessages: result.array() });
     }
     const user = await usersRepositoryDB.getUserById(req.params.id);
-    console.log(user, 'id');
     if (!user) {
       res.send(404);
     } else {

@@ -49,7 +49,7 @@ postsRouter.post(
 );
 
 postsRouter.get('/:id/comments', async (req, res) => {
-  const postId = parseInt(req.params?.id);
+  const postId = req.params?.id;
   const limit = parseInt(req.query?.PageSize as string) || 10;
   const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
   const post = await postsRepositoryDB.getPostById(postId);
@@ -64,7 +64,7 @@ postsRouter.post(
   jwtService,
   body('content').trim().isLength({ min: 20, max: 300 }).bail().exists().withMessage('invalid content'),
   async (req, res) => {
-    const postId = parseInt(req.params?.id);
+    const postId = req.params?.id;
     const post = await postsRepositoryDB.getPostById(postId);
     if (!post) {
       res.send(404);
@@ -79,7 +79,7 @@ postsRouter.post(
 );
 
 postsRouter.get('/:id', async (req, res) => {
-  const post = await postsRepositoryDB.getPostById(+req.params.id);
+  const post = await postsRepositoryDB.getPostById(req.params.id);
   post ? res.status(200).send(post) : res.send(404);
 });
 
@@ -106,7 +106,7 @@ postsRouter.put(
     })
     .withMessage('invalid bloggerId'),
   async (req, res) => {
-    const post = await postsRepositoryDB.getPostById(+req.params?.id);
+    const post = await postsRepositoryDB.getPostById(req.params?.id);
     if (!post) {
       res.send(404);
     } else {
@@ -127,11 +127,11 @@ postsRouter.delete(
     users: { admin: 'qwerty' },
   }),
   async (req, res) => {
-    const post = await postsRepositoryDB.getPostById(+req.params?.id);
+    const post = await postsRepositoryDB.getPostById(req.params?.id);
     if (!post) {
       res.send(404);
     } else {
-      await postsRepositoryDB.deletePost(+req.params.id);
+      await postsRepositoryDB.deletePost(req.params.id);
       res.send(204);
     }
   },

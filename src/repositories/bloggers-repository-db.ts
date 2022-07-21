@@ -40,7 +40,7 @@ export const bloggersRepositoryDB = {
   async getAllPostsBloggers(
     pageSize: number,
     pageNumber: number,
-    bloggerId: number,
+    bloggerId: string,
   ): Promise<IPaginationResponse<Posts>> {
     let postsPortion: Posts[] | undefined = [];
     let totalCount: number | undefined = 0;
@@ -81,15 +81,15 @@ export const bloggersRepositoryDB = {
     delete newBlogger._id;
     return newBlogger;
   },
-  async getBloggerById(id: number) {
+  async getBloggerById(id: string) {
     const blogger = (await collections.bloggers?.findOne({ id })) as Bloggers;
     blogger && delete blogger._id;
     return blogger;
   },
-  async upDateBlogger(name: string, youtubeUrl: string, id: number) {
+  async upDateBlogger(name: string, youtubeUrl: string, id: string) {
     await collections.bloggers?.updateOne({ id: id }, { $set: { name, youtubeUrl } });
   },
-  async deleteBlogger(id: number) {
+  async deleteBlogger(id: string) {
     const result = await collections.bloggers?.deleteOne({ id: id });
     return { deleteState: result?.acknowledged, deleteCount: result?.deletedCount };
   },
