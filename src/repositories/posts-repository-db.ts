@@ -48,11 +48,12 @@ export const postsRepositoryDB = {
     post && delete post._id;
     return post;
   },
-  async upDatePost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>, id: number) {
+  async upDatePost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>, id: string) {
     const newPost: Omit<Posts, '_id'> = {
       title: bodyParams.title,
       shortDescription: bodyParams.shortDescription,
       content: bodyParams.content,
+      bloggerId: bodyParams.bloggerId,
     };
     await collections.posts?.updateOne({ id }, { $set: newPost });
   },
