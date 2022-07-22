@@ -13,7 +13,7 @@ export interface ICommentsRes {
   userId?: string;
   userLogin?: string | null;
   addedAt?: Date | null;
-  postId?: string;
+  // postId?: string;
 }
 export interface IUsersRes {
   id?: string;

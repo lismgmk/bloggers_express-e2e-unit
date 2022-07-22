@@ -32,12 +32,12 @@ export const commentsRepositoryDb = {
       userId,
       userLogin: existedUser!.login,
       addedAt: new Date(),
-      postId: postId,
+      // postId: postId,
     };
     const insertComment = await collections.comments?.insertOne(newComment);
     newComment.id = insertComment!.insertedId.toString();
     delete newComment._id;
-    delete newComment.postId;
+    // delete newComment.postId;
     return newComment;
   },
 
