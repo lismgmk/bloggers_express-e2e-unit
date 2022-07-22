@@ -8,13 +8,14 @@ export const authRepositoryDB = {
     const user = (await collections.users?.findOne({ login })) as UsersModel;
     if (!user) {
       return 'error';
+    } else {
+      const isMatch = await bcrypt.compare(password, user.hashPassword ?? '');
+      if (!isMatch) {
+        return 'error';
+      } else {
+        const accessToken = JWT.sign({ id: user._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
+        return { token: accessToken };
+      }
     }
-    const isMatch = await bcrypt.compare(password, user.hashPassword ?? '');
-    if (!isMatch) {
-      return 'error';
-    }
-    const accessToken = JWT.sign({ id: user._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
-
-    return { token: accessToken };
   },
 };

@@ -3,6 +3,7 @@ import { body, validationResult } from 'express-validator';
 import { errorFormatter } from '../utils/error-util';
 import basicAuth from 'express-basic-auth';
 import { usersRepositoryDB } from '../repositories/users-repository-db';
+import { ObjectId } from 'mongodb';
 
 export const usersRouter = Router({});
 
@@ -37,14 +38,18 @@ usersRouter.delete(
     users: { admin: 'qwerty' },
   }),
   async (req, res) => {
-    const user = await usersRepositoryDB.getUserById(req.params.id);
-    if (!user) {
-      res.send(404);
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.send(404);
     } else {
-      const deletedUser = await usersRepositoryDB.deleteUser(req.params.id);
-      console.log(deletedUser, 'deleted');
-      if (deletedUser.deleteCount === 1 && deletedUser.deleteState) {
-        res.send(204);
+      const user = await usersRepositoryDB.getUserById(req.params.id);
+      if (!user) {
+        res.send(404);
+      } else {
+        const deletedUser = await usersRepositoryDB.deleteUser(req.params.id);
+        console.log(deletedUser, 'deleted');
+        if (deletedUser.deleteCount === 1 && deletedUser.deleteState) {
+          res.send(204);
+        }
       }
     }
   },
