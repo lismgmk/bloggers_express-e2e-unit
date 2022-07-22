@@ -56,7 +56,7 @@ postsRouter.get('/:id/comments', async (req, res) => {
   if (!post) {
     res.send(404);
   } else {
-    res.status(200).send(await commentsRepositoryDb.getAllComments(limit, pageNumber));
+    res.status(200).send(await commentsRepositoryDb.getAllComments(limit, pageNumber, postId));
   }
 });
 
