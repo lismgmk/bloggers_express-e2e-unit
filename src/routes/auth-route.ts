@@ -16,7 +16,7 @@ authRouter.post(
     } else {
       const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
       if (isCheck === 'error') {
-        res.status(401).send('wrong pass');
+        res.send(401);
       } else {
         res.status(200).send(isCheck);
       }
