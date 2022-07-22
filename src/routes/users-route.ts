@@ -33,19 +33,10 @@ usersRouter.post(
 
 usersRouter.delete(
   '/:id',
-  // param('id')
-  //   .custom((value) => {
-  //     return ObjectId.isValid(value);
-  //   })
-  //   .withMessage('invalid Id'),
   basicAuth({
     users: { admin: 'qwerty' },
   }),
   async (req, res) => {
-    const result = validationResult(req).formatWith(errorFormatter);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    }
     const user = await usersRepositoryDB.getUserById(req.params.id);
     if (!user) {
       res.send(404);

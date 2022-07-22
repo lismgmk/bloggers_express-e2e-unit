@@ -32,10 +32,11 @@ export const postsRepositoryDB = {
       items: postsPortion,
     };
   },
-  async createPost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>): Promise<Omit<Posts, '_id'> | undefined> {
+  async createPost(bodyParams: IPosts): Promise<Omit<Posts, '_id'> | undefined> {
+    const blogger = await collections.bloggers?.findOne({ id: bodyParams.bloggerId });
     const newPost: Omit<Posts, '_id'> = {
-      id: new Date().toString(),
-      bloggerName: `blogger${new Date().toString()}`,
+      id: (+new Date()).toString(),
+      bloggerName: blogger!.name,
       ...bodyParams,
     };
     const insertPost = await collections.posts?.insertOne({ ...newPost });

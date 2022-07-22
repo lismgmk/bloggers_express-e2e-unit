@@ -10,9 +10,10 @@ export interface ICommentsRes {
   _id?: ObjectId;
   id?: string | null;
   content?: string | null;
-  userId?: string | null;
+  userId?: string;
   userLogin?: string | null;
   addedAt?: Date | null;
+  postId?: string;
 }
 export interface IUsersRes {
   id?: string;
@@ -23,7 +24,7 @@ export interface IPosts {
   shortDescription?: string;
   content?: string | null;
   title?: string | null;
-  bloggerId?: number;
+  bloggerId?: string;
   bloggerName?: string | null;
   id?: string;
 }

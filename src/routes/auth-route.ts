@@ -13,12 +13,13 @@ authRouter.post(
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(401).send({ errorsMessages: result.array() });
-    }
-    const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
-    if (isCheck === 'error') {
-      res.status(400).send('wrong pass');
     } else {
-      res.status(200).send(isCheck);
+      const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
+      if (isCheck === 'error') {
+        res.status(400).send('wrong pass');
+      } else {
+        res.status(200).send(isCheck);
+      }
     }
   },
 );

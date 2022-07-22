@@ -106,13 +106,14 @@ bloggersRouter.put(
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
-    }
-    const blogger = await bloggersRepositoryDB.getBloggerById(req.params?.id);
-    if (!blogger) {
-      res.send(404);
     } else {
-      await bloggersRepositoryDB.upDateBlogger(req.body.name, req.body.youtubeUrl, req.params?.id);
-      res.send(204);
+      const blogger = await bloggersRepositoryDB.getBloggerById(req.params?.id);
+      if (!blogger) {
+        res.send(404);
+      } else {
+        await bloggersRepositoryDB.upDateBlogger(req.body.name, req.body.youtubeUrl, req.params?.id);
+        res.send(204);
+      }
     }
   },
 );
@@ -126,10 +127,11 @@ bloggersRouter.delete(
     const blogger = await bloggersRepositoryDB.getBloggerById(req.params?.id);
     if (!blogger) {
       res.send(404);
-    }
-    const deletedBlogger = await bloggersRepositoryDB.deleteBlogger(req.params.id);
-    if (deletedBlogger.deleteCount === 1 && deletedBlogger.deleteState) {
-      res.send(204);
+    } else {
+      const deletedBlogger = await bloggersRepositoryDB.deleteBlogger(req.params.id);
+      if (deletedBlogger.deleteCount === 1 && deletedBlogger.deleteState) {
+        res.send(204);
+      }
     }
   },
 );
