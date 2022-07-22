@@ -12,7 +12,7 @@ export class Posts {
     public shortDescription?: string,
     public content?: string | null,
     public title?: string | null,
-    public bloggerId?: number,
+    public bloggerId?: string,
     public bloggerName?: string | null,
     public id?: string,
     public _id?: ObjectId,

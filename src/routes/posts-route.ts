@@ -55,8 +55,9 @@ postsRouter.get('/:id/comments', async (req, res) => {
   const post = await postsRepositoryDB.getPostById(postId);
   if (!post) {
     res.send(404);
+  } else {
+    res.status(200).send(await commentsRepositoryDb.getAllComments(limit, pageNumber));
   }
-  res.status(200).send(await commentsRepositoryDb.getAllComments(limit, pageNumber));
 });
 
 postsRouter.post(
@@ -68,13 +69,15 @@ postsRouter.post(
     const post = await postsRepositoryDB.getPostById(postId);
     if (!post) {
       res.send(404);
+    } else {
+      const result = validationResult(req).formatWith(errorFormatter);
+      if (!result.isEmpty()) {
+        return res.status(400).send({ errorsMessages: result.array() });
+      } else {
+        const newComment = await commentsRepositoryDb.createComment(req.body.content, req.user!, postId);
+        newComment && res.status(201).send(newComment);
+      }
     }
-    const result = validationResult(req).formatWith(errorFormatter);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    }
-    const newComment = await commentsRepositoryDb.createComment(req.body.content, req.user!);
-    newComment && res.status(201).send(newComment);
   },
 );
 

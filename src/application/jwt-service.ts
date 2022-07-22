@@ -27,7 +27,7 @@ export const jwtService = async (req: express.Request, res: express.Response, ne
       token &&
       jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || '', (err, result) => {
         if (err) {
-          return res.status(403).json({
+          return res.status(401).send({
             errors: [
               {
                 msg: err,
@@ -41,11 +41,11 @@ export const jwtService = async (req: express.Request, res: express.Response, ne
     if (user) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      req.user = user.login;
+      req.user = user.id;
     }
     next();
   } catch (error) {
-    res.status(403).json({
+    res.status(401).send({
       errors: [
         {
           msg: 'Invalid token',

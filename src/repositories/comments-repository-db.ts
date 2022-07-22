@@ -25,22 +25,24 @@ export const commentsRepositoryDb = {
     };
   },
 
-  async createComment(content: string, login: string): Promise<ICommentsRes> {
-    const userId = await collections.users?.findOne({ login });
+  async createComment(content: string, userId: string, postId: string): Promise<ICommentsRes> {
+    const existedUser = await collections.users?.findOne({ _id: new ObjectId(userId) });
     const newComment: ICommentsRes = {
       content,
-      userId: userId!._id.toString(),
-      userLogin: login,
+      userId,
+      userLogin: existedUser!.login,
       addedAt: new Date(),
+      postId: postId,
     };
     const insertComment = await collections.comments?.insertOne(newComment);
     newComment.id = insertComment!.insertedId.toString();
     delete newComment._id;
+    delete newComment.postId;
     return newComment;
   },
 
-  async updateComment(content: string, login: string) {
-    await collections.comments?.updateOne({ userLogin: login }, { $set: { content } });
+  async updateComment(content: string, id: string) {
+    await collections.comments?.updateOne({ _id: new ObjectId(id) }, { $set: { content } });
   },
   async getCommentById(id: string) {
     const comment = await collections.comments?.findOne({ _id: new ObjectId(id) });

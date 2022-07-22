@@ -13,7 +13,7 @@ export const authRepositoryDB = {
     if (!isMatch) {
       return 'error';
     }
-    const accessToken = JWT.sign({ login }, process.env.ACCESS_TOKEN_SECRET ?? '');
+    const accessToken = JWT.sign({ id: user._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
 
     return { token: accessToken };
   },

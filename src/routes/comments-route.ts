@@ -19,13 +19,16 @@ commentsRouter.put(
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
-    }
-    const comment = await commentsRepositoryDb.getCommentById(req.params?.id);
-    if (!comment) {
-      res.send(404);
     } else {
-      await commentsRepositoryDb.updateComment(req.body.content, req.user!);
-      res.send(204);
+      const comment = await commentsRepositoryDb.getCommentById(req.params?.id);
+      if (!comment) {
+        res.send(404);
+      } else if (comment.userId !== req.user) {
+        res.sendStatus(403);
+      } else {
+        await commentsRepositoryDb.updateComment(req.body.content, req.params?.id);
+        res.send(204);
+      }
     }
   },
 );
@@ -33,10 +36,13 @@ commentsRouter.put(
 commentsRouter.delete('/:id', jwtService, async (req, res) => {
   const comment = await commentsRepositoryDb.getCommentById(req.params?.id);
   if (!comment) {
-    res.send(404);
-  }
-  const deletedComment = await commentsRepositoryDb.deleteComment(req.params?.id);
-  if (deletedComment.deleteCount === 1 && deletedComment.deleteState) {
-    res.send(204);
+    res.sendStatus(404);
+  } else if (comment.userId !== req.user) {
+    res.sendStatus(403);
+  } else {
+    const deletedComment = await commentsRepositoryDb.deleteComment(req.params?.id);
+    if (deletedComment.deleteCount === 1 && deletedComment.deleteState) {
+      res.send(204);
+    }
   }
 });
