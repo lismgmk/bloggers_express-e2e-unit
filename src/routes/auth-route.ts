@@ -12,11 +12,11 @@ authRouter.post(
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
-      return res.status(401).send({ errorsMessages: result.array() });
+      return res.status(400).send({ errorsMessages: result.array() });
     } else {
       const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
       if (isCheck === 'error') {
-        res.status(400).send('wrong pass');
+        res.status(401).send('wrong pass');
       } else {
         res.status(200).send(isCheck);
       }
