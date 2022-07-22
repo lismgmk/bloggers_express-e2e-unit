@@ -3,16 +3,20 @@ import { ICommentsRes, IPaginationResponse } from '../types';
 import { ObjectId } from 'mongodb';
 
 export const commentsRepositoryDb = {
-  async getAllComments(pageSize: number, pageNumber: number): Promise<IPaginationResponse<ICommentsRes>> {
+  async getAllComments(
+    pageSize: number,
+    pageNumber: number,
+    postId: string,
+  ): Promise<IPaginationResponse<ICommentsRes>> {
     let commentsPortion: ICommentsRes[] | undefined = [];
     let totalCount: number | undefined = 0;
     let totalPages = 0;
     commentsPortion = await collections.comments
-      ?.find()
+      ?.find({ postId })
       .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
       .limit(pageSize)
       .toArray();
-    totalCount = await collections.comments?.find().count();
+    totalCount = await collections.comments?.find({ postId }).count();
     totalPages = Math.ceil((totalCount || 0) / pageSize);
     return {
       pagesCount: totalPages,
@@ -32,12 +36,12 @@ export const commentsRepositoryDb = {
       userId,
       userLogin: existedUser!.login,
       addedAt: new Date(),
-      // postId: postId,
+      postId: postId,
     };
     const insertComment = await collections.comments?.insertOne(newComment);
     newComment.id = insertComment!.insertedId.toString();
     delete newComment._id;
-    // delete newComment.postId;
+    delete newComment.postId;
     return newComment;
   },
 
