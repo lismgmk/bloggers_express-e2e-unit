@@ -15,6 +15,23 @@ export interface ICommentsRes {
   addedAt?: Date | null;
   postId?: string;
 }
+
+export interface IUser {
+  accountData: {
+    userName: string;
+    email: string;
+    passwordHash: string;
+    createdAt: Date;
+    userIp: string;
+  };
+  emailConfirmation: {
+    confirmationCode: string;
+    expirationDate: Date;
+    isConfirmed: boolean;
+    attemptCount: number;
+  };
+}
+
 export interface IUsersRes {
   id?: string;
   login?: string | null;

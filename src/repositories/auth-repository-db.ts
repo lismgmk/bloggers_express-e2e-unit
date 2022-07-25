@@ -18,4 +18,16 @@ export const authRepositoryDB = {
       }
     }
   },
+  async confirmEmail(code: string) {
+    const confirmedUser = await collections.users?.findOne({ 'emailConfirmation.confirmationCode': { $eq: code } });
+    if (confirmedUser) {
+      await collections.users?.updateOne(
+        { _id: confirmedUser._id },
+        { $set: { 'emailConfirmation.isConfirmed': true } },
+      );
+      return true;
+    } else {
+      return false;
+    }
+  },
 };
