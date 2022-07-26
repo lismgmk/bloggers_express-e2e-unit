@@ -32,6 +32,12 @@ export interface IUser {
   };
 }
 
+export interface IIpUser {
+  createdAt: Date;
+  userIp: string;
+  attempt: number;
+}
+
 export interface IUsersRes {
   id?: string;
   login?: string | null;

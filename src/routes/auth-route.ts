@@ -79,11 +79,16 @@ authRouter.post(
       "The field Email must match the regular expression '^[\\\\w-\\\\.]+@([\\\\w-]+\\\\.)+[\\\\w-]{2,4}$'.",
     ),
   async (req, res) => {
+    const clientIp = requestIp.getClientIp(req);
+    const checkIp = await authRepositoryDB.checkIpAttempt(clientIp!);
+    if (checkIp === 'error') {
+      return res.send(429);
+    }
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(401).send({ errorsMessages: result.array() });
     } else {
-      return;
+      return res.send(204);
     }
   },
 );
@@ -91,7 +96,7 @@ authRouter.post(
 authRouter.post('/registration-confirmation', body('code').exists().withMessage('code error'), async (req, res) => {
   const result = validationResult(req).formatWith(errorFormatter);
   if (!result.isEmpty()) {
-    return res.status(401).send({ errorsMessages: result.array() });
+    return res.status(400).send({ errorsMessages: result.array() });
   } else {
     const authConfirm = await authRepositoryDB.confirmEmail(req.body.code);
     if (authConfirm) {
