@@ -1,21 +1,23 @@
 import { collections } from '../connect-db';
-import { UsersModel } from '../models/bloggers';
 import bcrypt from 'bcryptjs';
 import JWT from 'jsonwebtoken';
+import { addUserAttempt } from '../utils/add-user-attempt';
 
 export const authRepositoryDB = {
-  async authUser(login: string, password: string): Promise<{ token: string } | 'error'> {
-    const user = (await collections.users?.findOne({ login })) as UsersModel;
-    if (!user) {
-      return 'error';
+  async authUser(login: string, password: string): Promise<{ token: string } | 'add attempt' | 'max limit'> {
+    const attemptCountUser = await collections.users?.findOne({ 'accountData.userName': login });
+    const isMatch =
+      attemptCountUser && (await bcrypt.compare(password, attemptCountUser.accountData.passwordHash ?? ''));
+    if (!attemptCountUser || !isMatch) {
+      await addUserAttempt.addAttemptByLogin(login, false);
+      return 'add attempt';
+    }
+    if (attemptCountUser!.emailConfirmation.attemptCount > 5) {
+      return 'max limit';
     } else {
-      const isMatch = await bcrypt.compare(password, user.hashPassword ?? '');
-      if (!isMatch) {
-        return 'error';
-      } else {
-        const accessToken = JWT.sign({ id: user._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
-        return { token: accessToken };
-      }
+      await addUserAttempt.addAttemptByLogin(login, true);
+      const accessToken = JWT.sign({ id: attemptCountUser._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
+      return { token: accessToken };
     }
   },
   async confirmEmail(code: string) {
@@ -28,57 +30,6 @@ export const authRepositoryDB = {
       return true;
     } else {
       return false;
-    }
-  },
-  async addAttemptIp(login: string, userIp: string): Promise<'new user' | 'add attempt' | 'max limit'> {
-    const attemptCountUser = await collections.users?.findOne({ 'accountData.userName': login });
-    if (!attemptCountUser) {
-      return 'new user';
-    }
-    if (attemptCountUser!.emailConfirmation.attemptCount > 5) {
-      return 'max limit';
-    } else {
-      // if (attemptCountUser!.accountData.userIp === userIp) {
-      await collections.users?.find({ 'accountData.userName': login }).forEach((doc) => {
-        const oldAttemptCount = doc.emailConfirmation.attemptCount;
-        collections.users?.updateOne(
-          { 'accountData.userName': login },
-          { $set: { 'emailConfirmation.attemptCount': oldAttemptCount + 1 } },
-        );
-      });
-      return 'add attempt';
-    }
-  },
-  async checkIpAttempt(userIp: string) {
-    const attemptCountUserIp = await collections.ipUsers?.findOne({ userIp });
-    console.log(new Date().getSeconds() - attemptCountUserIp!.createdAt.getSeconds(), 'ddddddddddddddddddddddddddd');
-    if (!attemptCountUserIp) {
-      return await collections.ipUsers?.insertOne({ createdAt: new Date(), userIp, attempt: 1 });
-    }
-    if (
-      attemptCountUserIp &&
-      // attemptCountUserIp.attempt < 5 &&
-      new Date().getSeconds() - attemptCountUserIp.createdAt.getSeconds() > 10
-    ) {
-      return await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 1, createdAt: new Date() } });
-    }
-    if (
-      attemptCountUserIp &&
-      attemptCountUserIp.attempt >= 5 &&
-      attemptCountUserIp.createdAt.getSeconds() - new Date().getSeconds() < 10
-    ) {
-      return 'error';
-    }
-
-    if (
-      attemptCountUserIp &&
-      attemptCountUserIp.attempt < 5 &&
-      attemptCountUserIp.createdAt.getSeconds() - new Date().getSeconds() < 10
-    ) {
-      await collections.ipUsers?.find({ userIp }).forEach((doc) => {
-        const oldAttemptCount = doc.attempt;
-        collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: oldAttemptCount + 1 } });
-      });
     }
   },
 };

@@ -1,16 +1,18 @@
 import nodemailer from 'nodemailer';
 
 export const mailService = {
-  async sendEmail(email: string, password: string, code: string) {
+  async sendEmail(email: string, code: string) {
+    const clientPort = process.env.CLIENT_PORT || '';
+    const serviceEmail = process.env.GMAIL_SERVICE_EMAIL || '';
+    const servicePass = process.env.GMAIL_SERVICE_PASS || '';
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: email,
-        pass: password,
+        user: serviceEmail,
+        pass: servicePass,
       },
     });
 
-    const clientPort = process.env.CLIENT_PORT || '';
     const clientSrc = `http://localhost:${clientPort}/client-confirm?code=${code}`;
     const mailOptions = {
       from: '"lismgmk 👻" <lismgmk2@gmail.com>', // sender address

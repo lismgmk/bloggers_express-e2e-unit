@@ -17,6 +17,7 @@ export interface ICommentsRes {
 }
 
 export interface IUser {
+  _id?: ObjectId;
   accountData: {
     userName: string;
     email: string;
