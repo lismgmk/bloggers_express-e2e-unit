@@ -4,6 +4,8 @@ import { errorFormatter } from '../utils/error-util';
 import basicAuth from 'express-basic-auth';
 import { usersRepositoryDB } from '../repositories/users-repository-db';
 import { ObjectId } from 'mongodb';
+import requestIp from 'request-ip';
+import { v4 as uuidv4 } from 'uuid';
 
 export const usersRouter = Router({});
 
@@ -20,14 +22,34 @@ usersRouter.post(
   }),
   body('login').trim().isLength({ min: 3, max: 10 }).exists().withMessage('invalid length'),
   body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
-
+  body('email')
+    .matches(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)
+    .exists()
+    .withMessage(
+      "The field Email must match the regular expression '^[\\\\w-\\\\.]+@([\\\\w-]+\\\\.)+[\\\\w-]{2,4}$'.",
+    ),
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     } else {
-      const newUser = await usersRepositoryDB.createUser(req.body.login, req.body.password);
-      res.status(201).send(newUser);
+      const clientIp = requestIp.getClientIp(req);
+      const confirmationCode = uuidv4();
+      const newUser = await usersRepositoryDB.createUser(
+        req.body.login,
+        req.body.password,
+        req.body.email,
+        clientIp!,
+        confirmationCode,
+      );
+      if (newUser === 'max limit') {
+        return res.status(429).send('max limit');
+      }
+      if (newUser === 'add attempt') {
+        return res.status(400).send('this user is already exist');
+      } else {
+        return res.status(201).send(newUser);
+      }
     }
   },
 );
