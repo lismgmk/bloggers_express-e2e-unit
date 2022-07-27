@@ -7,8 +7,8 @@ export const checkIpService = async (req: express.Request, res: express.Response
   const secondsLimit = 10;
   const attemptsLimit = 5;
   const userIp = requestIp.getClientIp(req);
+  console.log(userIp, userIp);
   const attemptCountUserIp = await collections.ipUsers?.findOne({ userIp });
-  console.log(differenceInSeconds(new Date(), attemptCountUserIp!.createdAt));
   if (!attemptCountUserIp) {
     await collections.ipUsers?.insertOne({ createdAt: new Date(), userIp, attempt: 1 });
     return next();

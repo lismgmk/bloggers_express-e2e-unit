@@ -37,7 +37,7 @@ authRouter.post(
 
 authRouter.post(
   '/registration',
-  checkIpService,
+  // checkIpService,
   body('login').trim().isLength({ min: 3, max: 10 }).exists().withMessage('invalid length'),
   body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
   body('email')
@@ -62,7 +62,6 @@ authRouter.post(
     if (isSendStatus.error) {
       const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
       return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
-      // }
     }
   },
 );
