@@ -2,9 +2,12 @@ import nodemailer from 'nodemailer';
 
 export const mailService = {
   async sendEmail(email: string, code: string) {
-    const clientPort = process.env.CLIENT_PORT || '';
-    const serviceEmail = process.env.GMAIL_SERVICE_EMAIL || '';
-    const servicePass = process.env.GMAIL_SERVICE_PASS || '';
+    // const clientPort = process.env.CLIENT_PORT || '';
+    // const serviceEmail = process.env.GMAIL_SERVICE_EMAIL || '';
+    // const servicePass = process.env.GMAIL_SERVICE_PASS || '';
+    const clientPort = '7000';
+    const serviceEmail = 'lismgmk2@gmail.com';
+    const servicePass = 'gexdmwmdxditrmou';
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
