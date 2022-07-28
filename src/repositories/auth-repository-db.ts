@@ -25,7 +25,7 @@ export const authRepositoryDB = {
     if (!confirmedUser) {
       return false;
     }
-    if (confirmedUser!.emailConfirmation.isConfirmed === false) {
+    if (confirmedUser!.emailConfirmation.isConfirmed === true) {
       return false;
     } else {
       await collections.users?.updateOne(

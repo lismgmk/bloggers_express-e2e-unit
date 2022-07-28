@@ -34,7 +34,7 @@ export const commentsRepositoryDb = {
     const newComment: ICommentsRes = {
       content,
       userId,
-      userLogin: existedUser!.login,
+      userLogin: existedUser!.accountData.userName,
       addedAt: new Date(),
       postId: postId,
     };
