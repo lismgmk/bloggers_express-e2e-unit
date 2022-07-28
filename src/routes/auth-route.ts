@@ -37,7 +37,7 @@ authRouter.post(
 
 authRouter.post(
   '/registration',
-  checkIpService,
+  // checkIpService,
   body('login').trim().isLength({ min: 3, max: 10 }).exists().withMessage('invalid length'),
   body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
   body('email')
