@@ -14,10 +14,10 @@ export const authRouter = Router({});
 
 authRouter.post(
   '/login',
-  checkIpServiceLogin,
+
   body('login').trim().isLength({ min: 3, max: 10 }).exists().withMessage('invalid length'),
   body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
-
+  checkIpServiceLogin,
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
@@ -54,7 +54,7 @@ authRouter.post(
       });
     })
     .withMessage('invalid value'),
-  checkIpService,
+
   body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
   body('email')
     .matches(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)
@@ -70,7 +70,7 @@ authRouter.post(
     .withMessage(
       "The field Email must match the regular expression '^[\\\\w-\\\\.]+@([\\\\w-]+\\\\.)+[\\\\w-]{2,4}$'.",
     ),
-
+  checkIpService,
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
