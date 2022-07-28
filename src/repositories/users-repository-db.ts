@@ -56,7 +56,7 @@ export const usersRepositoryDB = {
           minutes: 10,
         }),
         isConfirmed: false,
-        attemptCount: 1,
+        attemptCount: 0,
       },
     };
     const insertUser = await collections.users?.insertOne(newUser);
