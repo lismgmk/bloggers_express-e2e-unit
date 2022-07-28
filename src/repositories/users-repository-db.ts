@@ -69,6 +69,12 @@ export const usersRepositoryDB = {
   async getUserByEmail(email: string) {
     return await collections.users?.findOne({ 'accountData.email': email });
   },
+  async updateCodeByEmail(email: string, code: string) {
+    return await collections.users?.updateOne(
+      { 'accountData.email': { $eq: email } },
+      { $set: { 'emailConfirmation.confirmationCode': code } },
+    );
+  },
   async getUserByLogin(login: string) {
     return await collections.users?.findOne({ 'accountData.userName': login });
   },
