@@ -69,6 +69,9 @@ export const usersRepositoryDB = {
   async getUserByEmail(email: string) {
     return await collections.users?.findOne({ 'accountData.email': email });
   },
+  async getUserByLogin(login: string) {
+    return await collections.users?.findOne({ 'accountData.userName': login });
+  },
 
   async deleteUser(id: string) {
     const result = await collections.users?.deleteOne({ _id: new ObjectId(id) });
