@@ -8,12 +8,13 @@ import { mailService } from '../utils/mail-service';
 import { v4 as uuidv4 } from 'uuid';
 import { addUserAttempt } from '../utils/add-user-attempt';
 import { checkIpService } from '../application/check-Ip-service';
+import { checkIpServiceLogin } from '../application/check-Ip-service-login';
 
 export const authRouter = Router({});
 
 authRouter.post(
   '/login',
-  checkIpService,
+  checkIpServiceLogin,
   body('login').trim().isLength({ min: 3, max: 10 }).exists().withMessage('invalid length'),
   body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
 
@@ -28,7 +29,7 @@ authRouter.post(
       return res.send(429);
     } else {
       if (isCheck === 'add attempt') {
-        res.send(400);
+        res.send(401);
       } else {
         res.status(200).send(isCheck);
       }
