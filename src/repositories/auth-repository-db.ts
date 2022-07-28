@@ -30,7 +30,7 @@ export const authRepositoryDB = {
     } else {
       await collections.users?.updateOne(
         { _id: confirmedUser!._id },
-        { $set: { 'emailConfirmation.isConfirmed': true, 'emailConfirmation.attemptCount': 1 } },
+        { $set: { 'emailConfirmation.isConfirmed': true, 'emailConfirmation.attemptCount': 0 } },
       );
       return true;
     }

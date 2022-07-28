@@ -6,7 +6,7 @@ export const addUserAttempt = {
       const oldAttemptCount = doc.emailConfirmation.attemptCount;
       collections.users?.updateOne(
         { 'accountData.userName': login },
-        { $set: { 'emailConfirmation.attemptCount': restoreFlag ? 1 : oldAttemptCount + 1 } },
+        { $set: { 'emailConfirmation.attemptCount': restoreFlag ? 0 : oldAttemptCount + 1 } },
       );
     });
   },
