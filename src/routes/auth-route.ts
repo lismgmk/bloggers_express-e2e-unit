@@ -13,9 +13,10 @@ export const authRouter = Router({});
 
 authRouter.post(
   '/login',
+  checkIpService,
   body('login').trim().isLength({ min: 3, max: 10 }).exists().withMessage('invalid length'),
   body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
-  checkIpService,
+
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
@@ -37,6 +38,7 @@ authRouter.post(
 
 authRouter.post(
   '/registration',
+  checkIpService,
   body('login')
     .trim()
     .isLength({ min: 3, max: 10 })
@@ -66,7 +68,7 @@ authRouter.post(
     .withMessage(
       "The field Email must match the regular expression '^[\\\\w-\\\\.]+@([\\\\w-]+\\\\.)+[\\\\w-]{2,4}$'.",
     ),
-  checkIpService,
+
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
@@ -89,13 +91,14 @@ authRouter.post(
 
 authRouter.post(
   '/registration-email-resending',
+  checkIpService,
   body('email')
     .matches(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)
     .exists()
     .withMessage(
       "The field Email must match the regular expression '^[\\\\w-\\\\.]+@([\\\\w-]+\\\\.)+[\\\\w-]{2,4}$'.",
     ),
-  checkIpService,
+
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
@@ -124,8 +127,9 @@ authRouter.post(
 
 authRouter.post(
   '/registration-confirmation',
-  body('code').exists().withMessage('code error'),
   checkIpService,
+  body('code').exists().withMessage('code error'),
+
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
