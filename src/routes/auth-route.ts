@@ -136,19 +136,29 @@ authRouter.post(
 authRouter.post(
   '/registration-confirmation',
   checkIpService,
-  body('code').exists().withMessage('code error'),
+  body('code')
+    .exists()
+    .bail()
+    .custom(async (value) => {
+      return authRepositoryDB.confirmEmail(value).then((user) => {
+        if (!user) {
+          return Promise.reject();
+        }
+      });
+    })
+    .withMessage('code error'),
 
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     } else {
-      const authConfirm = await authRepositoryDB.confirmEmail(req.body.code);
-      if (authConfirm) {
-        return res.send(204);
-      } else {
-        return res.status(400).send('incorrect code');
-      }
+      // const authConfirm = await authRepositoryDB.confirmEmail(req.body.code);
+      // if (authConfirm) {
+      return res.send(204);
+      // } else {
+      //   return res.status(400).send('incorrect code');
+      // }
     }
   },
 );
