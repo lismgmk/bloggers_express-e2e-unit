@@ -5,7 +5,7 @@ import { differenceInSeconds } from 'date-fns';
 
 export const checkIpService = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   const secondsLimit = 10;
-  const attemptsLimit = 6;
+  const attemptsLimit = 5;
   const userIp = requestIp.getClientIp(req);
   const attemptCountUserIp = await collections.ipUsers?.findOne({ userIp });
   if (!attemptCountUserIp) {
