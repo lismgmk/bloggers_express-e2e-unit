@@ -112,16 +112,15 @@ authRouter.post(
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     } else {
-      const confirmationCode = await usersRepositoryDB.getUserByEmail(req.body.email);
+      // const confirmationCode = await usersRepositoryDB.getUserByEmail(req.body.email);
       // if (confirmationCode && confirmationCode.emailConfirmation.isConfirmed === false) {
       // if (confirmationCode) {
-      const isSendStatus = await mailService.sendEmail(
-        req.body.email,
-        confirmationCode!.emailConfirmation.confirmationCode,
-      );
-      if (!isSendStatus.error) {
-        return res.status(204).send(isSendStatus.data);
-      }
+      const newCode = uuidv4();
+      await usersRepositoryDB.updateCodeByEmail(req.body.email, newCode);
+      const isSendStatus = await mailService.sendEmail(req.body.email, newCode);
+      // if (!isSendStatus.error) {
+      //   return res.status(204).send(isSendStatus.data);
+      // }
       if (isSendStatus.error) {
         const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
         return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
