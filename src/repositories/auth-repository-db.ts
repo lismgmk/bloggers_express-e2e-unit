@@ -22,18 +22,16 @@ export const authRepositoryDB = {
   },
   async confirmEmail(code: string) {
     const confirmedUser = await collections.users?.findOne({ 'emailConfirmation.confirmationCode': { $eq: code } });
-    console.log(confirmedUser, 'confirmedUser');
     if (!confirmedUser) {
       return false;
     }
     if (confirmedUser!.emailConfirmation.isConfirmed === true) {
       return false;
     } else {
-      const updatetedUser = await collections.users?.updateOne(
+      await collections.users?.updateOne(
         { _id: confirmedUser!._id },
-        { $set: { 'emailConfirmation.isConfirmed': true } },
+        { $set: { 'emailConfirmation.isConfirmed': true, 'emailConfirmation.attemptCount': 1 } },
       );
-      console.log(updatetedUser, 'updatedUser');
       return true;
     }
   },
