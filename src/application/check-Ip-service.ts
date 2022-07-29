@@ -15,8 +15,8 @@ export const checkIpService = async (req: express.Request, res: express.Response
   if (attemptCountUserIp && differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit) {
     // await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 1, createdAt: new Date() } });
     await collections.ipUsers?.deleteOne({ userIp });
-    return next();
-    // return res.send(401);
+    // return next();
+    return res.send(204);
   }
   if (
     attemptCountUserIp &&
