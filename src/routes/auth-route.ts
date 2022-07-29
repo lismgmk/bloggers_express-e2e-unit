@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { addUserAttempt } from '../utils/add-user-attempt';
 import { checkIpService } from '../application/check-Ip-service';
 import { checkIpServiceLogin } from '../application/check-Ip-service-login';
+import { collections } from '../connect-db';
 
 export const authRouter = Router({});
 
@@ -31,6 +32,8 @@ authRouter.post(
       if (isCheck === 'add attempt') {
         res.send(401);
       } else {
+        const userIp = requestIp.getClientIp(req);
+        await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 0 } });
         res.status(200).send(isCheck);
       }
     }
@@ -81,12 +84,13 @@ authRouter.post(
 
     await usersRepositoryDB.createUser(req.body.login, req.body.password, req.body.email, clientIp!, confirmationCode);
     const isSendStatus = await mailService.sendEmail(req.body.email, confirmationCode);
-    if (!isSendStatus.error) {
-      return res.status(204).send(isSendStatus.data);
-    }
     if (isSendStatus.error) {
       const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
       return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
+    } else {
+      const userIp = requestIp.getClientIp(req);
+      await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 0 } });
+      return res.status(204).send(isSendStatus.data);
     }
   },
 );
@@ -126,9 +130,13 @@ authRouter.post(
       if (isSendStatus.error) {
         const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
         return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
+      } else {
+        const userIp = requestIp.getClientIp(req);
+        await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 0 } });
+        return res.send(204);
+        // } else {
       }
-      return res.send(204);
-      // } else {
+
       //   res.send(400);
       // }
     }
@@ -157,6 +165,8 @@ authRouter.post(
     } else {
       // const authConfirm = await authRepositoryDB.confirmEmail(req.body.code);
       // if (authConfirm) {
+      const userIp = requestIp.getClientIp(req);
+      await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 0 } });
       return res.send(204);
       // } else {
       //   return res.status(400).send('incorrect code');
