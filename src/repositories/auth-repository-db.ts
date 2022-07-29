@@ -6,17 +6,21 @@ import { addUserAttempt } from '../utils/add-user-attempt';
 export const authRepositoryDB = {
   async authUser(login: string, password: string): Promise<{ token: string } | 'add attempt' | 'max limit'> {
     const attemptCountUser = await collections.users?.findOne({ 'accountData.userName': login });
+    console.log(attemptCountUser, 'attemptcount');
     const isMatch =
       attemptCountUser && (await bcrypt.compare(password, attemptCountUser.accountData.passwordHash ?? ''));
-    if (!attemptCountUser || !isMatch) {
+    // if (!attemptCountUser) {
+    //   return 'add attempt';
+    // }
+    if (attemptCountUser && !isMatch) {
       await addUserAttempt.addAttemptByLogin(login, false);
       return 'add attempt';
     }
-    if (attemptCountUser!.emailConfirmation.attemptCount > 5) {
+    if (attemptCountUser!.emailConfirmation.attemptCount >= 5) {
       return 'max limit';
     } else {
       await addUserAttempt.addAttemptByLogin(login, true);
-      const accessToken = JWT.sign({ id: attemptCountUser._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
+      const accessToken = JWT.sign({ id: attemptCountUser!._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
       return { token: accessToken };
     }
   },

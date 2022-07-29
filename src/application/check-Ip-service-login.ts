@@ -12,10 +12,6 @@ export const checkIpServiceLogin = async (req: express.Request, res: express.Res
     await collections.ipUsers?.insertOne({ createdAt: new Date(), userIp, attempt: 1 });
     return next();
   }
-  if (attemptCountUserIp && differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit) {
-    await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 1, createdAt: new Date() } });
-    return res.send(401);
-  }
   if (
     attemptCountUserIp &&
     attemptCountUserIp.attempt >= attemptsLimit &&
@@ -26,8 +22,18 @@ export const checkIpServiceLogin = async (req: express.Request, res: express.Res
 
   if (
     attemptCountUserIp &&
-    attemptCountUserIp.attempt < attemptsLimit &&
-    differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
+    differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit &&
+    attemptCountUserIp.attempt >= attemptsLimit
+  ) {
+    // await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 1, createdAt: new Date() } });
+    await collections.ipUsers?.deleteOne({ userIp });
+    return res.send(401);
+  }
+
+  if (
+    attemptCountUserIp &&
+    attemptCountUserIp.attempt < attemptsLimit
+    // differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
   ) {
     await collections.ipUsers?.find({ userIp }).forEach((doc) => {
       const oldAttemptCount = doc.attempt;
