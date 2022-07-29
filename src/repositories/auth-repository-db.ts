@@ -6,7 +6,6 @@ import { addUserAttempt } from '../utils/add-user-attempt';
 export const authRepositoryDB = {
   async authUser(login: string, password: string): Promise<{ token: string } | 'add attempt' | 'max limit'> {
     const attemptCountUser = await collections.users?.findOne({ 'accountData.userName': login });
-    console.log(attemptCountUser, 'attemptcount');
     const isMatch =
       attemptCountUser && (await bcrypt.compare(password, attemptCountUser.accountData.passwordHash ?? ''));
     // if (!attemptCountUser) {
