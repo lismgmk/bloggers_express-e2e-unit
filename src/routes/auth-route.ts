@@ -6,25 +6,56 @@ import requestIp from 'request-ip';
 import { usersRepositoryDB } from '../repositories/users-repository-db';
 import { mailService } from '../utils/mail-service';
 import { v4 as uuidv4 } from 'uuid';
-import { addUserAttempt } from '../utils/add-user-attempt';
-import { checkIpService } from '../application/check-Ip-service';
-import { checkIpServiceLogin } from '../application/check-Ip-service-login';
 import { collections } from '../connect-db';
+import { differenceInSeconds } from 'date-fns';
 
 export const authRouter = Router({});
-
+const secondsLimit = 10;
+const attemptsLimit = 5;
 authRouter.post(
   '/login',
-  checkIpServiceLogin,
+  // checkIpServiceLogin,
   body('login').trim().isLength({ min: 3, max: 10 }).exists().withMessage('invalid length'),
   body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
 
   async (req, res) => {
+    // const result = validationResult(req).formatWith(errorFormatter);
+    // if (!result.isEmpty()) {
+    //   await addUserAttempt.addAttemptByLogin(req.body.login, false);
+    //   return res.status(400).send({ errorsMessages: result.array() });
+    // }
     const result = validationResult(req).formatWith(errorFormatter);
+    const userIp = requestIp.getClientIp(req);
+    const attemptCountUserIp = await collections.ipUsers?.findOne({ userIp });
     if (!result.isEmpty()) {
-      await addUserAttempt.addAttemptByLogin(req.body.login, false);
+      if (!attemptCountUserIp) {
+        await collections.ipUsers?.insertOne({ createdAt: new Date(), userIp, attempt: 1 });
+      }
+      if (
+        attemptCountUserIp &&
+        attemptCountUserIp.attempt < attemptsLimit &&
+        differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
+      ) {
+        await collections.ipUsers?.find({ userIp }).forEach((doc) => {
+          const oldAttemptCount = doc.attempt;
+          collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: oldAttemptCount + 1 } });
+        });
+      }
+
       return res.status(400).send({ errorsMessages: result.array() });
     }
+    if (attemptCountUserIp && differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit) {
+      await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 1, createdAt: new Date() } });
+      return res.send(401);
+    }
+    if (
+      attemptCountUserIp &&
+      attemptCountUserIp.attempt >= attemptsLimit &&
+      differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
+    ) {
+      return res.send(429);
+    }
+
     const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
     if (isCheck === 'max limit') {
       return res.send(429);
@@ -42,7 +73,7 @@ authRouter.post(
 
 authRouter.post(
   '/registration',
-  checkIpService,
+  // checkIpService,
   body('login')
     .trim()
     .isLength({ min: 3, max: 10 })
@@ -76,13 +107,39 @@ authRouter.post(
 
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
+    const userIp = requestIp.getClientIp(req);
+    const attemptCountUserIp = await collections.ipUsers?.findOne({ userIp });
     if (!result.isEmpty()) {
+      if (!attemptCountUserIp) {
+        await collections.ipUsers?.insertOne({ createdAt: new Date(), userIp, attempt: 1 });
+      }
+      if (
+        attemptCountUserIp &&
+        attemptCountUserIp.attempt < attemptsLimit &&
+        differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
+      ) {
+        await collections.ipUsers?.find({ userIp }).forEach((doc) => {
+          const oldAttemptCount = doc.attempt;
+          collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: oldAttemptCount + 1 } });
+        });
+      }
+
       return res.status(400).send({ errorsMessages: result.array() });
     }
-    const clientIp = requestIp.getClientIp(req);
+    if (attemptCountUserIp && differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit) {
+      await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 1, createdAt: new Date() } });
+      // return res.send(401);
+    }
+    if (
+      attemptCountUserIp &&
+      attemptCountUserIp.attempt >= attemptsLimit &&
+      differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
+    ) {
+      return res.send(429);
+    }
     const confirmationCode = uuidv4();
 
-    await usersRepositoryDB.createUser(req.body.login, req.body.password, req.body.email, clientIp!, confirmationCode);
+    await usersRepositoryDB.createUser(req.body.login, req.body.password, req.body.email, userIp!, confirmationCode);
     const isSendStatus = await mailService.sendEmail(req.body.email, confirmationCode);
     if (isSendStatus.error) {
       const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
@@ -97,7 +154,7 @@ authRouter.post(
 
 authRouter.post(
   '/registration-email-resending',
-  checkIpService,
+  // checkIpService,
   body('email')
     .matches(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)
     .exists()
@@ -114,19 +171,44 @@ authRouter.post(
     ),
 
   async (req, res) => {
+    // const result = validationResult(req).formatWith(errorFormatter);
+    // if (!result.isEmpty()) {
+    //   return res.status(400).send({ errorsMessages: result.array() });
+    // }
     const result = validationResult(req).formatWith(errorFormatter);
+    const userIp = requestIp.getClientIp(req);
+    const attemptCountUserIp = await collections.ipUsers?.findOne({ userIp });
     if (!result.isEmpty()) {
+      if (!attemptCountUserIp) {
+        await collections.ipUsers?.insertOne({ createdAt: new Date(), userIp, attempt: 1 });
+      }
+      if (
+        attemptCountUserIp &&
+        attemptCountUserIp.attempt < attemptsLimit &&
+        differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
+      ) {
+        await collections.ipUsers?.find({ userIp }).forEach((doc) => {
+          const oldAttemptCount = doc.attempt;
+          collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: oldAttemptCount + 1 } });
+        });
+      }
+
       return res.status(400).send({ errorsMessages: result.array() });
+    }
+    if (attemptCountUserIp && differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit) {
+      await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 1, createdAt: new Date() } });
+      // return res.send(401);
+    }
+    if (
+      attemptCountUserIp &&
+      attemptCountUserIp.attempt >= attemptsLimit &&
+      differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
+    ) {
+      return res.send(429);
     } else {
-      // const confirmationCode = await usersRepositoryDB.getUserByEmail(req.body.email);
-      // if (confirmationCode && confirmationCode.emailConfirmation.isConfirmed === false) {
-      // if (confirmationCode) {
       const newCode = uuidv4();
       await usersRepositoryDB.updateCodeByEmail(req.body.email, newCode);
       const isSendStatus = await mailService.sendEmail(req.body.email, newCode);
-      // if (!isSendStatus.error) {
-      //   return res.status(204).send(isSendStatus.data);
-      // }
       if (isSendStatus.error) {
         const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
         return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
@@ -134,18 +216,14 @@ authRouter.post(
         const userIp = requestIp.getClientIp(req);
         await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 0 } });
         return res.send(204);
-        // } else {
       }
-
-      //   res.send(400);
-      // }
     }
   },
 );
 
 authRouter.post(
   '/registration-confirmation',
-  checkIpService,
+  // checkIpService,
   body('code')
     .exists()
     .bail()
@@ -159,18 +237,44 @@ authRouter.post(
     .withMessage('code error'),
 
   async (req, res) => {
+    // const result = validationResult(req).formatWith(errorFormatter);
+    // if (!result.isEmpty()) {
+    //   return res.status(400).send({ errorsMessages: result.array() });
+    // }
     const result = validationResult(req).formatWith(errorFormatter);
+    const userIp = requestIp.getClientIp(req);
+    const attemptCountUserIp = await collections.ipUsers?.findOne({ userIp });
     if (!result.isEmpty()) {
+      if (!attemptCountUserIp) {
+        await collections.ipUsers?.insertOne({ createdAt: new Date(), userIp, attempt: 1 });
+      }
+      if (
+        attemptCountUserIp &&
+        attemptCountUserIp.attempt < attemptsLimit &&
+        differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
+      ) {
+        await collections.ipUsers?.find({ userIp }).forEach((doc) => {
+          const oldAttemptCount = doc.attempt;
+          collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: oldAttemptCount + 1 } });
+        });
+      }
+
       return res.status(400).send({ errorsMessages: result.array() });
+    }
+    if (attemptCountUserIp && differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit) {
+      await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 1, createdAt: new Date() } });
+      // return res.send(401);
+    }
+    if (
+      attemptCountUserIp &&
+      attemptCountUserIp.attempt >= attemptsLimit &&
+      differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
+    ) {
+      return res.send(429);
     } else {
-      // const authConfirm = await authRepositoryDB.confirmEmail(req.body.code);
-      // if (authConfirm) {
       const userIp = requestIp.getClientIp(req);
       await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 0 } });
       return res.send(204);
-      // } else {
-      //   return res.status(400).send('incorrect code');
-      // }
     }
   },
 );
