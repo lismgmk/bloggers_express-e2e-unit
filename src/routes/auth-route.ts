@@ -45,7 +45,7 @@ authRouter.post(
       return res.status(400).send({ errorsMessages: result.array() });
     }
     if (attemptCountUserIp && differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit) {
-      await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 1, createdAt: new Date() } });
+      await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 0, createdAt: new Date() } });
       return res.send(401);
     }
     if (
@@ -144,7 +144,7 @@ authRouter.post(
     }
     if (
       attemptCountUserIp &&
-      attemptCountUserIp.attempt >= attemptsLimit &&
+      attemptCountUserIp.attempt > attemptsLimit &&
       differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
     ) {
       return res.send(429);
@@ -224,7 +224,7 @@ authRouter.post(
     }
     if (
       attemptCountUserIp &&
-      attemptCountUserIp.attempt >= attemptsLimit &&
+      attemptCountUserIp.attempt > attemptsLimit &&
       differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
     ) {
       return res.send(429);
@@ -291,7 +291,7 @@ authRouter.post(
     }
     if (
       attemptCountUserIp &&
-      attemptCountUserIp.attempt >= attemptsLimit &&
+      attemptCountUserIp.attempt > attemptsLimit &&
       differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
     ) {
       return res.send(429);
