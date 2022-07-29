@@ -126,7 +126,8 @@ authRouter.post(
       return res.status(400).send({ errorsMessages: result.array() });
     }
     if (attemptCountUserIp && differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit) {
-      await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 1, createdAt: new Date() } });
+      // await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 1, createdAt: new Date() } });
+      await collections.ipUsers?.deleteOne({ userIp });
       // return res.send(401);
       const confirmationCode = uuidv4();
 
@@ -148,18 +149,18 @@ authRouter.post(
     ) {
       return res.send(429);
     }
-    // const confirmationCode = uuidv4();
-    //
-    // await usersRepositoryDB.createUser(req.body.login, req.body.password, req.body.email, userIp!, confirmationCode);
-    // const isSendStatus = await mailService.sendEmail(req.body.email, confirmationCode);
-    // if (isSendStatus.error) {
-    //   const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
-    //   return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
-    // } else {
-    //   const userIp = requestIp.getClientIp(req);
-    //   await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 0 } });
-    //   return res.status(204).send(isSendStatus.data);
-    // }
+    const confirmationCode = uuidv4();
+
+    await usersRepositoryDB.createUser(req.body.login, req.body.password, req.body.email, userIp!, confirmationCode);
+    const isSendStatus = await mailService.sendEmail(req.body.email, confirmationCode);
+    if (isSendStatus.error) {
+      const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
+      return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
+    } else {
+      const userIp = requestIp.getClientIp(req);
+      await collections.ipUsers?.deleteOne({ userIp });
+      return res.status(204).send(isSendStatus.data);
+    }
   },
 );
 
@@ -227,21 +228,19 @@ authRouter.post(
       differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
     ) {
       return res.send(429);
+    } else {
+      const newCode = uuidv4();
+      await usersRepositoryDB.updateCodeByEmail(req.body.email, newCode);
+      const isSendStatus = await mailService.sendEmail(req.body.email, newCode);
+      if (isSendStatus.error) {
+        const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
+        return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
+      } else {
+        const userIp = requestIp.getClientIp(req);
+        await collections.ipUsers?.deleteOne({ userIp });
+        return res.send(204);
+      }
     }
-    // else {
-    //   const newCode = uuidv4();
-    //   await usersRepositoryDB.updateCodeByEmail(req.body.email, newCode);
-    //   const isSendStatus = await mailService.sendEmail(req.body.email, newCode);
-    //   if (isSendStatus.error) {
-    //     const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
-    //     return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
-    //   }
-    //   else {
-    //     const userIp = requestIp.getClientIp(req);
-    //     await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 0 } });
-    //     return res.send(204);
-    //   }
-    // }
   },
 );
 
@@ -296,11 +295,10 @@ authRouter.post(
       differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
     ) {
       return res.send(429);
+    } else {
+      const userIp = requestIp.getClientIp(req);
+      await collections.ipUsers?.deleteOne({ userIp });
+      return res.send(204);
     }
-    // else {
-    //   const userIp = requestIp.getClientIp(req);
-    //   await collections.ipUsers?.updateOne({ userIp }, { $set: { attempt: 0 } });
-    //   return res.send(204);
-    // }
   },
 );
