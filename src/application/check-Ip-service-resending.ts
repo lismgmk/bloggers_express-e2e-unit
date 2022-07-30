@@ -8,7 +8,12 @@ export const checkIpServiceResending2 = {
     return await collections.ipUsersResending?.findOne({ userIp });
   },
   async addUser(userIp: string) {
-    return await collections.ipUsersResending?.insertOne({ createdAt: new Date(), userIp, attempt: 1 });
+    return await collections.ipUsersResending?.insertOne({
+      createdAt: new Date(),
+      userIp,
+      attempt: 1,
+      error429: false,
+    });
   },
   async deleteUser(userIp: string) {
     return await collections.ipUsersResending?.deleteOne({ userIp });
@@ -18,6 +23,10 @@ export const checkIpServiceResending2 = {
       const oldAttemptCount = doc.attempt;
       collections.ipUsersResending?.updateOne({ userIp }, { $set: { attempt: oldAttemptCount + 1 } });
     });
+  },
+
+  async addError429User(userIp: string) {
+    return await collections.ipUsersResending?.updateOne({ userIp }, { $set: { error429: true } });
   },
 };
 
