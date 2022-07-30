@@ -3,6 +3,24 @@ import requestIp from 'request-ip';
 import { collections } from '../connect-db';
 import { differenceInSeconds } from 'date-fns';
 
+export const checkIpServiceLogin2 = {
+  async findUserByIp(userIp: string) {
+    return await collections.ipUsersLogin?.findOne({ userIp });
+  },
+  async addUser(userIp: string) {
+    return await collections.ipUsersLogin?.insertOne({ createdAt: new Date(), userIp, attempt: 1 });
+  },
+  async deleteUser(userIp: string) {
+    return await collections.ipUsersLogin?.deleteOne({ userIp });
+  },
+  async addAttemptUser(userIp: string) {
+    return await collections.ipUsersLogin?.find({ userIp }).forEach((doc) => {
+      const oldAttemptCount = doc.attempt;
+      collections.ipUsersLogin?.updateOne({ userIp }, { $set: { attempt: oldAttemptCount + 1 } });
+    });
+  },
+};
+
 export const checkIpServiceLogin = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   const secondsLimit = 10;
   const attemptsLimit = 5;
