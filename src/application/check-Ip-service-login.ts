@@ -8,7 +8,7 @@ export const checkIpServiceLogin2 = {
     return await collections.ipUsersLogin?.findOne({ userIp });
   },
   async addUser(userIp: string) {
-    return await collections.ipUsersLogin?.insertOne({ createdAt: new Date(), userIp, attempt: 1 });
+    return await collections.ipUsersLogin?.insertOne({ createdAt: new Date(), userIp, attempt: 1, error429: false });
   },
   async deleteUser(userIp: string) {
     return await collections.ipUsersLogin?.deleteOne({ userIp });
@@ -18,6 +18,10 @@ export const checkIpServiceLogin2 = {
       const oldAttemptCount = doc.attempt;
       collections.ipUsersLogin?.updateOne({ userIp }, { $set: { attempt: oldAttemptCount + 1 } });
     });
+  },
+
+  async addError429User(userIp: string) {
+    return await collections.ipUsersLogin?.updateOne({ userIp }, { $set: { error429: true } });
   },
 };
 
