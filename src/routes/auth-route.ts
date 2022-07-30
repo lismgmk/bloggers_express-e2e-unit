@@ -7,7 +7,7 @@ import { usersRepositoryDB } from '../repositories/users-repository-db';
 import { mailService } from '../utils/mail-service';
 import { v4 as uuidv4 } from 'uuid';
 import { collections } from '../connect-db';
-import { checkIpServiceLogin, checkIpServiceLogin2 } from '../application/check-Ip-service-login';
+import { checkIpServiceLogin2 } from '../application/check-Ip-service-login';
 import { checkIpServiceRegistration2 } from '../application/check-Ip-service-registration';
 import { checkIpServiceResending2 } from '../application/check-Ip-service-resending';
 import { checkIpServiceConfirmation2 } from '../application/check-Ip-service-confirmation';
@@ -160,7 +160,7 @@ authRouter.post(
       }
       if (
         userConfirmation &&
-        differenceInSeconds(new Date(), userConfirmation!.createdAt) > secondsLimit &&
+        differenceInSeconds(new Date(), userConfirmation!.createdAt) >= secondsLimit &&
         userConfirmation!.error429 === true
       ) {
         await checkIpServiceRegistration2.deleteUser(userIp!);
