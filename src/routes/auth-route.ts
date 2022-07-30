@@ -65,7 +65,7 @@ authRouter.post(
         userConfirmation!.error429 === true
       ) {
         await checkIpServiceLogin2.deleteUser(userIp!);
-        return res.send(204);
+        return res.send(401);
       }
       if (
         userConfirmation &&
