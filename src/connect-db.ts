@@ -9,6 +9,7 @@ export const collections: {
   ipUsersRegistration?: mongoDB.Collection;
   ipUsersResending?: mongoDB.Collection;
   ipUsersConfirmation?: mongoDB.Collection;
+  ipUsers?: mongoDB.Collection;
 } = {};
 
 export async function connectToDatabase() {
@@ -22,6 +23,7 @@ export async function connectToDatabase() {
   const db_ip_users_registration_collection_name_str = process.env.IP_USERS_REGISTRATION_COLLECTION_NAME || '';
   const db_ip_users_resending_collection_name_str = process.env.IP_USERS_RESENDING_COLLECTION_NAME || '';
   const db_ip_users_confirmation_collection_name_str = process.env.IP_USERS_CONFIRMATION_COLLECTION_NAME || '';
+  const db_ip_users_collection_name_str = process.env.IP_USERS_COLLECTION_NAME || '';
   const client: mongoDB.MongoClient = new mongoDB.MongoClient(db_connection_str);
 
   await client.connect();
@@ -39,6 +41,7 @@ export async function connectToDatabase() {
   const ipUsersRegistrationCollection: mongoDB.Collection = db.collection(db_ip_users_registration_collection_name_str);
   const ipUsersResendingCollection: mongoDB.Collection = db.collection(db_ip_users_resending_collection_name_str);
   const ipUsersConfirmationCollection: mongoDB.Collection = db.collection(db_ip_users_confirmation_collection_name_str);
+  const ipUsersCollection: mongoDB.Collection = db.collection(db_ip_users_collection_name_str);
 
   collections.bloggers = bloggersCollection;
   collections.posts = postsCollection;
@@ -48,4 +51,5 @@ export async function connectToDatabase() {
   collections.ipUsersRegistration = ipUsersRegistrationCollection;
   collections.ipUsersResending = ipUsersResendingCollection;
   collections.ipUsersConfirmation = ipUsersConfirmationCollection;
+  collections.ipUsers = ipUsersCollection;
 }

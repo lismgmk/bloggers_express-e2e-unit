@@ -10,6 +10,7 @@ export const testingRepositoryDB = {
     const ipUserResending = await collections.ipUsersResending?.deleteMany({});
     const ipUserRegistration = await collections.ipUsersRegistration?.deleteMany({});
     const ipUserConfirmation = await collections.ipUsersConfirmation?.deleteMany({});
+    const ipUsers = await collections.ipUsers?.deleteMany({});
     if (
       resultBloggers?.acknowledged &&
       resultComments?.acknowledged &&
@@ -18,6 +19,7 @@ export const testingRepositoryDB = {
       ipUserResending?.acknowledged &&
       ipUserRegistration?.acknowledged &&
       ipUserConfirmation?.acknowledged &&
+      ipUsers?.acknowledged &&
       resultUsers?.acknowledged
     ) {
       return true;
