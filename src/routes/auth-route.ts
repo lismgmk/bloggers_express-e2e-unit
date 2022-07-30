@@ -33,7 +33,7 @@ authRouter.post(
     })
     .withMessage('invalid length'),
   body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
-  checkIpServiceLogin,
+  // checkIpServiceLogin,
 
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
@@ -47,7 +47,8 @@ authRouter.post(
       if (
         userConfirmation &&
         userConfirmation.attempt < attemptsLimit &&
-        differenceInSeconds(new Date(), userConfirmation!.createdAt) < secondsLimit
+        differenceInSeconds(new Date(), userConfirmation!.createdAt) < secondsLimit &&
+        userConfirmation!.error429 === false
       ) {
         await checkIpServiceLogin2.addAttemptUser(userIp!);
       }
