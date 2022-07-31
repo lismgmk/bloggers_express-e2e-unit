@@ -58,7 +58,7 @@ authRouter2.post(
         ],
       });
     } else {
-      // await collections.ipUsers?.deleteOne({ userIp });
+      await collections.ipUsers?.deleteOne({ userIp });
       res.status(200).send(isCheck);
     }
   },
@@ -121,7 +121,7 @@ authRouter2.post(
       const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
       return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
     } else {
-      // await collections.ipUsers?.deleteOne({ userIp });
+      await collections.ipUsers?.deleteOne({ userIp });
       return res.status(204).send(isSendStatus.data);
     }
   },
@@ -166,7 +166,7 @@ authRouter2.post(
       const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
       return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
     } else {
-      // await collections.ipUsers?.deleteOne({ userIp });
+      await collections.ipUsers?.deleteOne({ userIp });
       return res.send(204);
     }
     // }
@@ -201,7 +201,7 @@ authRouter2.post(
         return res.status(400).send({ errorsMessages: result.array() });
       }
     } else {
-      // await collections.ipUsers?.deleteOne({ userIp });
+      await collections.ipUsers?.deleteOne({ userIp });
       return res.send(204);
     }
   },
