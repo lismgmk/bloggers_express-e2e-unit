@@ -6,7 +6,7 @@ import { getCurrentCollection } from '../utils/get-current-collection';
 export const checkIpServiceUser = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   const usersCollection = getCurrentCollection(req.path);
   const secondsLimit = 10;
-  const attemptsLimit = 5;
+  const attemptsLimit = 4;
   const userIp = requestIp.getClientIp(req);
   const attemptCountUserIp = await usersCollection?.findOne({ userIp });
   if (!attemptCountUserIp) {
