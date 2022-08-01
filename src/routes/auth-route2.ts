@@ -35,10 +35,11 @@ authRouter2.post(
     const currentUsersIp = await usersCollection?.findOne({ userIp });
 
     if (!result.isEmpty()) {
-      if (!currentUsersIp) {
+      if (currentUsersIp!.attempt === 0) {
+        await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
         return res.send(401);
       }
-      if (currentUsersIp && currentUsersIp.error429 === true) {
+      if (currentUsersIp!.error429 === true) {
         return res.send(429);
       } else {
         return res.status(400).send({ errorsMessages: result.array() });
@@ -104,7 +105,8 @@ authRouter2.post(
     const currentUsersIp = await usersCollection?.findOne({ userIp });
 
     if (!result.isEmpty()) {
-      if (!currentUsersIp) {
+      if (currentUsersIp!.attempt === 0) {
+        await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
         return res.send(204);
       }
       if (currentUsersIp && currentUsersIp.error429 === true) {
@@ -151,7 +153,8 @@ authRouter2.post(
     const currentUsersIp = await usersCollection?.findOne({ userIp });
 
     if (!result.isEmpty()) {
-      if (!currentUsersIp) {
+      if (currentUsersIp!.attempt === 0) {
+        await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
         return res.send(204);
       }
       if (currentUsersIp && currentUsersIp.error429 === true) {
@@ -193,7 +196,8 @@ authRouter2.post(
     const usersCollection = getCurrentCollection(req.path);
     const currentUsersIp = await usersCollection?.findOne({ userIp });
     if (!result.isEmpty()) {
-      if (!currentUsersIp) {
+      if (currentUsersIp!.attempt === 0) {
+        await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
         return res.send(204);
       }
       if (currentUsersIp && currentUsersIp.error429 === true) {
