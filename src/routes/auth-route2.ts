@@ -35,8 +35,11 @@ authRouter2.post(
     const currentUsersIp = await usersCollection?.findOne({ userIp });
 
     if (!result.isEmpty()) {
-      if (currentUsersIp!.attempt === 0) {
-        await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+      // if (currentUsersIp!.attempt === 0) {
+      //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+      //   return res.send(401);
+      // }
+      if (!currentUsersIp) {
         return res.send(401);
       }
       if (currentUsersIp!.error429 === true) {
@@ -105,8 +108,11 @@ authRouter2.post(
     const currentUsersIp = await usersCollection?.findOne({ userIp });
 
     if (!result.isEmpty()) {
-      if (currentUsersIp!.attempt === 0) {
-        await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+      // if (currentUsersIp!.attempt === 0) {
+      //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+      //   return res.send(204);
+      // }
+      if (!currentUsersIp) {
         return res.send(204);
       }
       if (currentUsersIp && currentUsersIp.error429 === true) {
@@ -153,8 +159,11 @@ authRouter2.post(
     const currentUsersIp = await usersCollection?.findOne({ userIp });
 
     if (!result.isEmpty()) {
-      if (currentUsersIp!.attempt === 0) {
-        await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+      // if (currentUsersIp!.attempt === 0) {
+      //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+      //   return res.send(204);
+      // }
+      if (!currentUsersIp) {
         return res.send(204);
       }
       if (currentUsersIp && currentUsersIp.error429 === true) {
@@ -196,8 +205,11 @@ authRouter2.post(
     const usersCollection = getCurrentCollection(req.path);
     const currentUsersIp = await usersCollection?.findOne({ userIp });
     if (!result.isEmpty()) {
-      if (currentUsersIp!.attempt === 0) {
-        await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+      // if (currentUsersIp!.attempt === 0) {
+      //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+      //   return res.send(204);
+      // }
+      if (!currentUsersIp) {
         return res.send(204);
       }
       if (currentUsersIp && currentUsersIp.error429 === true) {
