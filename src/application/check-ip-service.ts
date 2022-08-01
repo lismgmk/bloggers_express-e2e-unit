@@ -43,6 +43,7 @@ export const checkIpServiceUser = async (req: express.Request, res: express.Resp
     differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit &&
     attemptCountUserIp!.error429 === true
   ) {
+    console.log(await usersCollection?.deleteOne({ userIp }), 'delete');
     await usersCollection?.deleteOne({ userIp });
     // await usersCollection?.updateOne({ userIp }, { $set: { createdAt: new Date(), attempt: 0, error429: false } });
     return next();
@@ -52,7 +53,7 @@ export const checkIpServiceUser = async (req: express.Request, res: express.Resp
     differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit &&
     attemptCountUserIp!.error429 === false
   ) {
-    await usersCollection?.updateOne({ userIp }, { $set: { createdAt: new Date(), attempt: 0 } });
+    await usersCollection?.updateOne({ userIp }, { $set: { createdAt: new Date(), attempt: 1 } });
     return next();
   } else {
     return next();

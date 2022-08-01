@@ -33,20 +33,21 @@ authRouter2.post(
     const userIp = requestIp.getClientIp(req);
     const usersCollection = getCurrentCollection(req.path);
     const currentUsersIp = await usersCollection?.findOne({ userIp });
-
+    console.log(currentUsersIp, 'eeeeeeeeeeeeeeeeeeeeeeeee', usersCollection!.collectionName);
+    if (!currentUsersIp) {
+      return res.send(401);
+    }
+    if (currentUsersIp && currentUsersIp.error429 === true) {
+      return res.send(429);
+    }
     if (!result.isEmpty()) {
       // if (currentUsersIp!.attempt === 0) {
       //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
       //   return res.send(401);
       // }
-      if (!currentUsersIp) {
-        return res.send(401);
-      }
-      if (currentUsersIp!.error429 === true) {
-        return res.send(429);
-      } else {
-        return res.status(400).send({ errorsMessages: result.array() });
-      }
+      // else {
+      return res.status(400).send({ errorsMessages: result.array() });
+      // }
     }
     const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
     if (isCheck === 'max limit') {
@@ -106,20 +107,20 @@ authRouter2.post(
     const userIp = requestIp.getClientIp(req);
     const usersCollection = getCurrentCollection(req.path);
     const currentUsersIp = await usersCollection?.findOne({ userIp });
-
+    if (!currentUsersIp) {
+      return res.send(204);
+    }
+    if (currentUsersIp && currentUsersIp.error429 === true) {
+      return res.send(429);
+    }
     if (!result.isEmpty()) {
       // if (currentUsersIp!.attempt === 0) {
       //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
       //   return res.send(204);
       // }
-      if (!currentUsersIp) {
-        return res.send(204);
-      }
-      if (currentUsersIp && currentUsersIp.error429 === true) {
-        return res.send(429);
-      } else {
-        return res.status(400).send({ errorsMessages: result.array() });
-      }
+      // else {
+      return res.status(400).send({ errorsMessages: result.array() });
+      // }
     }
 
     const confirmationCode = uuidv4();
@@ -157,20 +158,20 @@ authRouter2.post(
     const userIp = requestIp.getClientIp(req);
     const usersCollection = getCurrentCollection(req.path);
     const currentUsersIp = await usersCollection?.findOne({ userIp });
-
+    if (!currentUsersIp) {
+      return res.send(204);
+    }
+    if (currentUsersIp && currentUsersIp.error429 === true) {
+      return res.send(429);
+    }
     if (!result.isEmpty()) {
       // if (currentUsersIp!.attempt === 0) {
       //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
       //   return res.send(204);
       // }
-      if (!currentUsersIp) {
-        return res.send(204);
-      }
-      if (currentUsersIp && currentUsersIp.error429 === true) {
-        return res.send(429);
-      } else {
-        return res.status(400).send({ errorsMessages: result.array() });
-      }
+      // else {
+      return res.status(400).send({ errorsMessages: result.array() });
+      // }
     }
     const newCode = uuidv4();
     await usersRepositoryDB.updateCodeByEmail(req.body.email, newCode);
@@ -204,19 +205,20 @@ authRouter2.post(
     const userIp = requestIp.getClientIp(req);
     const usersCollection = getCurrentCollection(req.path);
     const currentUsersIp = await usersCollection?.findOne({ userIp });
+    if (!currentUsersIp) {
+      return res.send(204);
+    }
+    if (currentUsersIp && currentUsersIp.error429 === true) {
+      return res.send(429);
+    }
     if (!result.isEmpty()) {
       // if (currentUsersIp!.attempt === 0) {
       //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
       //   return res.send(204);
       // }
-      if (!currentUsersIp) {
-        return res.send(204);
-      }
-      if (currentUsersIp && currentUsersIp.error429 === true) {
-        return res.send(429);
-      } else {
-        return res.status(400).send({ errorsMessages: result.array() });
-      }
+      // else {
+      return res.status(400).send({ errorsMessages: result.array() });
+      // }
     } else {
       return res.send(204);
     }
