@@ -6,8 +6,8 @@ import requestIp from 'request-ip';
 import { usersRepositoryDB } from '../repositories/users-repository-db';
 import { mailService } from '../utils/mail-service';
 import { v4 as uuidv4 } from 'uuid';
-import { collections } from '../connect-db';
 import { checkIpServiceUser } from '../application/check-ip-service';
+import { getCurrentCollection } from '../utils/get-current-collection';
 
 export const authRouter2 = Router({});
 authRouter2.post(
@@ -31,7 +31,8 @@ authRouter2.post(
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     const userIp = requestIp.getClientIp(req);
-    const currentUsersIp = await collections.ipUsers?.findOne({ userIp });
+    const usersCollection = getCurrentCollection(req.path);
+    const currentUsersIp = await usersCollection?.findOne({ userIp });
 
     if (!result.isEmpty()) {
       if (!currentUsersIp) {
@@ -45,7 +46,7 @@ authRouter2.post(
     }
     const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
     if (isCheck === 'max limit') {
-      await collections.ipUsersLogin?.updateOne({ userIp }, { $set: { attempt: 6 } });
+      await usersCollection?.updateOne({ userIp }, { $set: { attempt: 6 } });
       return res.send(429);
     }
     if (isCheck === 'add attempt') {
@@ -58,7 +59,6 @@ authRouter2.post(
         ],
       });
     } else {
-      await collections.ipUsers?.deleteOne({ userIp });
       res.status(200).send(isCheck);
     }
   },
@@ -100,7 +100,8 @@ authRouter2.post(
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     const userIp = requestIp.getClientIp(req);
-    const currentUsersIp = await collections.ipUsers?.findOne({ userIp });
+    const usersCollection = getCurrentCollection(req.path);
+    const currentUsersIp = await usersCollection?.findOne({ userIp });
 
     if (!result.isEmpty()) {
       if (!currentUsersIp) {
@@ -121,7 +122,6 @@ authRouter2.post(
       const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
       return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
     } else {
-      await collections.ipUsers?.deleteOne({ userIp });
       return res.status(204).send(isSendStatus.data);
     }
   },
@@ -147,7 +147,8 @@ authRouter2.post(
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     const userIp = requestIp.getClientIp(req);
-    const currentUsersIp = await collections.ipUsers?.findOne({ userIp });
+    const usersCollection = getCurrentCollection(req.path);
+    const currentUsersIp = await usersCollection?.findOne({ userIp });
 
     if (!result.isEmpty()) {
       if (!currentUsersIp) {
@@ -166,7 +167,6 @@ authRouter2.post(
       const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
       return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
     } else {
-      await collections.ipUsers?.deleteOne({ userIp });
       return res.send(204);
     }
     // }
@@ -190,7 +190,8 @@ authRouter2.post(
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     const userIp = requestIp.getClientIp(req);
-    const currentUsersIp = await collections.ipUsers?.findOne({ userIp });
+    const usersCollection = getCurrentCollection(req.path);
+    const currentUsersIp = await usersCollection?.findOne({ userIp });
     if (!result.isEmpty()) {
       if (!currentUsersIp) {
         return res.send(204);
@@ -201,7 +202,6 @@ authRouter2.post(
         return res.status(400).send({ errorsMessages: result.array() });
       }
     } else {
-      await collections.ipUsers?.deleteOne({ userIp });
       return res.send(204);
     }
   },
