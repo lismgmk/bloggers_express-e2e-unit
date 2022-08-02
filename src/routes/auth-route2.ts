@@ -13,19 +13,7 @@ export const authRouter2 = Router({});
 authRouter2.post(
   '/login',
   checkIpServiceUser,
-  body('login')
-    .trim()
-    .isLength({ min: 3, max: 10 })
-    .exists()
-    .bail()
-    .custom(async (value) => {
-      return usersRepositoryDB.getUserByLogin(value).then((user) => {
-        if (!user) {
-          return Promise.reject();
-        }
-      });
-    })
-    .withMessage('invalid length'),
+  body('login').trim().isLength({ min: 3, max: 10 }).exists().withMessage('invalid length'),
   body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
 
   async (req, res) => {
