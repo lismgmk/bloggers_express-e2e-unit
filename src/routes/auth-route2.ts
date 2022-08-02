@@ -21,7 +21,7 @@ authRouter2.post(
     const userIp = requestIp.getClientIp(req);
     const usersCollection = getCurrentCollection(req.path);
     // const currentUsersIp = await usersCollection?.findOne({ userIp });
-    const user = await usersRepositoryDB.getUserByLogin(req.body.login);
+    const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
     // if (!currentUsersIp) {
     //   return res.send(401);
     // }
@@ -33,28 +33,28 @@ authRouter2.post(
     // if (currentUsersIp && currentUsersIp.error429 === true) {
     //   return res.send(429);
     // }
-    if (!user) {
+    if (isCheck === 'add attempt') {
       return res.send(401);
     }
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
 
-    const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
     if (isCheck === 'max limit') {
       await usersCollection?.updateOne({ userIp }, { $set: { attempt: 6 } });
       return res.send(429);
     }
-    if (isCheck === 'add attempt') {
-      return res.status(400).send({
-        errorsMessages: [
-          {
-            message: 'invalid password',
-            field: 'password',
-          },
-        ],
-      });
-    } else {
+    // if (isCheck === 'add attempt') {
+    //   return res.status(400).send({
+    //     errorsMessages: [
+    //       {
+    //         message: 'invalid password',
+    //         field: 'password',
+    //       },
+    //     ],
+    //   });
+    // }
+    else {
       return res.status(200).send(isCheck);
     }
   },
