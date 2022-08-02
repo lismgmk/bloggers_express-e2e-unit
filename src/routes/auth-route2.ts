@@ -33,6 +33,7 @@ authRouter2.post(
     const userIp = requestIp.getClientIp(req);
     const usersCollection = getCurrentCollection(req.path);
     const currentUsersIp = await usersCollection?.findOne({ userIp });
+    const user = await usersRepositoryDB.getUserByLogin('login');
     // if (!currentUsersIp) {
     //   return res.send(401);
     // }
@@ -40,9 +41,14 @@ authRouter2.post(
     //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
     //   return res.send(401);
     // }
+
     if (currentUsersIp && currentUsersIp.error429 === true) {
       return res.send(429);
     }
+    if (!user) {
+      return res.send(401);
+    }
+
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
