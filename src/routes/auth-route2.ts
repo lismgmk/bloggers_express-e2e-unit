@@ -20,7 +20,7 @@ authRouter2.post(
     const result = validationResult(req).formatWith(errorFormatter);
     const userIp = requestIp.getClientIp(req);
     const usersCollection = getCurrentCollection(req.path);
-    const currentUsersIp = await usersCollection?.findOne({ userIp });
+    // const currentUsersIp = await usersCollection?.findOne({ userIp });
     const user = await usersRepositoryDB.getUserByLogin(req.body.login);
     // if (!currentUsersIp) {
     //   return res.send(401);
@@ -30,23 +30,23 @@ authRouter2.post(
     //   return res.send(401);
     // }
 
-    if (currentUsersIp && currentUsersIp.error429 === true) {
-      return res.send(429);
+    // if (currentUsersIp && currentUsersIp.error429 === true) {
+    //   return res.send(429);
+    // }
+    if (!result.isEmpty()) {
+      return res.status(400).send({ errorsMessages: result.array() });
     }
     if (!user) {
       return res.send(401);
     }
 
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    }
     const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
     if (isCheck === 'max limit') {
       await usersCollection?.updateOne({ userIp }, { $set: { attempt: 6 } });
       return res.send(429);
     }
     if (isCheck === 'add attempt') {
-      res.status(400).send({
+      return res.status(400).send({
         errorsMessages: [
           {
             message: 'invalid password',
@@ -55,7 +55,7 @@ authRouter2.post(
         ],
       });
     } else {
-      res.status(200).send(isCheck);
+      return res.status(200).send(isCheck);
     }
   },
 );
@@ -96,8 +96,8 @@ authRouter2.post(
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     const userIp = requestIp.getClientIp(req);
-    const usersCollection = getCurrentCollection(req.path);
-    const currentUsersIp = await usersCollection?.findOne({ userIp });
+    // const usersCollection = getCurrentCollection(req.path);
+    // const currentUsersIp = await usersCollection?.findOne({ userIp });
     // if (!currentUsersIp) {
     //   return res.send(204);
     // }
@@ -105,9 +105,9 @@ authRouter2.post(
     //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
     //   return res.send(204);
     // }
-    if (currentUsersIp && currentUsersIp.error429 === true) {
-      return res.send(429);
-    }
+    // if (currentUsersIp && currentUsersIp.error429 === true) {
+    //   return res.send(429);
+    // }
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
@@ -145,8 +145,8 @@ authRouter2.post(
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     const userIp = requestIp.getClientIp(req);
-    const usersCollection = getCurrentCollection(req.path);
-    const currentUsersIp = await usersCollection?.findOne({ userIp });
+    // const usersCollection = getCurrentCollection(req.path);
+    // const currentUsersIp = await usersCollection?.findOne({ userIp });
     // if (!currentUsersIp) {
     //   return res.send(204);
     // }
@@ -154,9 +154,9 @@ authRouter2.post(
     //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
     //   return res.send(204);
     // }
-    if (currentUsersIp && currentUsersIp.error429 === true) {
-      return res.send(429);
-    }
+    // if (currentUsersIp && currentUsersIp.error429 === true) {
+    //   return res.send(429);
+    // }
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
@@ -189,9 +189,9 @@ authRouter2.post(
     .withMessage('code error'),
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
-    const userIp = requestIp.getClientIp(req);
-    const usersCollection = getCurrentCollection(req.path);
-    const currentUsersIp = await usersCollection?.findOne({ userIp });
+    // const userIp = requestIp.getClientIp(req);
+    // const usersCollection = getCurrentCollection(req.path);
+    // const currentUsersIp = await usersCollection?.findOne({ userIp });
     // if (!currentUsersIp) {
     //   return res.send(204);
     // }
@@ -199,9 +199,9 @@ authRouter2.post(
     //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
     //   return res.send(204);
     // }
-    if (currentUsersIp && currentUsersIp.error429 === true) {
-      return res.send(429);
-    }
+    // if (currentUsersIp && currentUsersIp.error429 === true) {
+    //   return res.send(429);
+    // }
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     } else {
