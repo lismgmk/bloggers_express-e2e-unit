@@ -67,7 +67,7 @@ export const usersRepositoryDB = {
     return await collections.users?.findOne({ _id: new ObjectId(id) });
   },
   async getUserByEmail(email: string) {
-    return await collections.users?.findOne({ 'accountData.email': email });
+    return await collections.users?.findOne({ 'accountData.email': { $eq: email } });
   },
   async updateCodeByEmail(email: string, code: string) {
     return await collections.users?.updateOne(
@@ -76,7 +76,7 @@ export const usersRepositoryDB = {
     );
   },
   async getUserByLogin(login: string) {
-    return await collections.users?.findOne({ 'accountData.userName': login });
+    return await collections.users?.findOne({ 'accountData.userName': { $eq: login } });
   },
 
   async deleteUser(id: string) {
