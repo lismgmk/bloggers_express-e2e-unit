@@ -21,7 +21,7 @@ authRouter2.post(
     const userIp = requestIp.getClientIp(req);
     const usersCollection = getCurrentCollection(req.path);
     const currentUsersIp = await usersCollection?.findOne({ userIp });
-    const user = await usersRepositoryDB.getUserByLogin('login');
+    const user = await usersRepositoryDB.getUserByLogin(req.body.login);
     // if (!currentUsersIp) {
     //   return res.send(401);
     // }
