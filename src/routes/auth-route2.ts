@@ -36,10 +36,10 @@ authRouter2.post(
     // if (!currentUsersIp) {
     //   return res.send(401);
     // }
-    if (currentUsersIp!.attempt === 0) {
-      await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
-      return res.send(401);
-    }
+    // if (currentUsersIp!.attempt === 0) {
+    //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+    //   return res.send(401);
+    // }
     if (currentUsersIp && currentUsersIp.error429 === true) {
       return res.send(429);
     }
@@ -107,10 +107,10 @@ authRouter2.post(
     // if (!currentUsersIp) {
     //   return res.send(204);
     // }
-    if (currentUsersIp!.attempt === 0) {
-      await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
-      return res.send(204);
-    }
+    // if (currentUsersIp!.attempt === 0) {
+    //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+    //   return res.send(204);
+    // }
     if (currentUsersIp && currentUsersIp.error429 === true) {
       return res.send(429);
     }
@@ -156,10 +156,10 @@ authRouter2.post(
     // if (!currentUsersIp) {
     //   return res.send(204);
     // }
-    if (currentUsersIp!.attempt === 0) {
-      await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
-      return res.send(204);
-    }
+    // if (currentUsersIp!.attempt === 0) {
+    //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+    //   return res.send(204);
+    // }
     if (currentUsersIp && currentUsersIp.error429 === true) {
       return res.send(429);
     }
@@ -201,10 +201,10 @@ authRouter2.post(
     // if (!currentUsersIp) {
     //   return res.send(204);
     // }
-    if (currentUsersIp!.attempt === 0) {
-      await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
-      return res.send(204);
-    }
+    // if (currentUsersIp!.attempt === 0) {
+    //   await usersCollection?.updateOne({ userIp }, { $set: { attempt: 1 } });
+    //   return res.send(204);
+    // }
     if (currentUsersIp && currentUsersIp.error429 === true) {
       return res.send(429);
     }
