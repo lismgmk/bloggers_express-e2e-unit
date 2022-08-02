@@ -33,17 +33,19 @@ authRouter2.post(
     // if (currentUsersIp && currentUsersIp.error429 === true) {
     //   return res.send(429);
     // }
-    if (isCheck === 'add attempt') {
-      return res.send(401);
+
+    if (isCheck === 'max limit') {
+      return res.send(429);
     }
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
-
-    if (isCheck === 'max limit') {
-      await usersCollection?.updateOne({ userIp }, { $set: { attempt: 6 } });
-      return res.send(429);
+    if (isCheck === 'add attempt') {
+      return res.send(401);
     }
+
+    //
+
     // if (isCheck === 'add attempt') {
     //   return res.status(400).send({
     //     errorsMessages: [
