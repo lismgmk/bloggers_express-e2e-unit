@@ -72,7 +72,7 @@ authRouter2.post(
     else {
       // await addUserAttempt.addAttemptByLogin(login, true);
       const accessToken = JWT.sign({ id: attemptCountUser!._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
-      return res.status(204).send({ token: accessToken });
+      return res.status(200).send({ token: accessToken });
     }
   },
 );
