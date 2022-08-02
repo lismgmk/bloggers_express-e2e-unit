@@ -33,11 +33,11 @@ authRouter2.post(
     // if (currentUsersIp && currentUsersIp.error429 === true) {
     //   return res.send(429);
     // }
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    }
     if (!user) {
       return res.send(401);
+    }
+    if (!result.isEmpty()) {
+      return res.status(400).send({ errorsMessages: result.array() });
     }
 
     const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
