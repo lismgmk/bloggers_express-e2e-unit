@@ -8,14 +8,11 @@ export const authRepositoryDB = {
     const attemptCountUser = await collections.users?.findOne({ 'accountData.userName': login });
     const isMatch =
       attemptCountUser && (await bcrypt.compare(password, attemptCountUser.accountData.passwordHash ?? ''));
-    // if (!attemptCountUser) {
-    //   return 'add attempt';
-    // }
-    if (attemptCountUser && !isMatch) {
+    if (!attemptCountUser || (attemptCountUser && !isMatch)) {
       await addUserAttempt.addAttemptByLogin(login, false);
       return 'add attempt';
     }
-    if (attemptCountUser!.emailConfirmation.attemptCount >= 5) {
+    if (attemptCountUser && attemptCountUser.emailConfirmation.attemptCount >= 5) {
       return 'max limit';
     } else {
       await addUserAttempt.addAttemptByLogin(login, true);
