@@ -8,6 +8,10 @@ import { mailService } from '../utils/mail-service';
 import { v4 as uuidv4 } from 'uuid';
 import { checkIpServiceUser } from '../application/check-ip-service';
 import { getCurrentCollection } from '../utils/get-current-collection';
+import { collections } from '../connect-db';
+import bcrypt from 'bcryptjs';
+import { addUserAttempt } from '../utils/add-user-attempt';
+import JWT from 'jsonwebtoken';
 
 export const authRouter2 = Router({});
 authRouter2.post(
@@ -18,10 +22,16 @@ authRouter2.post(
 
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
-    const userIp = requestIp.getClientIp(req);
-    const usersCollection = getCurrentCollection(req.path);
+    // const userIp = requestIp.getClientIp(req);
+    // const usersCollection = getCurrentCollection(req.path);
     // const currentUsersIp = await usersCollection?.findOne({ userIp });
-    const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
+    const attemptCountUser = await collections.users?.findOne({ 'accountData.userName': req.body.login });
+    const isMatch =
+      attemptCountUser && (await bcrypt.compare(req.body.password, attemptCountUser.accountData.passwordHash ?? ''));
+    if (!attemptCountUser || (attemptCountUser && !isMatch)) {
+      return res.send(401);
+    }
+    // const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
     // if (!currentUsersIp) {
     //   return res.send(401);
     // }
@@ -31,16 +41,19 @@ authRouter2.post(
     // }
 
     // if (currentUsersIp && currentUsersIp.error429 === true) {
+    //
+    // }
+    //
+    // if (isCheck === 'max limit') {
     //   return res.send(429);
     // }
-
-    if (isCheck === 'max limit') {
-      return res.send(429);
-    }
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
-    if (isCheck === 'add attempt') {
+    // if (isCheck === 'add attempt') {
+    //   return res.send(401);
+    // }
+    if (!attemptCountUser || (attemptCountUser && !isMatch)) {
       return res.send(401);
     }
 
@@ -57,7 +70,9 @@ authRouter2.post(
     //   });
     // }
     else {
-      return res.status(200).send(isCheck);
+      // await addUserAttempt.addAttemptByLogin(login, true);
+      const accessToken = JWT.sign({ id: attemptCountUser!._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
+      return res.status(204).send({ token: accessToken });
     }
   },
 );
