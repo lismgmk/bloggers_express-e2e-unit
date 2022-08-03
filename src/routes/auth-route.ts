@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { body, validationResult } from 'express-validator';
+import { body, param, validationResult } from 'express-validator';
 import { errorFormatter } from '../utils/error-util';
 import { authRepositoryDB } from '../repositories/auth-repository-db';
 import requestIp from 'request-ip';
@@ -79,25 +79,25 @@ authRouter.post(
       return res.status(400).send({ errorsMessages: result.array() });
     }
     const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
-    if (isCheck === 'max limit') {
-      await collections.ipUsersLogin?.updateOne({ userIp }, { $set: { attempt: 6 } });
-      return res.send(429);
-    }
-    if (isCheck === 'add attempt') {
-      res.status(400).send({
-        errorsMessages: [
-          {
-            message: 'invalid password',
-            field: 'password',
-          },
-        ],
-      });
-    } else {
-      const userIp = requestIp.getClientIp(req);
-      await checkIpServiceLogin2.deleteUser(userIp!);
-      // await collections.ipUsersLogin?.deleteOne({ userIp });
-      res.status(200).send(isCheck);
-    }
+    // if (isCheck === 'max limit') {
+    //   await collections.ipUsersLogin?.updateOne({ userIp }, { $set: { attempt: 6 } });
+    //   return res.send(429);
+    // }
+    // if (isCheck === 'add attempt') {
+    //   res.status(400).send({
+    //     errorsMessages: [
+    //       {
+    //         message: 'invalid password',
+    //         field: 'password',
+    //       },
+    //     ],
+    //   });
+    // } else {
+    //   const userIp = requestIp.getClientIp(req);
+    //   await checkIpServiceLogin2.deleteUser(userIp!);
+    //   // await collections.ipUsersLogin?.deleteOne({ userIp });
+    //   res.status(200).send(isCheck);
+    // }
   },
 );
 
