@@ -1,64 +1,33 @@
 import express from 'express';
 import requestIp from 'request-ip';
-import { differenceInSeconds } from 'date-fns';
-import { getCurrentCollection } from '../utils/get-current-collection';
+import { subSeconds } from 'date-fns';
+import { collections } from '../connect-db';
 
 export const checkIpServiceUser = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const usersCollection = getCurrentCollection(req.path);
-
   const secondsLimit = 10;
   const attemptsLimit = 5;
   const userIp = requestIp.getClientIp(req);
-  const attemptCountUserIp = await usersCollection?.findOne({ userIp });
-  console.log(attemptCountUserIp, 'collection');
+  const usersLoginDiffIp = await collections.ipUsers?.distinct('userIp', { path: '/login' });
 
-  if (!attemptCountUserIp) {
-    await usersCollection?.insertOne({
+  const findAllUsersIp = await collections.ipUsers
+    ?.find({
+      userIp: req.ip,
+      path: req.path,
+      createdAt: {
+        $gte: subSeconds(new Date(), secondsLimit),
+      },
+    })
+    .toArray();
+  if (findAllUsersIp!.length < attemptsLimit) {
+    await collections.ipUsers?.insertOne({
       createdAt: new Date(),
       userIp,
-      attempt: 1,
-      // error429: false,
+      path: req.path,
     });
     return next();
-  }
-  if (
-    attemptCountUserIp &&
-    attemptCountUserIp.attempt < attemptsLimit &&
-    differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
-  ) {
-    await usersCollection?.find({ userIp }).forEach((doc) => {
-      const oldAttemptCount = doc.attempt;
-      usersCollection?.updateOne({ userIp }, { $set: { attempt: oldAttemptCount + 1 } });
-    });
-    return next();
-  }
-  if (
-    attemptCountUserIp &&
-    attemptCountUserIp!.attempt >= attemptsLimit &&
-    differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) < secondsLimit
-  ) {
-    // await usersCollection?.updateOne({ userIp }, { $set: { error429: true } });
-    // return next();
-    // await usersCollection?.updateOne({ userIp }, { $set: { error429: true } });
-    // await usersCollection?.updateOne({ userIp }, { $set: { createdAt: new Date(), attempt: 0 } });
+  } else if (findAllUsersIp!.length >= attemptsLimit || usersLoginDiffIp!.length >= attemptsLimit) {
     return res.send(429);
-  }
-
-  // if (
-  //   attemptCountUserIp &&
-  //   differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) > secondsLimit &&
-  //   attemptCountUserIp!.error429 === true
-  // ) {
-  //   // await usersCollection?.deleteOne({ userIp });
-  //   await usersCollection?.updateOne({ userIp }, { $set: { createdAt: new Date(), attempt: 0, error429: false } });
-  //   return next();
-  // }
-  if (
-    attemptCountUserIp &&
-    differenceInSeconds(new Date(), attemptCountUserIp!.createdAt) >= secondsLimit
-    // attemptCountUserIp!.error429 === false
-  ) {
-    await usersCollection?.updateOne({ userIp }, { $set: { createdAt: new Date(), attempt: 1 } });
+  } else {
     return next();
   }
 };
