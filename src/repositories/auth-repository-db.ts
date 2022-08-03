@@ -4,16 +4,13 @@ import JWT from 'jsonwebtoken';
 import { addUserAttempt } from '../utils/add-user-attempt';
 
 export const authRepositoryDB = {
-  async authUser(login: string, password: string): Promise<{ token: string } | 'add attempt' | 'max limit'> {
+  async authUser(login: string, password: string): Promise<{ token: string } | null> {
     const attemptCountUser = await collections.users?.findOne({ 'accountData.userName': login });
     const isMatch =
       attemptCountUser && (await bcrypt.compare(password, attemptCountUser.accountData.passwordHash ?? ''));
-    if (!attemptCountUser || (attemptCountUser && !isMatch)) {
+    if (!attemptCountUser || !isMatch) {
       await addUserAttempt.addAttemptByLogin(login, false);
-      return 'add attempt';
-    }
-    if (attemptCountUser && attemptCountUser.emailConfirmation.attemptCount >= 5) {
-      return 'max limit';
+      return null;
     } else {
       await addUserAttempt.addAttemptByLogin(login, true);
       const accessToken = JWT.sign({ id: attemptCountUser!._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');

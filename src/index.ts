@@ -9,7 +9,7 @@ import path from 'path';
 import { commentsRouter } from './routes/comments-route';
 import { usersRouter } from './routes/users-route';
 import { testingRouter } from './routes/testing-route';
-import { authRouter2 } from './routes/auth-route2';
+import { authRouter3 } from './routes/auth-route3';
 
 config({ path: path.join(__dirname, '..', '.env') });
 
@@ -22,8 +22,8 @@ connectToDatabase()
   .then(() => {
     app.use('/bloggers', bloggersRouter);
     app.use('/posts', postsRouter);
-    // app.use('/auth', authRouter);
-    app.use('/auth', authRouter2);
+    // app.use('/auth', authRouter2);
+    app.use('/auth', authRouter3);
     app.use('/comments', commentsRouter);
     app.use('/users', usersRouter);
     app.use('/testing', testingRouter);
