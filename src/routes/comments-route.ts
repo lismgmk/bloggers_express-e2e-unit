@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { errorFormatter } from '../utils/error-util';
-import { jwtService } from '../application/jwt-service';
+import { checkAccessTokenService } from '../application/check-access-token-service';
 import { commentsRepositoryDb } from '../repositories/comments-repository-db';
 import { ObjectId } from 'mongodb';
 
@@ -18,7 +18,7 @@ commentsRouter.get('/:id', async (req, res) => {
 
 commentsRouter.put(
   '/:id',
-  jwtService,
+  checkAccessTokenService,
   body('content').trim().isLength({ min: 20, max: 300 }).exists().withMessage('invalid length'),
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
@@ -42,7 +42,7 @@ commentsRouter.put(
   },
 );
 
-commentsRouter.delete('/:id', jwtService, async (req, res) => {
+commentsRouter.delete('/:id', checkAccessTokenService, async (req, res) => {
   if (!ObjectId.isValid(req.params.id)) {
     return res.send(404);
   } else {

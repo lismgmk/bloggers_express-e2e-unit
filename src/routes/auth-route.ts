@@ -7,6 +7,10 @@ import { usersRepositoryDB } from '../repositories/users-repository-db';
 import { mailService } from '../utils/mail-service';
 import { v4 as uuidv4 } from 'uuid';
 import { checkIpServiceUser } from '../application/check-ip-service';
+import { checkRefreshTokenService } from '../application/check-refresh-token-service';
+import { jwtPassService } from '../utils/jwt-pass-service';
+import { blackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
+import { checkAccessTokenService } from '../application/check-access-token-service';
 
 export const authRouter = Router({});
 authRouter.post(
@@ -140,3 +144,30 @@ authRouter.post(
     }
   },
 );
+
+authRouter.post('/refresh-token', checkRefreshTokenService, async (req, res) => {
+  const accessToken = jwtPassService.createJwt(req.user!.toString(), '10s');
+  const refreshToken = jwtPassService.createJwt(req.user!.toString(), '20s');
+  await blackListTokensRepositoryDB.addToken(req.cookies.refresh_token);
+  return res
+    .cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+    })
+    .sendStatus(200)
+    .send({ accessToken });
+});
+
+authRouter.post('/logout', checkRefreshTokenService, async (req, res) => {
+  await blackListTokensRepositoryDB.addToken(req.cookies.refresh_token);
+  await usersRepositoryDB.confirmUserById(req.user!, false);
+  return res.sendStatus(204);
+});
+
+authRouter.post('/me', checkAccessTokenService, async (req, res) => {
+  const user = await usersRepositoryDB.getUserById(req.user!);
+  if (user) {
+    return res
+      .sendStatus(200)
+      .send({ email: user.accountData.email, login: user.accountData.userName, userId: user._id!.toString() });
+  }
+});

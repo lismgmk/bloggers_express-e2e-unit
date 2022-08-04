@@ -10,6 +10,7 @@ import { commentsRouter } from './routes/comments-route';
 import { usersRouter } from './routes/users-route';
 import { testingRouter } from './routes/testing-route';
 import { authRouter } from './routes/auth-route';
+import cookieParser from 'cookie-parser';
 
 config({ path: path.join(__dirname, '..', '.env') });
 
@@ -17,6 +18,8 @@ const app = express();
 const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(bodyParser.json());
+app.use(cookieParser());
+
 app.set('trust proxy', true);
 connectToDatabase()
   .then(() => {

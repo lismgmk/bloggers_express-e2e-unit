@@ -87,4 +87,10 @@ export const usersRepositoryDB = {
     const result = await collections.users?.deleteOne({ 'accountData.userName': login });
     return { deleteState: result?.acknowledged, deleteCount: result?.deletedCount };
   },
+  async confirmUserById(id: string | ObjectId, confirm: boolean) {
+    return await collections.users?.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { 'emailConfirmation.isConfirmed': confirm, 'emailConfirmation.attemptCount': 0 } },
+    );
+  },
 };

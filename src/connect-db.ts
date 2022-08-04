@@ -6,6 +6,7 @@ export const collections: {
   users?: mongoDB.Collection;
   comments?: mongoDB.Collection;
   ipUsers?: mongoDB.Collection;
+  black_list_tokens?: mongoDB.Collection;
 } = {};
 
 export async function connectToDatabase() {
@@ -16,6 +17,7 @@ export async function connectToDatabase() {
   const db_users_collection_name_str = process.env.USERS_COLLECTION_NAME || '';
   const db_comments_collection_name_str = process.env.COMMENTS_COLLECTION_NAME || '';
   const db_ip_users_collection_name_str = process.env.IP_USERS_COLLECTION_NAME || '';
+  const db_black_list_tokens_collection_name_str = process.env.BLACK_LIST_TOKENS_COLLECTION_NAME || '';
   const client: mongoDB.MongoClient = new mongoDB.MongoClient(db_connection_str);
 
   await client.connect();
@@ -30,10 +32,12 @@ export async function connectToDatabase() {
   const usersCollection: mongoDB.Collection = db.collection(db_users_collection_name_str);
   const commentsCollection: mongoDB.Collection = db.collection(db_comments_collection_name_str);
   const ipUsersCollection: mongoDB.Collection = db.collection(db_ip_users_collection_name_str);
+  const blackListTokensCollection: mongoDB.Collection = db.collection(db_black_list_tokens_collection_name_str);
 
   collections.bloggers = bloggersCollection;
   collections.posts = postsCollection;
   collections.users = usersCollection;
   collections.comments = commentsCollection;
   collections.ipUsers = ipUsersCollection;
+  collections.black_list_tokens = blackListTokensCollection;
 }

@@ -1,13 +1,18 @@
-import jwt from 'jsonwebtoken';
 import express from 'express';
+import { jwtPassService } from '../utils/jwt-pass-service';
 
 declare module 'express-serve-static-core' {
   interface Request {
     user?: string;
   }
 }
-export const jwtService = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+export const checkAccessTokenService = async (
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+) => {
   const authHeader = req.headers['authorization'];
+
   const token = authHeader && authHeader.split(' ')[1]; // Bearer Token
   if (!token) {
     res.status(401).json({
@@ -19,7 +24,8 @@ export const jwtService = async (req: express.Request, res: express.Response, ne
     });
   } else {
     try {
-      const user = token && jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || '');
+      const user = token && jwtPassService.verifyJwt(token);
+      // const user = token && jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || '');
 
       if (user) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
