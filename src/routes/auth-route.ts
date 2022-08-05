@@ -11,6 +11,7 @@ import { checkRefreshTokenService } from '../application/check-refresh-token-ser
 import { jwtPassService } from '../utils/jwt-pass-service';
 import { blackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
 import { checkAccessTokenService } from '../application/check-access-token-service';
+import { expiredAccess, expiredRefresh } from '../constants';
 
 export const authRouter = Router({});
 authRouter.post(
@@ -28,7 +29,14 @@ authRouter.post(
     if (!isCheck) {
       return res.send(401);
     } else {
-      return res.status(200).send(isCheck);
+      const user = await usersRepositoryDB.getUserByLogin(req.body.login);
+      const refreshToken = jwtPassService.createJwt(user!._id.toString(), expiredRefresh);
+      return res
+        .cookie('refreshToken', refreshToken, {
+          httpOnly: true,
+        })
+        .status(200)
+        .send(isCheck);
     }
   },
 );
@@ -146,28 +154,27 @@ authRouter.post(
 );
 
 authRouter.post('/refresh-token', checkRefreshTokenService, async (req, res) => {
-  const accessToken = jwtPassService.createJwt(req.user!.toString(), '10s');
-  const refreshToken = jwtPassService.createJwt(req.user!.toString(), '20s');
-  await blackListTokensRepositoryDB.addToken(req.cookies.refresh_token);
+  const accessToken = jwtPassService.createJwt(req.user!.toString(), expiredAccess);
+  const refreshToken = jwtPassService.createJwt(req.user!.toString(), expiredRefresh);
+  await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
   return res
     .cookie('refreshToken', refreshToken, {
       httpOnly: true,
     })
-    .sendStatus(200)
+    .status(200)
     .send({ accessToken });
 });
 
 authRouter.post('/logout', checkRefreshTokenService, async (req, res) => {
-  await blackListTokensRepositoryDB.addToken(req.cookies.refresh_token);
-  await usersRepositoryDB.confirmUserById(req.user!, false);
+  await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
+  await usersRepositoryDB.confirmUserById(req.user!._id!.toString(), false);
   return res.sendStatus(204);
 });
 
-authRouter.post('/me', checkAccessTokenService, async (req, res) => {
-  const user = await usersRepositoryDB.getUserById(req.user!);
-  if (user) {
-    return res
-      .sendStatus(200)
-      .send({ email: user.accountData.email, login: user.accountData.userName, userId: user._id!.toString() });
-  }
+authRouter.get('/me', checkAccessTokenService, async (req, res) => {
+  return res.status(200).send({
+    email: req.user!.accountData.email,
+    login: req.user!.accountData.userName,
+    userId: req.user!._id!.toString(),
+  });
 });

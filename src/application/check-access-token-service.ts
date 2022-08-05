@@ -1,9 +1,11 @@
 import express from 'express';
 import { jwtPassService } from '../utils/jwt-pass-service';
+import { usersRepositoryDB } from '../repositories/users-repository-db';
+import { IUser } from '../types';
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user?: string;
+    user?: IUser;
   }
 }
 export const checkAccessTokenService = async (
@@ -12,7 +14,6 @@ export const checkAccessTokenService = async (
   next: express.NextFunction,
 ) => {
   const authHeader = req.headers['authorization'];
-
   const token = authHeader && authHeader.split(' ')[1]; // Bearer Token
   if (!token) {
     res.status(401).json({
@@ -24,15 +25,22 @@ export const checkAccessTokenService = async (
     });
   } else {
     try {
-      const user = token && jwtPassService.verifyJwt(token);
-      // const user = token && jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || '');
-
-      if (user) {
+      const verifyUser = jwtPassService.verifyJwt(token);
+      const user = verifyUser && (await usersRepositoryDB.getUserById(verifyUser.id!));
+      if (verifyUser && user) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        req.user = user.id;
+        req.user = user;
+        return next();
+      } else {
+        res.status(401).send({
+          errors: [
+            {
+              msg: 'Invalid token',
+            },
+          ],
+        });
       }
-      next();
     } catch (error) {
       res.status(401).send({
         errors: [

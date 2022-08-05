@@ -17,12 +17,7 @@ export const blackListTokensRepositoryDB = {
       return false;
     }
   },
-  async checkToken(token: string): Promise<boolean> {
-    try {
-      const isAddedToke = await collections.black_list_tokens?.findOne({ tokenValue: token });
-      return !!isAddedToke;
-    } catch (e) {
-      return false;
-    }
+  async checkToken(token: string) {
+    return await collections.black_list_tokens?.findOne({ tokenValue: token });
   },
 };

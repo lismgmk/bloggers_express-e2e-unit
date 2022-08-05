@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { addUserAttempt } from '../utils/add-user-attempt';
 import { jwtPassService } from '../utils/jwt-pass-service';
 import { usersRepositoryDB } from './users-repository-db';
+import { expiredAccess } from '../constants';
 
 export const authRepositoryDB = {
   async authUser(login: string, password: string): Promise<{ accessToken: string } | null> {
@@ -14,7 +15,7 @@ export const authRepositoryDB = {
       return null;
     } else {
       await addUserAttempt.addAttemptByLogin(login, true);
-      const accessToken = jwtPassService.createJwt(attemptCountUser!._id!.toString(), '20s');
+      const accessToken = jwtPassService.createJwt(attemptCountUser!._id!.toString(), expiredAccess);
       // const accessToken = JWT.sign({ id: attemptCountUser!._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
       return { accessToken };
     }

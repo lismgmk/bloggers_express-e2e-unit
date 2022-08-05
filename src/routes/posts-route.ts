@@ -74,7 +74,11 @@ postsRouter.post(
       if (!result.isEmpty()) {
         return res.status(400).send({ errorsMessages: result.array() });
       } else {
-        const newComment = await commentsRepositoryDb.createComment(req.body.content, req.user!, postId);
+        const newComment = await commentsRepositoryDb.createComment(
+          req.body.content,
+          req.user!._id!.toString(),
+          postId,
+        );
         newComment && res.status(201).send(newComment);
       }
     }
