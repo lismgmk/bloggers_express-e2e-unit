@@ -170,7 +170,7 @@ authRouter.post('/refresh-token', checkRefreshTokenService, async (req, res) => 
 authRouter.post('/logout', checkRefreshTokenService, async (req, res) => {
   await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
   await usersRepositoryDB.confirmUserById(req.user!._id!.toString(), false);
-  return res.sendStatus(204);
+  return res.send(204);
 });
 
 authRouter.get('/me', checkAccessTokenService, async (req, res) => {

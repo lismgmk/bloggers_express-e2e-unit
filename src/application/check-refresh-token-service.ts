@@ -15,14 +15,34 @@ export const checkRefreshTokenService = async (
   next: express.NextFunction,
 ) => {
   const tokenRefresh = req.cookies.refreshToken;
-  const verifyUser = jwtPassService.verifyJwt(tokenRefresh);
-  const user = verifyUser && (await usersRepositoryDB.getUserById(verifyUser.id!));
-  const isChecked = tokenRefresh && (await blackListTokensRepositoryDB.checkToken(tokenRefresh));
-  if (tokenRefresh && user && !isChecked && verifyUser) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    req.user = user;
-    return next();
+  // const verifyUser = jwtPassService.verifyJwt(tokenRefresh);
+  // const user = verifyUser && (await usersRepositoryDB.getUserById(verifyUser.id!));
+  // const isChecked = tokenRefresh && (await blackListTokensRepositoryDB.checkToken(tokenRefresh));
+  // if (tokenRefresh && user && !isChecked && verifyUser) {
+  //   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //   // @ts-ignore
+  //   req.user = user;
+  //   return next();
+  // } else {
+  //   return res.sendStatus(401);
+  // }
+
+  if (tokenRefresh) {
+    const verifyUser = jwtPassService.verifyJwt(tokenRefresh);
+    if (verifyUser) {
+      const user = await usersRepositoryDB.getUserById(verifyUser!.id!);
+      const isChecked = tokenRefresh && (await blackListTokensRepositoryDB.checkToken(tokenRefresh));
+      if (user && !isChecked) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        req.user = user;
+        return next();
+      } else {
+        return res.send(401);
+      }
+    } else {
+      return res.sendStatus(401);
+    }
   } else {
     return res.sendStatus(401);
   }
