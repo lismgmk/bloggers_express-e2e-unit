@@ -42,14 +42,8 @@ usersRouter.post(
         clientIp!,
         confirmationCode,
       );
-      if (newUser === 'max limit') {
-        return res.status(429).send('max limit');
-      }
-      if (newUser === 'add attempt') {
-        return res.status(400).send('this user is already exist');
-      } else {
-        return res.status(201).send(newUser);
-      }
+      await usersRepositoryDB.confirmUserByLogin(req.body.login);
+      return res.status(201).send(newUser);
     }
   },
 );
