@@ -14,41 +14,15 @@ export const checkAccessTokenService = async (
   next: express.NextFunction,
 ) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer Token
-  if (!token) {
-    res.status(401).json({
-      errors: [
-        {
-          msg: 'Token not found',
-        },
-      ],
-    });
+  const accessToken = authHeader && authHeader.split(' ')[1];
+  const verifyUser = accessToken && jwtPassService.verifyJwt(accessToken);
+  const user = verifyUser && (await usersRepositoryDB.getUserById(verifyUser.id!));
+  if (accessToken && user && verifyUser) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    req.user = user;
+    return next();
   } else {
-    try {
-      const verifyUser = jwtPassService.verifyJwt(token);
-      const user = verifyUser && (await usersRepositoryDB.getUserById(verifyUser.id!));
-      if (verifyUser && user) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        req.user = user;
-        return next();
-      } else {
-        res.status(401).send({
-          errors: [
-            {
-              msg: 'Invalid token',
-            },
-          ],
-        });
-      }
-    } catch (error) {
-      res.status(401).send({
-        errors: [
-          {
-            msg: 'Invalid token',
-          },
-        ],
-      });
-    }
+    return res.sendStatus(401);
   }
 };

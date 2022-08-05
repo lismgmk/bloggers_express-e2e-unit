@@ -15,7 +15,6 @@ export const jwtPassService = {
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || '', (err, decode) => {
       if (err) {
-        console.log(err, 'errror');
         verify = null;
         return err;
       } else {
