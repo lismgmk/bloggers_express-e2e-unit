@@ -1,10 +1,12 @@
 import { collections } from '../connect-db';
 import bcrypt from 'bcryptjs';
-import JWT from 'jsonwebtoken';
 import { addUserAttempt } from '../utils/add-user-attempt';
+import { jwtPassService } from '../utils/jwt-pass-service';
+import { usersRepositoryDB } from './users-repository-db';
+import { expiredAccess } from '../constants';
 
 export const authRepositoryDB = {
-  async authUser(login: string, password: string): Promise<{ token: string } | null> {
+  async authUser(login: string, password: string): Promise<{ accessToken: string } | null> {
     const attemptCountUser = await collections.users?.findOne({ 'accountData.userName': login });
     const isMatch =
       attemptCountUser && (await bcrypt.compare(password, attemptCountUser.accountData.passwordHash ?? ''));
@@ -13,8 +15,9 @@ export const authRepositoryDB = {
       return null;
     } else {
       await addUserAttempt.addAttemptByLogin(login, true);
-      const accessToken = JWT.sign({ id: attemptCountUser!._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
-      return { token: accessToken };
+      const accessToken = jwtPassService.createJwt(attemptCountUser!._id!.toString(), expiredAccess);
+      // const accessToken = JWT.sign({ id: attemptCountUser!._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
+      return { accessToken };
     }
   },
   async confirmEmail(code: string) {
@@ -25,10 +28,11 @@ export const authRepositoryDB = {
     if (confirmedUser!.emailConfirmation.isConfirmed === true) {
       return false;
     } else {
-      await collections.users?.updateOne(
-        { _id: confirmedUser!._id },
-        { $set: { 'emailConfirmation.isConfirmed': true, 'emailConfirmation.attemptCount': 0 } },
-      );
+      await usersRepositoryDB.confirmUserById(confirmedUser!._id, true);
+      // await collections.users?.updateOne(
+      //   { _id: confirmedUser!._id },
+      //   { $set: { 'emailConfirmation.isConfirmed': true, 'emailConfirmation.attemptCount': 0 } },
+      // );
       return true;
     }
   },

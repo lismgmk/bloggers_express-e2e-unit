@@ -4,7 +4,7 @@ import { body, validationResult } from 'express-validator';
 import basicAuth from 'express-basic-auth';
 import { postsRepositoryDB } from '../repositories/posts-repository-db';
 import { collections } from '../connect-db';
-import { jwtService } from '../application/jwt-service';
+import { checkAccessTokenService } from '../application/check-access-token-service';
 import { commentsRepositoryDb } from '../repositories/comments-repository-db';
 
 export const postsRouter = Router({});
@@ -62,7 +62,7 @@ postsRouter.get('/:id/comments', async (req, res) => {
 
 postsRouter.post(
   '/:id/comments',
-  jwtService,
+  checkAccessTokenService,
   body('content').trim().isLength({ min: 20, max: 300 }).bail().exists().withMessage('invalid content'),
   async (req, res) => {
     const postId = req.params?.id;
@@ -74,7 +74,11 @@ postsRouter.post(
       if (!result.isEmpty()) {
         return res.status(400).send({ errorsMessages: result.array() });
       } else {
-        const newComment = await commentsRepositoryDb.createComment(req.body.content, req.user!, postId);
+        const newComment = await commentsRepositoryDb.createComment(
+          req.body.content,
+          req.user!._id!.toString(),
+          postId,
+        );
         newComment && res.status(201).send(newComment);
       }
     }
