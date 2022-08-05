@@ -31,7 +31,7 @@ export const checkAccessTokenService = async (
     if (accessToken) {
       const verifyUser = jwtPassService.verifyJwt(accessToken);
       if (verifyUser) {
-        const user = await usersRepositoryDB.getUserById(verifyUser!.id!);
+        const user = await usersRepositoryDB.getUserById(verifyUser!.id!.toString());
         if (user) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
