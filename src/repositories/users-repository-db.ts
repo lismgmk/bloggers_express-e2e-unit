@@ -93,4 +93,10 @@ export const usersRepositoryDB = {
       { $set: { 'emailConfirmation.isConfirmed': confirm, 'emailConfirmation.attemptCount': 0 } },
     );
   },
+  async confirmUserByLogin(login: string) {
+    return await collections.users?.updateOne(
+      { 'accountData.userName': login },
+      { $set: { 'emailConfirmation.isConfirmed': true, 'emailConfirmation.attemptCount': 0 } },
+    );
+  },
 };
