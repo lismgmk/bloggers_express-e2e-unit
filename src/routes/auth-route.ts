@@ -161,6 +161,7 @@ authRouter.post('/refresh-token', checkRefreshTokenService, async (req, res) => 
   return res
     .cookie('refreshToken', refreshToken, {
       httpOnly: true,
+      secure: process.env.NODE_ENV !== 'development',
     })
     .status(200)
     .send({ accessToken });
