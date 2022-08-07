@@ -41,9 +41,9 @@ export const checkRefreshTokenService = async (
         return res.send(401);
       }
     } else {
-      return res.sendStatus(401);
+      return res.send(401);
     }
   } else {
-    return res.sendStatus(401);
+    return res.send(401);
   }
 };

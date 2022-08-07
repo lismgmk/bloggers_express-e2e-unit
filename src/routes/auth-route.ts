@@ -173,7 +173,7 @@ authRouter.post('/logout', checkRefreshTokenService, async (req, res) => {
   return res.send(204);
 });
 
-authRouter.get('/me', checkRefreshTokenService, checkAccessTokenService, async (req, res) => {
+authRouter.get('/me', checkAccessTokenService, async (req, res) => {
   return res.status(200).send({
     email: req.user!.accountData.email,
     login: req.user!.accountData.userName,
