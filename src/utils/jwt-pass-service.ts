@@ -10,16 +10,16 @@ export const jwtPassService = {
       expiresIn,
     });
   },
-  verifyJwt(token: string): UserPayload | null {
-    let verify: UserPayload | null = {};
+  verifyJwt(token: string) {
+    let verify: any = {};
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || '', (err, decode) => {
       if (err) {
         verify = null;
         return err;
       } else {
-        verify = decode as UserPayload;
-        return decode as UserPayload;
+        verify = decode;
+        return decode;
       }
     });
     console.log(verify, 'dddd');
