@@ -30,7 +30,7 @@ export const checkRefreshTokenService = async (
   if (tokenRefresh) {
     const verifyUser = jwtPassService.verifyJwt(tokenRefresh);
     if (verifyUser) {
-      const user = await usersRepositoryDB.getUserById(verifyUser!.id!.toString());
+      const user = await usersRepositoryDB.getUserById(verifyUser!.id!);
       const isChecked = tokenRefresh && (await blackListTokensRepositoryDB.checkToken(tokenRefresh));
       if (user && !isChecked) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

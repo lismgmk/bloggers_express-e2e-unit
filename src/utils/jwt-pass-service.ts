@@ -22,6 +22,7 @@ export const jwtPassService = {
         return decode as UserPayload;
       }
     });
+    console.log(verify, 'dddd');
     return verify;
   },
 };
