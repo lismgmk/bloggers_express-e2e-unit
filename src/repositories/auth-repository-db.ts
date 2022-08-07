@@ -15,7 +15,7 @@ export const authRepositoryDB = {
       return null;
     } else {
       await addUserAttempt.addAttemptByLogin(login, true);
-      const accessToken = jwtPassService.createJwt(attemptCountUser!._id!.toString(), expiredAccess);
+      const accessToken = jwtPassService.createJwt(attemptCountUser!._id!, expiredAccess);
       // const accessToken = JWT.sign({ id: attemptCountUser!._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
       return { accessToken };
     }

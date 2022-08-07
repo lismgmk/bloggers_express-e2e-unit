@@ -30,7 +30,7 @@ authRouter.post(
       return res.send(401);
     } else {
       const user = await usersRepositoryDB.getUserByLogin(req.body.login);
-      const refreshToken = jwtPassService.createJwt(user!._id.toString(), expiredRefresh);
+      const refreshToken = jwtPassService.createJwt(user!._id, expiredRefresh);
       return res
         .cookie('refreshToken', refreshToken, {
           httpOnly: true,
@@ -155,8 +155,8 @@ authRouter.post(
 );
 
 authRouter.post('/refresh-token', checkRefreshTokenService, async (req, res) => {
-  const accessToken = jwtPassService.createJwt(req.user!.toString(), expiredAccess);
-  const refreshToken = jwtPassService.createJwt(req.user!.toString(), expiredRefresh);
+  const accessToken = jwtPassService.createJwt(req.user!._id!, expiredAccess);
+  const refreshToken = jwtPassService.createJwt(req.user!._id!, expiredRefresh);
   await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
   return res
     .cookie('refreshToken', refreshToken, {
