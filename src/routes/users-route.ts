@@ -62,8 +62,9 @@ usersRouter.delete(
         res.send(404);
       } else {
         const deletedUser = await usersRepositoryDB.deleteUser(req.params.id);
-        console.log(deletedUser, 'deleted');
-        if (deletedUser.deleteCount === 1 && deletedUser.deleteState) {
+        if (typeof deletedUser === 'string') {
+          res.status(430).send(deletedUser);
+        } else {
           res.send(204);
         }
       }

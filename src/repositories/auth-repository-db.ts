@@ -16,7 +16,6 @@ export const authRepositoryDB = {
     } else {
       await addUserAttempt.addAttemptByLogin(login, true);
       const accessToken = jwtPassService.createJwt(attemptCountUser!._id!, expiredAccess);
-      // const accessToken = JWT.sign({ id: attemptCountUser!._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
       return { accessToken };
     }
   },
@@ -29,10 +28,6 @@ export const authRepositoryDB = {
       return false;
     } else {
       await usersRepositoryDB.confirmUserById(confirmedUser!._id, true);
-      // await collections.users?.updateOne(
-      //   { _id: confirmedUser!._id },
-      //   { $set: { 'emailConfirmation.isConfirmed': true, 'emailConfirmation.attemptCount': 0 } },
-      // );
       return true;
     }
   },

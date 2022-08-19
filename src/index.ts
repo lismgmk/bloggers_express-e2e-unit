@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import { authRouter } from './routes/auth-route';
 import { bloggersRouter } from './routes/bloggers-route';
 import { postsRouter } from './routes/posts-route';
 import { connectToDatabase } from './connect-db';
@@ -9,7 +10,6 @@ import path from 'path';
 import { commentsRouter } from './routes/comments-route';
 import { usersRouter } from './routes/users-route';
 import { testingRouter } from './routes/testing-route';
-import { authRouter } from './routes/auth-route';
 import cookieParser from 'cookie-parser';
 
 config({ path: path.join(__dirname, '..', '.env') });

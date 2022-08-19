@@ -1,32 +1,27 @@
+import { ObjectID } from 'mongodb';
 import { collections } from '../connect-db';
-import { Bloggers, Posts } from '../models/bloggers';
-import { IBloggers, IPaginationResponse } from '../types';
+import { Bloggers } from '../models/bloggersModel';
+import { IBloggers, IPaginationResponse, IPosts } from '../types';
 
 export const bloggersRepositoryDB = {
   async getAllBloggers(
     pageSize: number,
     pageNumber: number,
     bloggerNamePart: string,
-  ): Promise<IPaginationResponse<Bloggers>> {
-    let bloggersPortion: Bloggers[] | undefined = [];
+  ): Promise<IPaginationResponse<IBloggers>> {
     let totalCount: number | undefined = 0;
     let totalPages = 0;
     const namePart = new RegExp(bloggerNamePart);
-    const allBloggers = await collections.bloggers?.find({ name: namePart });
-    if (allBloggers) {
-      bloggersPortion = await collections.bloggers
-        ?.find(
-          { name: namePart },
-          {
-            projection: {
-              _id: 0,
-            },
-          },
-        )
+    totalCount = await Bloggers.find({ name: namePart }).count().lean();
+    const allBloggers = await (
+      await Bloggers.find({ name: namePart })
         .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
         .limit(pageSize)
-        .toArray();
-      totalCount = await collections.bloggers?.find({ name: namePart }).count();
+        .lean()
+    ).map((i) => {
+      return { id: i._id, name: i.name, youtubeUrl: i.youtubeUrl };
+    });
+    if (allBloggers) {
       totalPages = Math.ceil((totalCount || 0) / pageSize);
     }
     return {
@@ -34,19 +29,21 @@ export const bloggersRepositoryDB = {
       page: pageNumber,
       pageSize,
       totalCount,
-      items: bloggersPortion,
+      items: allBloggers,
     };
   },
   async getAllPostsBloggers(
     pageSize: number,
     pageNumber: number,
     bloggerId: string,
-  ): Promise<IPaginationResponse<Posts>> {
-    let postsPortion: Posts[] | undefined = [];
+  ): Promise<IPaginationResponse<IPosts>> {
+    let postsPortion = [];
     let totalCount: number | undefined = 0;
     let totalPages = 0;
     const allBloggersPosts = await collections.posts?.find({ bloggerId });
     if (allBloggersPosts) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       postsPortion = await collections.posts
         ?.find(
           { bloggerId },
@@ -71,26 +68,41 @@ export const bloggersRepositoryDB = {
     };
   },
 
-  async createBlogger(name: string, youtubeUrl: string): Promise<IBloggers> {
-    const newBlogger: Bloggers = {
-      id: (+new Date()).toString(),
+  async createBlogger(name: string, youtubeUrl: string): Promise<IBloggers | string> {
+    const newBlogger = new Bloggers({
       name,
       youtubeUrl,
-    };
-    await collections.bloggers?.insertOne(newBlogger);
-    delete newBlogger._id;
-    return newBlogger;
+    });
+    try {
+      await Bloggers.create(newBlogger);
+      return { id: newBlogger._id, name: newBlogger.name, youtubeUrl: newBlogger.youtubeUrl };
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
   },
-  async getBloggerById(id: string) {
-    const blogger = (await collections.bloggers?.findOne({ id })) as Bloggers;
-    blogger && delete blogger._id;
-    return blogger;
+
+  async getBloggerById(id: string): Promise<IBloggers | boolean> {
+    try {
+      const blogger = await Bloggers.findById(new ObjectID(id));
+      return { id: blogger!._id, name: blogger!.name, youtubeUrl: blogger!.youtubeUrl };
+    } catch (err) {
+      return false;
+    }
   },
   async upDateBlogger(name: string, youtubeUrl: string, id: string) {
-    await collections.bloggers?.updateOne({ id: id }, { $set: { name, youtubeUrl } });
+    try {
+      const idVal = new ObjectID(id);
+      return await Bloggers.findByIdAndUpdate(idVal, { $set: { name, youtubeUrl } });
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
   },
   async deleteBlogger(id: string) {
-    const result = await collections.bloggers?.deleteOne({ id: id });
-    return { deleteState: result?.acknowledged, deleteCount: result?.deletedCount };
+    try {
+      const idVal = new ObjectID(id);
+      return await Bloggers.findByIdAndDelete(idVal);
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
   },
 };

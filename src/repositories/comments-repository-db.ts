@@ -1,5 +1,7 @@
+import { Types } from 'mongoose';
 import { collections } from '../connect-db';
-import { ICommentsRes, IPaginationResponse } from '../types';
+import { Comments } from '../models/commentsModel';
+import { IComments, IPaginationResponse } from '../types';
 import { ObjectId } from 'mongodb';
 
 export const commentsRepositoryDb = {
@@ -7,15 +9,24 @@ export const commentsRepositoryDb = {
     pageSize: number,
     pageNumber: number,
     postId: string,
-  ): Promise<IPaginationResponse<ICommentsRes>> {
-    let commentsPortion: ICommentsRes[] | undefined = [];
+  ): Promise<{
+    pagesCount: number;
+    pageSize: number;
+    page: number;
+    totalCount: number | undefined;
+    items: {
+      addedAt: Date | null | undefined;
+      userId: Types.ObjectId | undefined;
+      content: string | null | undefined;
+    }[];
+  }> {
+    let commentsPortion: IComments[] | undefined = [];
     let totalCount: number | undefined = 0;
     let totalPages = 0;
-    commentsPortion = await collections.comments
-      ?.find({ postId })
+    commentsPortion = await Comments.find({ postId })
       .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
       .limit(pageSize)
-      .toArray();
+      .lean();
     totalCount = await collections.comments?.find({ postId }).count();
     totalPages = Math.ceil((totalCount || 0) / pageSize);
     return {
@@ -29,19 +40,21 @@ export const commentsRepositoryDb = {
     };
   },
 
-  async createComment(content: string, userId: string, postId: string): Promise<ICommentsRes> {
+  async createComment(content: string, userId: Types.ObjectId, postId: Types.ObjectId) {
+    // async createComment(content: string, userId: Types.ObjectId, postId: Types.ObjectId): Promise<IComments> {
     const existedUser = await collections.users?.findOne({ _id: new ObjectId(userId) });
-    const newComment: ICommentsRes = {
+    // const newComment: IComments = {
+    const newComment = {
       content,
       userId,
-      userLogin: existedUser!.accountData.userName,
+      // userLogin: existedUser!.accountData.userName,
       addedAt: new Date(),
       postId: postId,
     };
     const insertComment = await collections.comments?.insertOne(newComment);
-    newComment.id = insertComment!.insertedId.toString();
-    delete newComment._id;
-    delete newComment.postId;
+    // newComment.id = insertComment!.insertedId.toString();
+    // delete newComment._id;
+    // delete newComment.postId;
     return newComment;
   },
 
@@ -50,6 +63,8 @@ export const commentsRepositoryDb = {
   },
   async getCommentById(id: string) {
     const comment = await collections.comments?.findOne({ _id: new ObjectId(id) });
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     return comment ? resComment(comment) : comment;
   },
 
@@ -59,11 +74,11 @@ export const commentsRepositoryDb = {
   },
 };
 
-const resComment = (el: ICommentsRes) => {
+const resComment = (el: IComments) => {
   return {
-    id: el._id!.toString(),
+    // id: el._id!.toString(),
     content: el.content,
-    userLogin: el.userLogin,
+    // userLogin: el.userLogin,
     userId: el.userId,
     addedAt: el.addedAt,
   };

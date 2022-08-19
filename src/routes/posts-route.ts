@@ -1,4 +1,7 @@
 import { Router } from 'express';
+import { ObjectId } from 'mongodb';
+import mongoose from 'mongoose';
+import { Bloggers } from '../models/bloggersModel';
 import { errorFormatter } from '../utils/error-util';
 import { body, validationResult } from 'express-validator';
 import basicAuth from 'express-basic-auth';
@@ -30,7 +33,7 @@ postsRouter.post(
   body('content').trim().isLength({ min: 1, max: 1000 }).bail().exists().withMessage('invalid content'),
   body('bloggerId')
     .custom(async (value) => {
-      return collections.bloggers?.findOne({ id: value }).then((user) => {
+      return Bloggers.findOne({ id: value }).then((user) => {
         if (!user) {
           return Promise.reject();
         }
@@ -42,8 +45,9 @@ postsRouter.post(
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     } else {
+      console.log('sssss');
       const newPost = await postsRepositoryDB.createPost(req.body);
-      newPost && res.status(201).send(newPost);
+      res.status(201).send(newPost);
     }
   },
 );
@@ -74,11 +78,9 @@ postsRouter.post(
       if (!result.isEmpty()) {
         return res.status(400).send({ errorsMessages: result.array() });
       } else {
-        const newComment = await commentsRepositoryDb.createComment(
-          req.body.content,
-          req.user!._id!.toString(),
-          postId,
-        );
+        const userObjectId = new mongoose.Types.ObjectId(req.user!._id!);
+        const postObjectId = new mongoose.Types.ObjectId(postId);
+        const newComment = await commentsRepositoryDb.createComment(req.body.content, userObjectId, postObjectId);
         newComment && res.status(201).send(newComment);
       }
     }
