@@ -75,6 +75,22 @@ export interface IPosts {
   extendedLikesInfo: Types.ObjectId;
 }
 
+export interface postsResult {
+  _id?: Types.ObjectId;
+  shortDescription?: string;
+  content?: string | null;
+  title?: string | null;
+  bloggerId?: IBloggers | Types.ObjectId;
+  bloggerName: string;
+  extendedLikesInfo: IExtendedLikesInfo | Types.ObjectId;
+}
+export interface IReqPosts {
+  shortDescription: string;
+  content: string;
+  title: string;
+  bloggerId?: string;
+}
+
 export interface INewestLikes {
   addedAt: string;
   userId: string;

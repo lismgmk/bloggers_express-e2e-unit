@@ -1,8 +1,9 @@
+import { ObjectID } from 'mongodb';
 import mongoose from 'mongoose';
 import { collections } from '../connect-db';
 import { Likes } from '../models/likesModel';
 import { Posts } from '../models/postsModel';
-import { IPosts } from '../types';
+import { IPosts, IReqPosts } from '../types';
 
 export const postsRepositoryDB = {
   async getAllPosts(pageSize: number, pageNumber: number, bloggerId?: string) {
@@ -38,7 +39,7 @@ export const postsRepositoryDB = {
       items: allBloggersPosts,
     };
   },
-  async createPost(bodyParams: IPosts, bloggerId?: string) {
+  async createPost(bodyParams: IReqPosts, bloggerId?: string) {
     const likeId = new mongoose.Types.ObjectId();
     const postId = new mongoose.Types.ObjectId();
     const likeInfo = new Likes({
@@ -77,9 +78,36 @@ export const postsRepositoryDB = {
       return `Fail in DB: ${err}`;
     }
   },
-  async getPostById(id: string): Promise<IPosts | undefined> {
-    const post = (await collections.posts?.findOne({ id })) as unknown as IPosts;
-    return post;
+  async getPostById(id: string) {
+    const post = await Posts.findById(new ObjectID(id))
+      .populate([
+        { path: 'extendedLikesInfo', options: { lean: true } },
+        { path: 'bloggerId', select: '_id name', options: { lean: true } },
+      ])
+      .lean();
+    if (post) {
+      const result = {
+        ...post,
+      };
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      result.bloggerName = result.bloggerId.name;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      result.bloggerId = result.bloggerId._id;
+      return result;
+    } else {
+      return false;
+    }
+
+    // const post = (await collections.posts?.findOne({ id })) as unknown as IPosts;
+    // return post;
+    // try {
+    //   const blogger =
+    //   return { id: blogger!._id, name: blogger!.name, youtubeUrl: blogger!.youtubeUrl };
+    // } catch (err) {
+    //   return false;
+    // }
   },
   async upDatePost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>, id: string) {
     const newPost: any = {

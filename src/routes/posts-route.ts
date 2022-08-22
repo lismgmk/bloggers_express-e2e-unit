@@ -1,14 +1,16 @@
 import { Router } from 'express';
-import { ObjectId } from 'mongodb';
-import mongoose from 'mongoose';
-import { Bloggers } from '../models/bloggersModel';
-import { errorFormatter } from '../utils/error-util';
-import { body, validationResult } from 'express-validator';
 import basicAuth from 'express-basic-auth';
-import { postsRepositoryDB } from '../repositories/posts-repository-db';
-import { collections } from '../connect-db';
+import { body, validationResult } from 'express-validator';
+import mongoose from 'mongoose';
 import { checkAccessTokenService } from '../application/check-access-token-service';
+import { collections } from '../connect-db';
+import { Bloggers } from '../models/bloggersModel';
+import { bloggersRepositoryDB } from '../repositories/bloggers-repository-db';
 import { commentsRepositoryDb } from '../repositories/comments-repository-db';
+import { likesRepositoryDB } from '../repositories/likes-repository-db';
+import { postsRepositoryDB } from '../repositories/posts-repository-db';
+import { myStatus } from '../types';
+import { errorFormatter } from '../utils/error-util';
 
 export const postsRouter = Router({});
 
@@ -52,6 +54,42 @@ postsRouter.post(
   },
 );
 
+postsRouter.put(
+  '/:id/like-status',
+  checkAccessTokenService,
+  body('likeStatus')
+    .custom(async (value) => {
+      const keys = Object.keys(myStatus);
+      if (!keys.includes(value)) {
+        return Promise.reject();
+      }
+    })
+    .withMessage('invalid bloggerId'),
+  async (req, res) => {
+    const result = validationResult(req).formatWith(errorFormatter);
+    const postId = req.params!.id;
+    const post = await bloggersRepositoryDB.getBloggerById(postId);
+    if (!result.isEmpty()) {
+      return res.status(400).send({ errorsMessages: result.array() });
+    }
+    if (!post) {
+      return res.send(404);
+    } else {
+      const updatedPost = await likesRepositoryDB.upDateLikesInfo(
+        postId,
+        req.body.likeStatus,
+        req.user!._id!,
+        req.user!.accountData!.userName,
+      );
+
+      if (typeof updatedPost === 'string') {
+        res.status(430).send(updatedPost);
+      } else {
+        res.send(204);
+      }
+    }
+  },
+);
 postsRouter.get('/:id/comments', async (req, res) => {
   const postId = req.params?.id;
   const limit = parseInt(req.query?.PageSize as string) || 10;
