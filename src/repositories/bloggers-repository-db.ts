@@ -1,7 +1,6 @@
 import { ObjectID } from 'mongodb';
-import { collections } from '../connect-db';
 import { Bloggers } from '../models/bloggersModel';
-import { IBloggers, IPaginationResponse, IPosts } from '../types';
+import { IBloggers, IPaginationResponse } from '../types';
 
 export const bloggersRepositoryDB = {
   async getAllBloggers(
@@ -30,41 +29,6 @@ export const bloggersRepositoryDB = {
       pageSize,
       totalCount,
       items: allBloggers,
-    };
-  },
-  async getAllPostsBloggers(
-    pageSize: number,
-    pageNumber: number,
-    bloggerId: string,
-  ): Promise<IPaginationResponse<IPosts>> {
-    let postsPortion = [];
-    let totalCount: number | undefined = 0;
-    let totalPages = 0;
-    const allBloggersPosts = await collections.posts?.find({ bloggerId });
-    if (allBloggersPosts) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      postsPortion = await collections.posts
-        ?.find(
-          { bloggerId },
-          {
-            projection: {
-              _id: 0,
-            },
-          },
-        )
-        .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
-        .limit(pageSize)
-        .toArray();
-      totalCount = await collections.posts?.find({ bloggerId }).count();
-      totalPages = Math.ceil((totalCount || 0) / pageSize);
-    }
-    return {
-      pagesCount: totalPages,
-      page: pageNumber,
-      pageSize,
-      totalCount,
-      items: postsPortion,
     };
   },
 

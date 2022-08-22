@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongodb';
-import mongoose, { Types } from 'mongoose';
+import { Types } from 'mongoose';
 
 export enum myStatus {
   None,
@@ -7,8 +7,8 @@ export enum myStatus {
   Dislike,
 }
 export interface IBloggers {
-  id?: Types.ObjectId;
-  name?: string;
+  id: Types.ObjectId;
+  name: string;
   youtubeUrl?: string;
 }
 export interface ILikes {
@@ -71,6 +71,7 @@ export interface IPosts {
   content?: string | null;
   title?: string | null;
   bloggerId?: string;
+  bloggerName: string;
   extendedLikesInfo: Types.ObjectId;
 }
 

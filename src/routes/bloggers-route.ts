@@ -57,7 +57,7 @@ bloggersRouter.get('/:bloggerId/posts', async (req, res) => {
     const limit = parseInt(req.query?.PageSize as string) || 10;
     const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
     const bloggerId = req.params.bloggerId;
-    const bloggersPostsSlice = await bloggersRepositoryDB.getAllPostsBloggers(limit, pageNumber, bloggerId);
+    const bloggersPostsSlice = await postsRepositoryDB.getAllPosts(limit, pageNumber, bloggerId);
     bloggersPostsSlice ? res.status(200).send(bloggersPostsSlice) : res.status(500).send('error DB operation');
   } else {
     res.send(404);

@@ -2,54 +2,43 @@ import mongoose from 'mongoose';
 import { collections } from '../connect-db';
 import { Likes } from '../models/likesModel';
 import { Posts } from '../models/postsModel';
-import { IPosts, myStatus } from '../types';
+import { IPosts } from '../types';
 
 export const postsRepositoryDB = {
-  async getAllPosts(pageSize: number, pageNumber: number) {
-    // async getAllPosts(pageSize: number, pageNumber: number): Promise<IPaginationResponse<IPostsResponse>> {
-    let postsPortion: IPosts[] | undefined = [];
+  async getAllPosts(pageSize: number, pageNumber: number, bloggerId?: string) {
     let totalCount: number | undefined = 0;
     let totalPages = 0;
-    console.log('!!!!!!!!!!!!');
-    const allBloggersPosts = await Posts.find()
-      .populate({
-        path: 'Likes',
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        match: (doc) => ({ likeId: doc.postId, commentId: { $ne: true } }),
-        // match: { postId:  },
-        // Explicitly exclude `_id`, see http://bit.ly/2aEfTdB
-        // select: 'name -_id',
-      })
-      .lean();
-    console.log(allBloggersPosts, 'allll!!');
-    if (allBloggersPosts) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      postsPortion = await collections.posts
-        ?.find(
-          {},
-          {
-            projection: {
-              _id: 0,
-            },
-          },
-        )
+    const allBloggersPosts = (
+      await Posts.find({ bloggerId: bloggerId || { $exists: true } })
+        .populate([
+          { path: 'extendedLikesInfo', options: { lean: true } },
+          { path: 'bloggerId', select: '_id name', options: { lean: true } },
+        ])
         .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
         .limit(pageSize)
-        .toArray();
-      totalCount = await collections.posts?.find().count();
-      totalPages = Math.ceil((totalCount || 0) / pageSize);
-    }
+        .lean()
+    ).map((el) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      el.bloggerName = el.bloggerId.name;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      el.bloggerId = el.bloggerId._id;
+      return el;
+    });
+    totalCount = await Posts.find({ bloggerId: bloggerId || { $exists: true } })
+      .count()
+      .lean();
+    totalPages = Math.ceil((totalCount || 0) / pageSize);
     return {
       pagesCount: totalPages,
       page: pageNumber,
       pageSize,
       totalCount,
-      items: postsPortion,
+      items: allBloggersPosts,
     };
   },
-  async createPost(bodyParams: IPosts) {
+  async createPost(bodyParams: IPosts, bloggerId?: string) {
     const likeId = new mongoose.Types.ObjectId();
     const postId = new mongoose.Types.ObjectId();
     const likeInfo = new Likes({
@@ -65,6 +54,7 @@ export const postsRepositoryDB = {
     const newPost = new Posts({
       _id: postId,
       ...bodyParams,
+      bloggerId: bodyParams.bloggerId ? bodyParams.bloggerId : bloggerId,
       extendedLikesInfo: likeId,
     });
 
@@ -75,30 +65,20 @@ export const postsRepositoryDB = {
         { path: 'extendedLikesInfo', options: { lean: true } },
         { path: 'bloggerId', select: '_id name', options: { lean: true } },
       ]);
-      const result: any = { ...resCreatedPost.toJSON() };
-      result.bloggerId = result.bloggerId._id;
+
+      const result = {
+        ...resCreatedPost.toJSON(),
+      };
       result.bloggerName = result.bloggerId.name;
-      delete result.bloggerId;
-      console.log(result, 'inserteeed!!!!!!!!!!!!!!');
+      result.bloggerId = result.bloggerId._id;
       return result;
     } catch (err) {
       console.log(err);
       return `Fail in DB: ${err}`;
     }
-
-    // const newPost: Omit<any, '_id'> = {
-    //   id: (+new Date()).toString(),
-    //   bloggerName: blogger!.name,
-    //   ...bodyParams,
-    // };
-    // const insertPost = await collections.posts?.insertOne({ ...newPost });
-    // if (insertPost) {
-    //   return newPost;
-    // }
   },
   async getPostById(id: string): Promise<IPosts | undefined> {
     const post = (await collections.posts?.findOne({ id })) as unknown as IPosts;
-    // post && delete post._id;
     return post;
   },
   async upDatePost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>, id: string) {
