@@ -6,20 +6,12 @@ const { Schema } = mongoose;
 
 export const likesSchema = new Schema<ILikes>(
   {
-    _id: mongoose.Types.ObjectId,
     postId: { type: Schema?.Types.ObjectId, ref: 'Posts' },
     commentId: { type: Schema?.Types.ObjectId, ref: 'Comments' },
     addedAt: Date,
-    likesCount: Number,
-    dislikesCount: Number,
     myStatus: { type: String, required: true },
-    newestLikes: [
-      {
-        addedAt: Date,
-        userId: String,
-        login: String,
-      },
-    ],
+    login: { type: String, required: true },
+    userId: { type: Schema?.Types.ObjectId, ref: 'Users' },
   },
   { versionKey: false },
 );

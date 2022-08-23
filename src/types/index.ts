@@ -11,7 +11,8 @@ export interface IBloggers {
   name: string;
   youtubeUrl?: string;
 }
-export interface ILikes {
+
+export interface ILikesResponse {
   _id: Types.ObjectId;
   postId?: Types.ObjectId;
   commentId?: Types.ObjectId;
@@ -21,6 +22,16 @@ export interface ILikes {
   likesCount: number;
   dislikesCount: number;
   newestLikes: INewestLikes[];
+}
+
+export interface ILikes {
+  _id: Types.ObjectId;
+  postId?: Types.ObjectId;
+  commentId?: Types.ObjectId;
+  myStatus: 'Like' | 'Dislike' | 'None';
+  addedAt: Date;
+  userId: Types.ObjectId;
+  login: string;
 }
 
 export interface IBlackList {

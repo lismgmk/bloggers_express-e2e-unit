@@ -1,4 +1,3 @@
-import { ObjectID } from 'mongodb';
 import mongoose from 'mongoose';
 import { collections } from '../connect-db';
 import { Likes } from '../models/likesModel';
@@ -40,32 +39,27 @@ export const postsRepositoryDB = {
     };
   },
   async createPost(bodyParams: IReqPosts, bloggerId?: string) {
-    const likeId = new mongoose.Types.ObjectId();
     const postId = new mongoose.Types.ObjectId();
-    const likeInfo = new Likes({
-      _id: likeId,
-      postId,
-      commentId: null,
-      myStatus: 'None',
-      addedAt: new Date(),
-      likesCount: 0,
-      dislikesCount: 0,
-      newestLikes: [],
-    });
+    const bloggerIdParam = bloggerId
+      ? new mongoose.Types.ObjectId(bloggerId)
+      : new mongoose.Types.ObjectId(bodyParams.bloggerId);
+
     const newPost = new Posts({
       _id: postId,
-      ...bodyParams,
-      bloggerId: bodyParams.bloggerId ? bodyParams.bloggerId : bloggerId,
-      extendedLikesInfo: likeId,
+      title: bodyParams.title,
+      content: bodyParams.content,
+      shortDescription: bodyParams.shortDescription,
+      bloggerId: bloggerIdParam,
+      addedAt: new Date(),
     });
 
     try {
-      await Likes.create(likeInfo);
       const createdPost = await Posts.create(newPost);
-      const resCreatedPost = await createdPost.populate([
-        { path: 'extendedLikesInfo', options: { lean: true } },
-        { path: 'bloggerId', select: '_id name', options: { lean: true } },
-      ]);
+      const resCreatedPost = await createdPost.populate({
+        path: 'bloggerId',
+        select: '_id name',
+        options: { lean: true },
+      });
 
       const result = {
         ...resCreatedPost.toJSON(),
@@ -78,16 +72,13 @@ export const postsRepositoryDB = {
       return `Fail in DB: ${err}`;
     }
   },
-  async getPostById(id: string) {
-    const post = await Posts.findById(new ObjectID(id))
-      .populate([
-        { path: 'extendedLikesInfo', options: { lean: true } },
-        { path: 'bloggerId', select: '_id name', options: { lean: true } },
-      ])
-      .lean();
+  async getPostById(postId: string, userStatus?: string) {
+    const post = await Posts.findById(postId)
+      .populate([{ path: 'bloggerId', select: '_id name', options: { lean: true } }])
+      .exec();
     if (post) {
       const result = {
-        ...post,
+        ...post.toObject(),
       };
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
@@ -95,19 +86,25 @@ export const postsRepositoryDB = {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       result.bloggerId = result.bloggerId._id;
+      const dislikesCount = await Likes.find({ postId, myStatus: 'Dislike' }).exec();
+      const likesCount = await Likes.find({ postId, myStatus: 'Like' }).sort({ date: -1 }).exec();
+      const newestLikes = likesCount.slice(0, 2).map((el) => {
+        return {
+          addedAt: el.addedAt,
+          userId: el.userId,
+          login: el.login,
+        };
+      });
+      result.extendedLikesInfo = {
+        dislikesCount: dislikesCount.length,
+        likesCount: likesCount.length,
+        myStatus: userStatus,
+        newestLikes,
+      };
       return result;
     } else {
       return false;
     }
-
-    // const post = (await collections.posts?.findOne({ id })) as unknown as IPosts;
-    // return post;
-    // try {
-    //   const blogger =
-    //   return { id: blogger!._id, name: blogger!.name, youtubeUrl: blogger!.youtubeUrl };
-    // } catch (err) {
-    //   return false;
-    // }
   },
   async upDatePost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>, id: string) {
     const newPost: any = {

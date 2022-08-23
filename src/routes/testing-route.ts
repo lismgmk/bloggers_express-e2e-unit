@@ -8,6 +8,6 @@ testingRouter.delete('/all-data', async (req: express.Request, res: express.Resp
   if (deleteAllData) {
     res.send(204);
   } else {
-    res.send(401);
+    res.send(400);
   }
 });

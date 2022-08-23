@@ -3,9 +3,10 @@ import basicAuth from 'express-basic-auth';
 import { body, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import { checkAccessTokenService } from '../application/check-access-token-service';
+import { noBlockCheckAccessService } from '../application/noBlock-check-access-token-service';
 import { collections } from '../connect-db';
 import { Bloggers } from '../models/bloggersModel';
-import { bloggersRepositoryDB } from '../repositories/bloggers-repository-db';
+import { Likes } from '../models/likesModel';
 import { commentsRepositoryDb } from '../repositories/comments-repository-db';
 import { likesRepositoryDB } from '../repositories/likes-repository-db';
 import { postsRepositoryDB } from '../repositories/posts-repository-db';
@@ -35,11 +36,10 @@ postsRouter.post(
   body('content').trim().isLength({ min: 1, max: 1000 }).bail().exists().withMessage('invalid content'),
   body('bloggerId')
     .custom(async (value) => {
-      return Bloggers.findOne({ id: value }).then((user) => {
-        if (!user) {
-          return Promise.reject();
-        }
-      });
+      const user = await Bloggers.findById(value);
+      if (!user) {
+        return Promise.reject();
+      }
     })
     .withMessage('invalid bloggerId'),
   async (req, res) => {
@@ -47,9 +47,12 @@ postsRouter.post(
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     } else {
-      console.log('sssss');
       const newPost = await postsRepositoryDB.createPost(req.body);
-      res.status(201).send(newPost);
+      if (typeof newPost === 'string') {
+        res.status(430).send(newPost);
+      } else {
+        res.status(201).send(newPost);
+      }
     }
   },
 );
@@ -68,7 +71,7 @@ postsRouter.put(
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     const postId = req.params!.id;
-    const post = await bloggersRepositoryDB.getBloggerById(postId);
+    const post = await postsRepositoryDB.getPostById(postId);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
@@ -79,9 +82,8 @@ postsRouter.put(
         postId,
         req.body.likeStatus,
         req.user!._id!,
-        req.user!.accountData!.userName,
+        req.user!.accountData.userName,
       );
-
       if (typeof updatedPost === 'string') {
         res.status(430).send(updatedPost);
       } else {
@@ -125,8 +127,13 @@ postsRouter.post(
   },
 );
 
-postsRouter.get('/:id', async (req, res) => {
-  const post = await postsRepositoryDB.getPostById(req.params.id);
+postsRouter.get('/:id', noBlockCheckAccessService, async (req, res) => {
+  let userStatus = 'None';
+  if (req.user) {
+    const enteredUser = await Likes.findById(req.user._id).exec();
+    userStatus = enteredUser!.myStatus;
+  }
+  const post = await postsRepositoryDB.getPostById(req.params.id, userStatus);
   post ? res.status(200).send(post) : res.send(404);
 });
 

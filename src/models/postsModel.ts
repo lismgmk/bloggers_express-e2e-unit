@@ -16,11 +16,11 @@ export type GroupDocument = {
 export const postsSchema = new Schema(
   {
     _id: mongoose.Types.ObjectId,
+    addedAt: Date,
     shortDescription: String,
     content: String,
     title: String,
     bloggerId: { type: Schema?.Types.ObjectId, ref: 'Bloggers' },
-    extendedLikesInfo: { type: Schema?.Types.ObjectId, ref: 'Likes' },
   },
   { versionKey: false },
 );

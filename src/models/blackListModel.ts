@@ -10,8 +10,4 @@ export const blackListSchema = new Schema<IBlackList>(
   { versionKey: false },
 );
 
-export const BlackListSchema = mongoose.model(
-  'BlackListSchema',
-  blackListSchema,
-  db_black_list_tokens_collection_name_str,
-);
+export const BlackList = mongoose.model('BlackList', blackListSchema, db_black_list_tokens_collection_name_str);
