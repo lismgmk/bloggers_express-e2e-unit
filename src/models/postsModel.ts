@@ -1,6 +1,6 @@
 import mongoose, { PopulatedDoc, Types } from 'mongoose';
 import { db_posts_collection_name_str } from '../connect-db';
-import { IBloggers, ILikes } from '../types';
+import { IBloggers } from '../types';
 
 const { Schema } = mongoose;
 export type GroupDocument = {
@@ -9,7 +9,6 @@ export type GroupDocument = {
   content?: string | null;
   title?: string | null;
   bloggerName: string;
-  extendedLikesInfo: PopulatedDoc<ILikes>[];
   bloggerId: PopulatedDoc<IBloggers>[];
 } & mongoose.Document;
 

@@ -1,31 +1,32 @@
 import mongoose from 'mongoose';
 import { collections } from '../connect-db';
-import { Likes } from '../models/likesModel';
 import { Posts } from '../models/postsModel';
-import { IPosts, IReqPosts } from '../types';
+import { IPosts, IReqPosts, statusType, IUser } from '../types';
+import { requestObjPostCommentBuilder, IPostsRequest } from '../utils/request-obj-post-comment-builder';
+import { requestObjZeroBuilder } from '../utils/request-obj-zero-builder';
+import { userStatusUtil } from '../utils/user-status-util';
 
 export const postsRepositoryDB = {
-  async getAllPosts(pageSize: number, pageNumber: number, bloggerId?: string) {
+  async getAllPosts(pageSize: number, pageNumber: number, validUser: IUser, bloggerId?: string) {
     let totalCount: number | undefined = 0;
     let totalPages = 0;
-    const allBloggersPosts = (
-      await Posts.find({ bloggerId: bloggerId || { $exists: true } })
-        .populate([
-          { path: 'extendedLikesInfo', options: { lean: true } },
-          { path: 'bloggerId', select: '_id name', options: { lean: true } },
-        ])
-        .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
-        .limit(pageSize)
-        .lean()
-    ).map((el) => {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      el.bloggerName = el.bloggerId.name;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      el.bloggerId = el.bloggerId._id;
-      return el;
-    });
+    const allBloggersPosts = await Promise.all(
+      (
+        await Posts.find({ bloggerId: bloggerId || { $exists: true } })
+          .populate([{ path: 'bloggerId', select: '_id name', options: { lean: true } }])
+          .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
+          .limit(pageSize)
+          .exec()
+      ).map(async (el) => {
+        const userStatus = await userStatusUtil(el._id, validUser);
+        return await requestObjPostCommentBuilder(
+          {
+            ...el.toObject(),
+          } as IPostsRequest,
+          userStatus,
+        );
+      }),
+    );
     totalCount = await Posts.find({ bloggerId: bloggerId || { $exists: true } })
       .count()
       .lean();
@@ -62,17 +63,20 @@ export const postsRepositoryDB = {
       });
 
       const result = {
-        ...resCreatedPost.toJSON(),
+        ...resCreatedPost.toObject(),
       };
-      result.bloggerName = result.bloggerId.name;
-      result.bloggerId = result.bloggerId._id;
-      return result;
+      return requestObjZeroBuilder(result);
     } catch (err) {
       console.log(err);
       return `Fail in DB: ${err}`;
     }
   },
-  async getPostById(postId: string, userStatus?: string) {
+
+  async checkPostById(postId: string) {
+    return await Posts.findById(postId).exec();
+  },
+
+  async getPostById(postId: string, userStatus: statusType) {
     const post = await Posts.findById(postId)
       .populate([{ path: 'bloggerId', select: '_id name', options: { lean: true } }])
       .exec();
@@ -80,32 +84,12 @@ export const postsRepositoryDB = {
       const result = {
         ...post.toObject(),
       };
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      result.bloggerName = result.bloggerId.name;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      result.bloggerId = result.bloggerId._id;
-      const dislikesCount = await Likes.find({ postId, myStatus: 'Dislike' }).exec();
-      const likesCount = await Likes.find({ postId, myStatus: 'Like' }).sort({ date: -1 }).exec();
-      const newestLikes = likesCount.slice(0, 2).map((el) => {
-        return {
-          addedAt: el.addedAt,
-          userId: el.userId,
-          login: el.login,
-        };
-      });
-      result.extendedLikesInfo = {
-        dislikesCount: dislikesCount.length,
-        likesCount: likesCount.length,
-        myStatus: userStatus,
-        newestLikes,
-      };
-      return result;
+      return await requestObjPostCommentBuilder(result as IPostsRequest, userStatus);
     } else {
       return false;
     }
   },
+
   async upDatePost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>, id: string) {
     const newPost: any = {
       title: bodyParams.title,

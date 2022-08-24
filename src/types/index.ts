@@ -12,23 +12,13 @@ export interface IBloggers {
   youtubeUrl?: string;
 }
 
-export interface ILikesResponse {
-  _id: Types.ObjectId;
-  postId?: Types.ObjectId;
-  commentId?: Types.ObjectId;
-  // myStatus: myStatus;
-  myStatus: any;
-  addedAt: Date;
-  likesCount: number;
-  dislikesCount: number;
-  newestLikes: INewestLikes[];
-}
+export type statusType = 'Like' | 'Dislike' | 'None';
 
 export interface ILikes {
   _id: Types.ObjectId;
   postId?: Types.ObjectId;
   commentId?: Types.ObjectId;
-  myStatus: 'Like' | 'Dislike' | 'None';
+  myStatus: statusType;
   addedAt: Date;
   userId: Types.ObjectId;
   login: string;
@@ -83,7 +73,6 @@ export interface IPosts {
   title?: string | null;
   bloggerId?: string;
   bloggerName: string;
-  extendedLikesInfo: Types.ObjectId;
 }
 
 export interface postsResult {

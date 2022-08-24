@@ -6,19 +6,19 @@ import { checkAccessTokenService } from '../application/check-access-token-servi
 import { noBlockCheckAccessService } from '../application/noBlock-check-access-token-service';
 import { collections } from '../connect-db';
 import { Bloggers } from '../models/bloggersModel';
-import { Likes } from '../models/likesModel';
 import { commentsRepositoryDb } from '../repositories/comments-repository-db';
 import { likesRepositoryDB } from '../repositories/likes-repository-db';
 import { postsRepositoryDB } from '../repositories/posts-repository-db';
 import { myStatus } from '../types';
 import { errorFormatter } from '../utils/error-util';
+import { userStatusUtil } from '../utils/user-status-util';
 
 export const postsRouter = Router({});
 
-postsRouter.get('/', async (req, res) => {
+postsRouter.get('/', noBlockCheckAccessService, async (req, res) => {
   const limit = parseInt(req.query?.PageSize as string) || 10;
   const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
-  res.status(200).send(await postsRepositoryDB.getAllPosts(limit, pageNumber));
+  res.status(200).send(await postsRepositoryDB.getAllPosts(limit, pageNumber, req.user || null));
 });
 
 postsRouter.post(
@@ -71,7 +71,7 @@ postsRouter.put(
   async (req, res) => {
     const result = validationResult(req).formatWith(errorFormatter);
     const postId = req.params!.id;
-    const post = await postsRepositoryDB.getPostById(postId);
+    const post = await postsRepositoryDB.checkPostById(postId);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }
@@ -96,7 +96,7 @@ postsRouter.get('/:id/comments', async (req, res) => {
   const postId = req.params?.id;
   const limit = parseInt(req.query?.PageSize as string) || 10;
   const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
-  const post = await postsRepositoryDB.getPostById(postId);
+  const post = await postsRepositoryDB.checkPostById(postId);
   if (!post) {
     res.send(404);
   } else {
@@ -110,7 +110,7 @@ postsRouter.post(
   body('content').trim().isLength({ min: 20, max: 300 }).bail().exists().withMessage('invalid content'),
   async (req, res) => {
     const postId = req.params?.id;
-    const post = await postsRepositoryDB.getPostById(postId);
+    const post = await postsRepositoryDB.checkPostById(postId);
     if (!post) {
       res.send(404);
     } else {
@@ -128,11 +128,7 @@ postsRouter.post(
 );
 
 postsRouter.get('/:id', noBlockCheckAccessService, async (req, res) => {
-  let userStatus = 'None';
-  if (req.user) {
-    const enteredUser = await Likes.findById(req.user._id).exec();
-    userStatus = enteredUser!.myStatus;
-  }
+  const userStatus = await userStatusUtil(req.params.id, req.user || null);
   const post = await postsRepositoryDB.getPostById(req.params.id, userStatus);
   post ? res.status(200).send(post) : res.send(404);
 });
@@ -160,7 +156,7 @@ postsRouter.put(
     })
     .withMessage('invalid bloggerId'),
   async (req, res) => {
-    const post = await postsRepositoryDB.getPostById(req.params?.id);
+    const post = await postsRepositoryDB.checkPostById(req.params?.id);
     if (!post) {
       res.send(404);
     } else {
@@ -181,7 +177,7 @@ postsRouter.delete(
     users: { admin: 'qwerty' },
   }),
   async (req, res) => {
-    const post = await postsRepositoryDB.getPostById(req.params?.id);
+    const post = await postsRepositoryDB.checkPostById(req.params?.id);
     if (!post) {
       res.send(404);
     } else {
