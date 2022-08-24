@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { collections } from '../connect-db';
 import { Posts } from '../models/postsModel';
 import { IPosts, IReqPosts, statusType, IUser } from '../types';
 import { requestObjPostCommentBuilder, IPostsRequest } from '../utils/request-obj-post-comment-builder';
@@ -91,16 +90,24 @@ export const postsRepositoryDB = {
   },
 
   async upDatePost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>, id: string) {
-    const newPost: any = {
-      title: bodyParams.title,
-      shortDescription: bodyParams.shortDescription,
-      content: bodyParams.content,
-      bloggerId: bodyParams.bloggerId,
-    };
-    await collections.posts?.updateOne({ id }, { $set: newPost });
+    try {
+      const update = {
+        title: bodyParams.title,
+        shortDescription: bodyParams.shortDescription,
+        content: bodyParams.content,
+        bloggerId: bodyParams.bloggerId,
+      };
+      return await Posts.findByIdAndUpdate(id, { $set: update }, { new: true }).exec();
+    } catch (err) {
+      return err;
+    }
   },
+
   async deletePost(id: string) {
-    const result = await collections.posts?.deleteOne({ id: id });
-    return { deleteState: result?.acknowledged, deleteCount: result?.deletedCount };
+    try {
+      return await Posts.deleteOne({ _id: id });
+    } catch (err) {
+      return err;
+    }
   },
 };

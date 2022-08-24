@@ -4,7 +4,6 @@ import { body, validationResult } from 'express-validator';
 import mongoose from 'mongoose';
 import { checkAccessTokenService } from '../application/check-access-token-service';
 import { noBlockCheckAccessService } from '../application/noBlock-check-access-token-service';
-import { collections } from '../connect-db';
 import { Bloggers } from '../models/bloggersModel';
 import { commentsRepositoryDb } from '../repositories/comments-repository-db';
 import { likesRepositoryDB } from '../repositories/likes-repository-db';
@@ -148,11 +147,10 @@ postsRouter.put(
   body('content').trim().isLength({ min: 1, max: 1000 }).bail().exists().withMessage('invalid content'),
   body('bloggerId')
     .custom(async (value) => {
-      return collections.bloggers?.findOne({ id: value }).then((user) => {
-        if (!user) {
-          return Promise.reject();
-        }
-      });
+      const user = await Bloggers.findById(value);
+      if (!user) {
+        return Promise.reject();
+      }
     })
     .withMessage('invalid bloggerId'),
   async (req, res) => {
@@ -164,8 +162,12 @@ postsRouter.put(
       if (!result.isEmpty()) {
         return res.status(400).send({ errorsMessages: result.array() });
       } else {
-        await postsRepositoryDB.upDatePost(req.body, req.params?.id);
-        res.send(204);
+        const updatedPost = await postsRepositoryDB.upDatePost(req.body, req.params?.id);
+        if (typeof updatedPost === 'string') {
+          res.status(430).send(updatedPost);
+        } else {
+          res.send(204);
+        }
       }
     }
   },
@@ -177,12 +179,16 @@ postsRouter.delete(
     users: { admin: 'qwerty' },
   }),
   async (req, res) => {
-    const post = await postsRepositoryDB.checkPostById(req.params?.id);
+    const post = await postsRepositoryDB.checkPostById(req.params.id);
     if (!post) {
       res.send(404);
     } else {
-      await postsRepositoryDB.deletePost(req.params.id);
-      res.send(204);
+      const deletedPost = await postsRepositoryDB.deletePost(req.params.id);
+      if (typeof deletedPost === 'string') {
+        res.status(430).send(deletedPost);
+      } else {
+        res.send(204);
+      }
     }
   },
 );
