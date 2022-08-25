@@ -6,7 +6,7 @@ const { Schema } = mongoose;
 
 export const bloggersSchema = new Schema<IBloggers>(
   {
-    name: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
     youtubeUrl: {
       type: String,
       validate: {
