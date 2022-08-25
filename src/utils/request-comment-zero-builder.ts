@@ -3,6 +3,7 @@ export const requestCommentZeroBuilder = (comment: any) => {
   comment.userId = comment.userId._id;
   comment.id = comment._id;
   delete comment._id;
+  delete comment.postId;
   const userStatus = 'None';
   const dislikesCount = 0;
   const likesCount = 0;

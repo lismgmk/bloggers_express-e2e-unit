@@ -7,7 +7,7 @@ export interface ICommentsRequest {
   id?: Types.ObjectId;
   content: string;
   userId: any;
-  postId: Types.ObjectId;
+  postId?: Types.ObjectId;
   userLogin?: string;
   addedAt: Date;
   likesInfo?: {
@@ -22,6 +22,7 @@ export const requestObjCommentBuilder = async (comment: ICommentsRequest, userSt
   comment.userId = comment.userId._id;
   comment.id = comment._id;
   delete comment._id;
+  delete comment.postId;
 
   const dislikesCount = await Likes.find({ commentId: comment.id, myStatus: 'Dislike' }).exec();
   const likesCount = await Likes.find({ commentId: comment.id, myStatus: 'Like' }).exec();
