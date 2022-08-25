@@ -75,7 +75,7 @@ export const postsRepositoryDB = {
   },
 
   async checkPostById(postId: string) {
-    return await Posts.findById(postId).exec();
+    return  await Posts.findById(postId).exec();
   },
 
   async getPostById(postId: string, userStatus: statusType) {

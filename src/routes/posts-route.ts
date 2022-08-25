@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import basicAuth from 'express-basic-auth';
 import { body, validationResult } from 'express-validator';
+import { ObjectId } from 'mongodb';
 import mongoose from 'mongoose';
 import { checkAccessTokenService } from '../application/check-access-token-service';
 import { noBlockCheckAccessService } from '../application/noBlock-check-access-token-service';
@@ -71,41 +72,50 @@ postsRouter.put(
         return Promise.reject();
       }
     })
-    .withMessage('invalid bloggerId'),
+    .withMessage('invalid like status'),
   async (req, res) => {
-    const result = validationResult(req).formatWith(errorFormatter);
-    const postId = req.params!.id;
-    const post = await postsRepositoryDB.checkPostById(postId);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    }
-    if (!post) {
+    if (!ObjectId.isValid(req.params.id)) {
       return res.send(404);
     } else {
-      const updatedPost = await likesRepositoryDB.upDateLikesInfo(
-        postId,
-        null,
-        req.body.likeStatus,
-        req.user!._id!,
-        req.user!.accountData.userName,
-      );
-      if (typeof updatedPost === 'string') {
-        res.status(430).send(updatedPost);
+      const result = validationResult(req).formatWith(errorFormatter);
+      const postId = req.params!.id;
+      const post = await postsRepositoryDB.checkPostById(postId);
+
+      if (!result.isEmpty()) {
+        return res.status(400).send({ errorsMessages: result.array() });
+      }
+      if (!post) {
+        return res.send(404);
       } else {
-        res.send(204);
+        const updatedPost = await likesRepositoryDB.upDateLikesInfo(
+          postId,
+          null,
+          req.body.likeStatus,
+          req.user!._id!,
+          req.user!.accountData.userName,
+        );
+        if (typeof updatedPost === 'string') {
+          res.status(430).send(updatedPost);
+        } else {
+          res.send(204);
+        }
       }
     }
   },
 );
 postsRouter.get('/:id/comments', noBlockCheckAccessService, async (req, res) => {
-  const commentId = req.params?.id;
-  const limit = parseInt(req.query?.PageSize as string) || 10;
-  const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
-  const comments = await postsRepositoryDB.checkPostById(commentId);
-  if (!comments) {
-    res.send(404);
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.send(404);
   } else {
-    res.status(200).send(await commentsRepositoryDb.getAllComments(limit, pageNumber, req.user || null, commentId));
+    const commentId = req.params?.id;
+    const limit = parseInt(req.query?.PageSize as string) || 10;
+    const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
+    const comments = await postsRepositoryDB.checkPostById(commentId);
+    if (!comments) {
+      res.send(404);
+    } else {
+      res.status(200).send(await commentsRepositoryDb.getAllComments(limit, pageNumber, req.user || null, commentId));
+    }
   }
 });
 
@@ -114,22 +124,26 @@ postsRouter.post(
   checkAccessTokenService,
   body('content').trim().isLength({ min: 20, max: 300 }).bail().exists().withMessage('invalid content'),
   async (req, res) => {
-    const postId = req.params?.id;
-    const post = await postsRepositoryDB.checkPostById(postId);
-    if (!post) {
-      res.send(404);
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.send(404);
     } else {
-      const result = validationResult(req).formatWith(errorFormatter);
-      if (!result.isEmpty()) {
-        return res.status(400).send({ errorsMessages: result.array() });
+      const postId = req.params?.id;
+      const post = await postsRepositoryDB.checkPostById(postId);
+      if (!post) {
+        res.send(404);
       } else {
-        const userObjectId = new mongoose.Types.ObjectId(req.user!._id!);
-        const postObjectId = new mongoose.Types.ObjectId(postId);
-        const newComment = await commentsRepositoryDb.createComment(req.body.content, userObjectId, postObjectId);
-        if (typeof newComment === 'string') {
-          res.status(430).send(newComment);
+        const result = validationResult(req).formatWith(errorFormatter);
+        if (!result.isEmpty()) {
+          return res.status(400).send({ errorsMessages: result.array() });
         } else {
-          res.status(201).send(newComment);
+          const userObjectId = new mongoose.Types.ObjectId(req.user!._id!);
+          const postObjectId = new mongoose.Types.ObjectId(postId);
+          const newComment = await commentsRepositoryDb.createComment(req.body.content, userObjectId, postObjectId);
+          if (typeof newComment === 'string') {
+            res.status(430).send(newComment);
+          } else {
+            res.status(201).send(newComment);
+          }
         }
       }
     }
@@ -137,9 +151,13 @@ postsRouter.post(
 );
 
 postsRouter.get('/:id', noBlockCheckAccessService, async (req, res) => {
-  const userStatus = await userStatusUtil(req.params.id, null, req.user || null);
-  const post = await postsRepositoryDB.getPostById(req.params.id, userStatus);
-  post ? res.status(200).send(post) : res.send(404);
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.send(404);
+  } else {
+    const userStatus = await userStatusUtil(req.params.id, null, req.user || null);
+    const post = await postsRepositoryDB.getPostById(req.params.id, userStatus);
+    post ? res.status(200).send(post) : res.send(404);
+  }
 });
 
 postsRouter.put(
@@ -164,19 +182,23 @@ postsRouter.put(
     })
     .withMessage('invalid bloggerId'),
   async (req, res) => {
-    const post = await postsRepositoryDB.checkPostById(req.params?.id);
-    if (!post) {
-      res.send(404);
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.send(404);
     } else {
-      const result = validationResult(req).formatWith(errorFormatter);
-      if (!result.isEmpty()) {
-        return res.status(400).send({ errorsMessages: result.array() });
+      const post = await postsRepositoryDB.checkPostById(req.params?.id);
+      if (!post) {
+        res.send(404);
       } else {
-        const updatedPost = await postsRepositoryDB.upDatePost(req.body, req.params?.id);
-        if (typeof updatedPost === 'string') {
-          res.status(430).send(updatedPost);
+        const result = validationResult(req).formatWith(errorFormatter);
+        if (!result.isEmpty()) {
+          return res.status(400).send({ errorsMessages: result.array() });
         } else {
-          res.send(204);
+          const updatedPost = await postsRepositoryDB.upDatePost(req.body, req.params?.id);
+          if (typeof updatedPost === 'string') {
+            res.status(430).send(updatedPost);
+          } else {
+            res.send(204);
+          }
         }
       }
     }
@@ -189,15 +211,19 @@ postsRouter.delete(
     users: { admin: 'qwerty' },
   }),
   async (req, res) => {
-    const post = await postsRepositoryDB.checkPostById(req.params.id);
-    if (!post) {
-      res.send(404);
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.send(404);
     } else {
-      const deletedPost = await postsRepositoryDB.deletePost(req.params.id);
-      if (typeof deletedPost === 'string') {
-        res.status(430).send(deletedPost);
+      const post = await postsRepositoryDB.checkPostById(req.params.id);
+      if (!post) {
+        res.send(404);
       } else {
-        res.send(204);
+        const deletedPost = await postsRepositoryDB.deletePost(req.params.id);
+        if (typeof deletedPost === 'string') {
+          res.status(430).send(deletedPost);
+        } else {
+          res.send(204);
+        }
       }
     }
   },

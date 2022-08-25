@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
+import { ObjectId } from 'mongodb';
 import { noBlockCheckAccessService } from '../application/noBlock-check-access-token-service';
 import { errorFormatter } from '../utils/error-util';
 import basicAuth from 'express-basic-auth';
@@ -44,28 +45,36 @@ bloggersRouter.post(
 );
 
 bloggersRouter.get('/:id', async (req, res) => {
-  const blogger = await bloggersRepositoryDB.getBloggerById(req.params.id);
-  if (!blogger) {
-    res.status(404).send(blogger);
+  if (!ObjectId.isValid(req.params.id)) {
+    return res.send(404);
   } else {
-    res.status(200).send(blogger);
+    const blogger = await bloggersRepositoryDB.getBloggerById(req.params.id);
+    if (!blogger) {
+      res.status(404).send(blogger);
+    } else {
+      res.status(200).send(blogger);
+    }
   }
 });
 
 bloggersRouter.get('/:bloggerId/posts', noBlockCheckAccessService, async (req, res) => {
-  const blogger = await bloggersRepositoryDB.getBloggerById(req.params.bloggerId);
-  if (blogger) {
-    const limit = parseInt(req.query?.PageSize as string) || 10;
-    const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
-    const bloggerId = req.params.bloggerId;
-    const bloggersPostsSlice = await postsRepositoryDB.getAllPosts(limit, pageNumber, req.user || null, bloggerId);
-    if (typeof bloggersPostsSlice === 'string') {
-      res.status(430).send(bloggersPostsSlice);
-    } else {
-      res.status(200).send(bloggersPostsSlice);
-    }
+  if (!ObjectId.isValid(req.params.bloggerId)) {
+    return res.send(404);
   } else {
-    res.send(404);
+    const blogger = await bloggersRepositoryDB.getBloggerById(req.params.bloggerId);
+    if (blogger) {
+      const limit = parseInt(req.query?.PageSize as string) || 10;
+      const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
+      const bloggerId = req.params.bloggerId;
+      const bloggersPostsSlice = await postsRepositoryDB.getAllPosts(limit, pageNumber, req.user || null, bloggerId);
+      if (typeof bloggersPostsSlice === 'string') {
+        res.status(430).send(bloggersPostsSlice);
+      } else {
+        res.status(200).send(bloggersPostsSlice);
+      }
+    } else {
+      res.send(404);
+    }
   }
 });
 
@@ -83,21 +92,25 @@ bloggersRouter.post(
     .withMessage('invalid shortDescription'),
   body('content').trim().isLength({ min: 1, max: 1000 }).bail().exists().withMessage('invalid content'),
   async (req, res) => {
-    const result = validationResult(req).formatWith(errorFormatter);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    }
-    const blogger = await bloggersRepositoryDB.getBloggerById(req.params.bloggerId);
-    if (blogger) {
-      const bloggerId = req.params.bloggerId;
-      const newPost = await postsRepositoryDB.createPost({ ...req.body, bloggerId });
-      if (typeof newPost === 'string') {
-        res.status(430).send(newPost);
-      } else {
-        res.status(201).send(newPost);
-      }
+    if (!ObjectId.isValid(req.params.bloggerId)) {
+      return res.send(404);
     } else {
-      res.send(404);
+      const result = validationResult(req).formatWith(errorFormatter);
+      if (!result.isEmpty()) {
+        return res.status(400).send({ errorsMessages: result.array() });
+      }
+      const blogger = await bloggersRepositoryDB.getBloggerById(req.params.bloggerId);
+      if (blogger) {
+        const bloggerId = req.params.bloggerId;
+        const newPost = await postsRepositoryDB.createPost({ ...req.body, bloggerId });
+        if (typeof newPost === 'string') {
+          res.status(430).send(newPost);
+        } else {
+          res.status(201).send(newPost);
+        }
+      } else {
+        res.send(404);
+      }
     }
   },
 );
@@ -116,23 +129,27 @@ bloggersRouter.put(
     .matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/)
     .withMessage('invalid url'),
   async (req, res) => {
-    const result = validationResult(req).formatWith(errorFormatter);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.send(404);
     } else {
-      const blogger = await bloggersRepositoryDB.getBloggerById(req.params?.id);
-      if (!blogger) {
-        res.send(404);
+      const result = validationResult(req).formatWith(errorFormatter);
+      if (!result.isEmpty()) {
+        return res.status(400).send({ errorsMessages: result.array() });
       } else {
-        const updatedBlogger = await bloggersRepositoryDB.upDateBlogger(
-          req.body.name,
-          req.body.youtubeUrl,
-          req.params?.id,
-        );
-        if (typeof updatedBlogger === 'string') {
-          res.status(404).send(updatedBlogger);
+        const blogger = await bloggersRepositoryDB.getBloggerById(req.params?.id);
+        if (!blogger) {
+          res.send(404);
         } else {
-          res.send(204);
+          const updatedBlogger = await bloggersRepositoryDB.upDateBlogger(
+            req.body.name,
+            req.body.youtubeUrl,
+            req.params?.id,
+          );
+          if (typeof updatedBlogger === 'string') {
+            res.status(404).send(updatedBlogger);
+          } else {
+            res.send(204);
+          }
         }
       }
     }
@@ -145,15 +162,19 @@ bloggersRouter.delete(
     users: { admin: 'qwerty' },
   }),
   async (req, res) => {
-    const blogger = await bloggersRepositoryDB.getBloggerById(req.params?.id);
-    if (!blogger) {
-      res.send(404);
+    if (!ObjectId.isValid(req.params.id)) {
+      return res.send(404);
     } else {
-      const deletedBlogger = await bloggersRepositoryDB.deleteBlogger(req.params.id);
-      if (typeof deletedBlogger === 'string') {
-        res.status(430).send(deletedBlogger);
+      const blogger = await bloggersRepositoryDB.getBloggerById(req.params?.id);
+      if (!blogger) {
+        res.send(404);
       } else {
-        res.send(204);
+        const deletedBlogger = await bloggersRepositoryDB.deleteBlogger(req.params.id);
+        if (typeof deletedBlogger === 'string') {
+          res.status(430).send(deletedBlogger);
+        } else {
+          res.send(204);
+        }
       }
     }
   },

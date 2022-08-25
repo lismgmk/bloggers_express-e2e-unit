@@ -83,26 +83,30 @@ commentsRouter.put(
     })
     .withMessage('invalid bloggerId'),
   async (req, res) => {
-    const result = validationResult(req).formatWith(errorFormatter);
-    const commentId = req.params!.id;
-    const comment = await commentsRepositoryDb.checkCommentById(commentId);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    }
-    if (!comment) {
+    if (!ObjectId.isValid(req.params.id)) {
       return res.send(404);
     } else {
-      const updatedPost = await likesRepositoryDB.upDateLikesInfo(
-        null,
-        commentId,
-        req.body.likeStatus,
-        req.user!._id!,
-        req.user!.accountData.userName,
-      );
-      if (typeof updatedPost === 'string') {
-        res.status(430).send(updatedPost);
+      const result = validationResult(req).formatWith(errorFormatter);
+      const commentId = req.params!.id;
+      const comment = await commentsRepositoryDb.checkCommentById(commentId);
+      if (!result.isEmpty()) {
+        return res.status(400).send({ errorsMessages: result.array() });
+      }
+      if (!comment) {
+        return res.send(404);
       } else {
-        res.send(204);
+        const updatedPost = await likesRepositoryDB.upDateLikesInfo(
+          null,
+          commentId,
+          req.body.likeStatus,
+          req.user!._id!,
+          req.user!.accountData.userName,
+        );
+        if (typeof updatedPost === 'string') {
+          res.status(430).send(updatedPost);
+        } else {
+          res.send(204);
+        }
       }
     }
   },
