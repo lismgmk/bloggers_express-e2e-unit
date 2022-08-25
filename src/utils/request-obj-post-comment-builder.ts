@@ -26,7 +26,7 @@ export const requestObjPostCommentBuilder = async (post: IPostsRequest, userStat
   delete post._id;
 
   const dislikesCount = await Likes.find({ postId: post.id, myStatus: 'Dislike' }).exec();
-  const likesCount = await Likes.find({ postId: post.id, myStatus: 'Like' }).sort({ date: 1 }).exec();
+  const likesCount = await Likes.find({ postId: post.id, myStatus: 'Like' }).sort({ date: -1 }).exec();
   const newestLikes = likesCount.slice(0, 2).map((el) => {
     return {
       addedAt: el.addedAt,
