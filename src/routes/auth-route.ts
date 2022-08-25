@@ -159,20 +159,28 @@ authRouter.post(
 authRouter.post('/refresh-token', checkRefreshTokenService, async (req, res) => {
   const accessToken = jwtPassService.createJwt(req.user!._id!, expiredAccess);
   const refreshToken = jwtPassService.createJwt(req.user!._id!, expiredRefresh);
-  await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
-  return res
-    .cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV !== 'development',
-    })
-    .status(200)
-    .send({ accessToken });
+  const blackToken = await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
+  if (typeof blackToken === 'string') {
+    res.status(430).send(blackToken);
+  } else {
+    return res
+      .cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV !== 'development',
+      })
+      .status(200)
+      .send({ accessToken });
+  }
 });
 
 authRouter.post('/logout', checkRefreshTokenService, async (req, res) => {
-  await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
-  await usersRepositoryDB.confirmUserById(req.user!._id!.toString(), false);
-  return res.send(204);
+  const confirmedUser = await usersRepositoryDB.confirmUserById(req.user!._id!.toString(), false);
+  const blackToken = await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
+  if (typeof blackToken === 'string' || typeof confirmedUser === 'string') {
+    res.status(430).send(`${blackToken} ${confirmedUser}`);
+  } else {
+    return res.send(204);
+  }
 });
 
 authRouter.get('/me', checkAccessTokenService, async (req, res) => {

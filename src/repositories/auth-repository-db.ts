@@ -1,13 +1,13 @@
-import { collections } from '../connect-db';
 import bcrypt from 'bcryptjs';
+import { expiredAccess } from '../constants';
+import { Users } from '../models/usersModel';
 import { addUserAttempt } from '../utils/add-user-attempt';
 import { jwtPassService } from '../utils/jwt-pass-service';
 import { usersRepositoryDB } from './users-repository-db';
-import { expiredAccess } from '../constants';
 
 export const authRepositoryDB = {
   async authUser(login: string, password: string): Promise<{ accessToken: string } | null> {
-    const attemptCountUser = await collections.users?.findOne({ 'accountData.userName': login });
+    const attemptCountUser = await Users.findOne({ 'accountData.userName': login }).exec();
     const isMatch =
       attemptCountUser && (await bcrypt.compare(password, attemptCountUser.accountData.passwordHash ?? ''));
     if (!attemptCountUser || !isMatch) {
@@ -20,7 +20,7 @@ export const authRepositoryDB = {
     }
   },
   async confirmEmail(code: string) {
-    const confirmedUser = await collections.users?.findOne({ 'emailConfirmation.confirmationCode': { $eq: code } });
+    const confirmedUser = await Users.findOne({ 'emailConfirmation.confirmationCode': { $eq: code } }).exec();
     if (!confirmedUser) {
       return false;
     }

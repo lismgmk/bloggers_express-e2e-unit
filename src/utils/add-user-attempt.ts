@@ -1,13 +1,13 @@
-import { collections } from '../connect-db';
+import { Users } from '../models/usersModel';
 
 export const addUserAttempt = {
   async addAttemptByLogin(login: string, restoreFlag: boolean) {
-    await collections.users?.find({ 'accountData.userName': login }).forEach((doc) => {
-      const oldAttemptCount = doc.emailConfirmation.attemptCount;
-      collections.users?.updateOne(
-        { 'accountData.userName': login },
-        { $set: { 'emailConfirmation.attemptCount': restoreFlag ? 0 : oldAttemptCount + 1 } },
-      );
-    });
+    try {
+      const filter = { 'accountData.userName': login };
+      const update = { $inc: { 'emailConfirmation.attemptCount': restoreFlag ? 0 : 1 } };
+      await Users.findOneAndUpdate(filter, update).exec();
+    } catch (err) {
+      return err;
+    }
   },
 };

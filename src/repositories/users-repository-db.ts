@@ -1,10 +1,8 @@
-import { collections } from '../connect-db';
-import { Bloggers } from '../models/bloggersModel';
-import { Users } from '../models/usersModel';
-import { IPaginationResponse, IUser, IUsersRes } from '../types';
 import bcrypt from 'bcryptjs';
-import { ObjectId, ObjectID } from 'mongodb';
 import { add } from 'date-fns';
+import { ObjectId, ObjectID } from 'mongodb';
+import { Users } from '../models/usersModel';
+import { IPaginationResponse, IUsersRes } from '../types';
 
 export const usersRepositoryDB = {
   async getAllUsers(
@@ -75,7 +73,6 @@ export const usersRepositoryDB = {
     } catch (err) {
       return false;
     }
-    // return await collections.users?.findOne({ _id: new ObjectId(id) });
   },
   async getUserByEmail(email: string) {
     try {
@@ -83,7 +80,6 @@ export const usersRepositoryDB = {
     } catch (err) {
       return false;
     }
-    // return await collections.users?.findOne({ 'accountData.email': { $eq: email } });
   },
   async updateCodeByEmail(email: string, code: string) {
     try {
@@ -94,10 +90,6 @@ export const usersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-    // return await collections.users?.updateOne(
-    //   { 'accountData.email': { $eq: email } },
-    //   { $set: { 'emailConfirmation.confirmationCode': code } },
-    // );
   },
   async getUserByLogin(login: string) {
     try {
@@ -105,7 +97,6 @@ export const usersRepositoryDB = {
     } catch (err) {
       return false;
     }
-    // return await collections.users?.findOne({ 'accountData.userName': { $eq: login } });
   },
 
   async deleteUser(id: string) {
@@ -115,8 +106,6 @@ export const usersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-    // const result = await collections.users?.deleteOne({ _id: new ObjectId(id) });
-    // return { deleteState: result?.acknowledged, deleteCount: result?.deletedCount };
   },
   async deleteUserByLogin(login: string) {
     try {
@@ -124,8 +113,6 @@ export const usersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-    // const result = await collections.users?.deleteOne({ 'accountData.userName': login });
-    // return { deleteState: result?.acknowledged, deleteCount: result?.deletedCount };
   },
   async confirmUserById(id: string | ObjectId, confirm: boolean) {
     try {
@@ -136,10 +123,6 @@ export const usersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-    // return await collections.users?.updateOne(
-    //   { _id: new ObjectId(id) },
-    //   { $set: { 'emailConfirmation.isConfirmed': confirm, 'emailConfirmation.attemptCount': 0 } },
-    // );
   },
   async confirmUserByLogin(login: string) {
     try {
@@ -150,9 +133,5 @@ export const usersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-    // return await collections.users?.updateOne(
-    //   { 'accountData.userName': login },
-    //   { $set: { 'emailConfirmation.isConfirmed': true, 'emailConfirmation.attemptCount': 0 } },
-    // );
   },
 };
