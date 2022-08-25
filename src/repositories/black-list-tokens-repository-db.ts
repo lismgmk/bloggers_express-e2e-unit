@@ -1,23 +1,15 @@
-import { collections } from '../connect-db';
+import { BlackList } from '../models/blackListModel';
 
 export const blackListTokensRepositoryDB = {
-  async addToken(token: string): Promise<boolean> {
+  async addToken(token: string) {
     try {
-      const isAddedToke = await collections.black_list_tokens?.insertOne({ tokenValue: token });
-      return isAddedToke!.acknowledged;
-    } catch (e) {
-      return false;
-    }
-  },
-  async deleteToken(token: string): Promise<boolean> {
-    try {
-      const isAddedToke = await collections.black_list_tokens?.deleteOne({ tokenValue: token });
-      return isAddedToke!.acknowledged;
-    } catch (e) {
-      return false;
+      return await BlackList.create({ tokenValue: token });
+    } catch (err) {
+      return `Db error: ${err}`;
     }
   },
   async checkToken(token: string) {
-    return await collections.black_list_tokens?.findOne({ tokenValue: token });
+    const blackToken = await BlackList.findOne({ tokenValue: token }).exec();
+    return blackToken;
   },
 };

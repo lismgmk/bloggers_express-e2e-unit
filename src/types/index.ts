@@ -1,23 +1,44 @@
 import { ObjectId } from 'mongodb';
+import { Types } from 'mongoose';
 
+export enum myStatus {
+  None,
+  Like,
+  Dislike,
+}
 export interface IBloggers {
-  id?: string;
-  name?: string | null;
-  youtubeUrl?: string | null;
+  id: Types.ObjectId;
+  name: string;
+  youtubeUrl?: string;
 }
 
-export interface ICommentsRes {
-  _id?: ObjectId;
-  id?: string | null;
+export type statusType = 'Like' | 'Dislike' | 'None';
+
+export interface ILikes {
+  _id: Types.ObjectId;
+  postId?: Types.ObjectId;
+  commentId?: Types.ObjectId;
+  myStatus: statusType;
+  addedAt: Date;
+  userId: Types.ObjectId;
+  login: string;
+}
+
+export interface IBlackList {
+  id: ObjectId;
+  tokenValue?: string;
+}
+
+export interface IComments {
+  id: Types.ObjectId;
   content?: string | null;
-  userId?: string;
-  userLogin?: string | null;
+  userId?: Types.ObjectId;
   addedAt?: Date | null;
-  postId?: string;
+  postId?: Types.ObjectId;
 }
 
 export interface IUser {
-  _id?: ObjectId;
+  _id?: Types.ObjectId;
   accountData: {
     userName: string;
     email: string;
@@ -34,9 +55,10 @@ export interface IUser {
 }
 
 export interface IIpUser {
+  id?: Types.ObjectId;
   createdAt: Date;
   userIp: string;
-  attempt: number;
+  path: string;
 }
 
 export interface IUsersRes {
@@ -45,13 +67,54 @@ export interface IUsersRes {
 }
 
 export interface IPosts {
+  _id?: Types.ObjectId;
   shortDescription?: string;
   content?: string | null;
   title?: string | null;
   bloggerId?: string;
-  bloggerName?: string | null;
-  id?: string;
+  bloggerName: string;
 }
+
+export interface postsResult {
+  _id?: Types.ObjectId;
+  shortDescription?: string;
+  content?: string | null;
+  title?: string | null;
+  bloggerId?: IBloggers | Types.ObjectId;
+  bloggerName: string;
+  extendedLikesInfo: IExtendedLikesInfo | Types.ObjectId;
+}
+export interface IReqPosts {
+  shortDescription: string;
+  content: string;
+  title: string;
+  bloggerId?: string;
+}
+
+export interface INewestLikes {
+  addedAt: string;
+  userId: string;
+  login: string;
+}
+
+export interface IExtendedLikesInfo {
+  likesCount: number;
+  dislikesCount: number;
+  myStatus: myStatus;
+  newestLikes: INewestLikes[];
+}
+
+export interface IPostsResponse {
+  id: string;
+  shortDescription?: string;
+  content?: string | null;
+  title: string | null;
+  bloggerId: string;
+  bloggerName: string;
+  addedAt: string;
+  extendedLikesInfo: IExtendedLikesInfo;
+}
+
 export interface IPaginationResponse<Item> {
   pagesCount: number;
   page: number;

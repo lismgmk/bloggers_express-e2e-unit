@@ -30,14 +30,18 @@ authRouter.post(
       return res.send(401);
     } else {
       const user = await usersRepositoryDB.getUserByLogin(req.body.login);
-      const refreshToken = jwtPassService.createJwt(user!._id, expiredRefresh);
-      return res
-        .cookie('refreshToken', refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV !== 'development',
-        })
-        .status(200)
-        .send(isCheck);
+      if (user) {
+        const refreshToken = jwtPassService.createJwt(user._id, expiredRefresh);
+        return res
+          .cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV !== 'development',
+          })
+          .status(200)
+          .send(isCheck);
+      } else {
+        return res.status(430).send('Db error');
+      }
     }
   },
 );
@@ -87,8 +91,8 @@ authRouter.post(
     await usersRepositoryDB.createUser(req.body.login, req.body.password, req.body.email, userIp!, confirmationCode);
     const isSendStatus = await mailService.sendEmail(req.body.email, confirmationCode);
     if (isSendStatus.error) {
-      const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
-      return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
+      await usersRepositoryDB.deleteUserByLogin(req.body.login);
+      return res.status(400).send('failed delete user');
     } else {
       return res.status(204).send(isSendStatus.data);
     }
@@ -103,11 +107,10 @@ authRouter.post(
     .exists()
     .bail()
     .custom(async (value) => {
-      return usersRepositoryDB.getUserByEmail(value).then((user) => {
-        if (!user || user!.emailConfirmation.isConfirmed === true) {
-          return Promise.reject();
-        }
-      });
+      const user = await usersRepositoryDB.getUserByEmail(value);
+      if (!user || user.emailConfirmation.isConfirmed === true) {
+        return Promise.reject();
+      }
     })
     .withMessage(
       "The field Email must match the regular expression '^[\\\\w-\\\\.]+@([\\\\w-]+\\\\.)+[\\\\w-]{2,4}$'.",
@@ -121,12 +124,11 @@ authRouter.post(
     await usersRepositoryDB.updateCodeByEmail(req.body.email, newCode);
     const isSendStatus = await mailService.sendEmail(req.body.email, newCode);
     if (isSendStatus.error) {
-      const createdUser = await usersRepositoryDB.deleteUserByLogin(req.body.login);
-      return res.status(400).send(createdUser.deleteCount === 1 ? isSendStatus.data : 'failed delete user');
+      await usersRepositoryDB.deleteUserByLogin(req.body.login);
+      return res.status(400).send('failed delete user');
     } else {
       return res.send(204);
     }
-    // }
   },
 );
 
@@ -157,24 +159,31 @@ authRouter.post(
 authRouter.post('/refresh-token', checkRefreshTokenService, async (req, res) => {
   const accessToken = jwtPassService.createJwt(req.user!._id!, expiredAccess);
   const refreshToken = jwtPassService.createJwt(req.user!._id!, expiredRefresh);
-  await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
-  return res
-    .cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV !== 'development',
-    })
-    .status(200)
-    .send({ accessToken });
+  const blackToken = await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
+  if (typeof blackToken === 'string') {
+    res.status(430).send(blackToken);
+  } else {
+    return res
+      .cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV !== 'development',
+      })
+      .status(200)
+      .send({ accessToken });
+  }
 });
 
 authRouter.post('/logout', checkRefreshTokenService, async (req, res) => {
-  await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
-  await usersRepositoryDB.confirmUserById(req.user!._id!.toString(), false);
-  return res.send(204);
+  const confirmedUser = await usersRepositoryDB.confirmUserById(req.user!._id!.toString(), false);
+  const blackToken = await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
+  if (typeof blackToken === 'string' || typeof confirmedUser === 'string') {
+    res.status(430).send(`${blackToken} ${confirmedUser}`);
+  } else {
+    return res.send(204);
+  }
 });
 
 authRouter.get('/me', checkAccessTokenService, async (req, res) => {
-  console.log(req.user, 'userrrrrrrrrrrrr');
   return res.status(200).send({
     email: req.user!.accountData.email,
     login: req.user!.accountData.userName,

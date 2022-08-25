@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
+import { noBlockCheckAccessService } from '../application/noBlock-check-access-token-service';
 import { errorFormatter } from '../utils/error-util';
 import basicAuth from 'express-basic-auth';
 import { bloggersRepositoryDB } from '../repositories/bloggers-repository-db';
@@ -33,7 +34,11 @@ bloggersRouter.post(
       return res.status(400).send({ errorsMessages: result.array() });
     } else {
       const newBlogger = await bloggersRepositoryDB.createBlogger(req.body.name, req.body.youtubeUrl);
-      res.status(201).send(newBlogger);
+      if (typeof newBlogger === 'string') {
+        res.status(430).send(newBlogger);
+      } else {
+        res.status(201).send(newBlogger);
+      }
     }
   },
 );
@@ -41,20 +46,24 @@ bloggersRouter.post(
 bloggersRouter.get('/:id', async (req, res) => {
   const blogger = await bloggersRepositoryDB.getBloggerById(req.params.id);
   if (!blogger) {
-    res.status(404).send('Not found');
+    res.status(404).send(blogger);
   } else {
     res.status(200).send(blogger);
   }
 });
 
-bloggersRouter.get('/:bloggerId/posts', async (req, res) => {
+bloggersRouter.get('/:bloggerId/posts', noBlockCheckAccessService, async (req, res) => {
   const blogger = await bloggersRepositoryDB.getBloggerById(req.params.bloggerId);
   if (blogger) {
     const limit = parseInt(req.query?.PageSize as string) || 10;
     const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
     const bloggerId = req.params.bloggerId;
-    const bloggersPostsSlice = await bloggersRepositoryDB.getAllPostsBloggers(limit, pageNumber, bloggerId);
-    bloggersPostsSlice ? res.status(200).send(bloggersPostsSlice) : res.status(500).send('error DB operation');
+    const bloggersPostsSlice = await postsRepositoryDB.getAllPosts(limit, pageNumber, req.user || null, bloggerId);
+    if (typeof bloggersPostsSlice === 'string') {
+      res.status(430).send(bloggersPostsSlice);
+    } else {
+      res.status(200).send(bloggersPostsSlice);
+    }
   } else {
     res.send(404);
   }
@@ -82,7 +91,11 @@ bloggersRouter.post(
     if (blogger) {
       const bloggerId = req.params.bloggerId;
       const newPost = await postsRepositoryDB.createPost({ ...req.body, bloggerId });
-      newPost && res.status(201).send(newPost);
+      if (typeof newPost === 'string') {
+        res.status(430).send(newPost);
+      } else {
+        res.status(201).send(newPost);
+      }
     } else {
       res.send(404);
     }
@@ -111,8 +124,16 @@ bloggersRouter.put(
       if (!blogger) {
         res.send(404);
       } else {
-        await bloggersRepositoryDB.upDateBlogger(req.body.name, req.body.youtubeUrl, req.params?.id);
-        res.send(204);
+        const updatedBlogger = await bloggersRepositoryDB.upDateBlogger(
+          req.body.name,
+          req.body.youtubeUrl,
+          req.params?.id,
+        );
+        if (typeof updatedBlogger === 'string') {
+          res.status(404).send(updatedBlogger);
+        } else {
+          res.send(204);
+        }
       }
     }
   },
@@ -129,7 +150,9 @@ bloggersRouter.delete(
       res.send(404);
     } else {
       const deletedBlogger = await bloggersRepositoryDB.deleteBlogger(req.params.id);
-      if (deletedBlogger.deleteCount === 1 && deletedBlogger.deleteState) {
+      if (typeof deletedBlogger === 'string') {
+        res.status(430).send(deletedBlogger);
+      } else {
         res.send(204);
       }
     }

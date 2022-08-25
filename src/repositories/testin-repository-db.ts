@@ -1,22 +1,25 @@
-import { collections } from '../connect-db';
+import { BlackList } from '../models/blackListModel';
+import { Bloggers } from '../models/bloggersModel';
+import { Comments } from '../models/commentsModel';
+import { IpUsers } from '../models/ipUserModel';
+import { Likes } from '../models/likesModel';
+import { Posts } from '../models/postsModel';
+import { Users } from '../models/usersModel';
 
 export const testingRepositoryDB = {
   async deleteAll() {
-    const resultBloggers = await collections.bloggers?.deleteMany({});
-    const resultPosts = await collections.posts?.deleteMany({});
-    const resultComments = await collections.comments?.deleteMany({});
-    const resultUsers = await collections.users?.deleteMany({});
-    const ipUsers = await collections.ipUsers?.deleteMany({});
-    const blackListTokens = await collections.black_list_tokens?.deleteMany({});
-    if (
-      resultBloggers?.acknowledged &&
-      resultComments?.acknowledged &&
-      resultPosts?.acknowledged &&
-      ipUsers?.acknowledged &&
-      blackListTokens?.acknowledged &&
-      resultUsers?.acknowledged
-    ) {
+    try {
+      const resultBloggers = await Bloggers.deleteMany({}).lean();
+      const resultPosts = await Posts.deleteMany({});
+      const resultComments = await Comments.deleteMany({});
+      const resultUsers = await Users.deleteMany({});
+      const ipUsers = await IpUsers.deleteMany({});
+      const blackListTokens = await BlackList.deleteMany({});
+      const likes = await Likes.deleteMany({});
       return true;
+    } catch (err) {
+      console.log(err);
+      return false;
     }
   },
 };
