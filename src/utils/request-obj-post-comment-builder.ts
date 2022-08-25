@@ -36,7 +36,7 @@ export const requestObjPostCommentBuilder = async (post: IPostsRequest, userStat
         login: el.login,
       };
     })
-    .sort((a, b) => a.addedAt.getTime() - b.addedAt.getTime());
+    .sort((a, b) => b.addedAt.getTime() - a.addedAt.getTime());
   post.extendedLikesInfo = {
     dislikesCount: dislikesCount.length,
     likesCount: likesCount.length,
