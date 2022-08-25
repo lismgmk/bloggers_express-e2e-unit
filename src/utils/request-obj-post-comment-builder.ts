@@ -4,6 +4,7 @@ import { statusType } from '../types';
 
 export interface IPostsRequest {
   _id?: Types.ObjectId;
+  id?: Types.ObjectId;
   shortDescription?: string;
   content?: string | null;
   title?: string | null;
@@ -21,9 +22,11 @@ export interface IPostsRequest {
 export const requestObjPostCommentBuilder = async (post: IPostsRequest, userStatus: statusType) => {
   post.bloggerName = post.bloggerId.name;
   post.bloggerId = post.bloggerId!._id;
+  post.id = post._id;
+  delete post._id;
 
-  const dislikesCount = await Likes.find({ postId: post._id, myStatus: 'Dislike' }).exec();
-  const likesCount = await Likes.find({ postId: post._id, myStatus: 'Like' }).sort({ date: -1 }).exec();
+  const dislikesCount = await Likes.find({ postId: post.id, myStatus: 'Dislike' }).exec();
+  const likesCount = await Likes.find({ postId: post.id, myStatus: 'Like' }).sort({ date: -1 }).exec();
   const newestLikes = likesCount.slice(0, 2).map((el) => {
     return {
       addedAt: el.addedAt,

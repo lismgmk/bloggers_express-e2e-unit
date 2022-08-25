@@ -7,36 +7,40 @@ import { userStatusUtil } from '../utils/user-status-util';
 
 export const postsRepositoryDB = {
   async getAllPosts(pageSize: number, pageNumber: number, validUser: IUser, bloggerId?: string) {
-    let totalCount: number | undefined = 0;
-    let totalPages = 0;
-    const allBloggersPosts = await Promise.all(
-      (
-        await Posts.find({ bloggerId: bloggerId || { $exists: true } })
-          .populate([{ path: 'bloggerId', select: '_id name', options: { lean: true } }])
-          .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
-          .limit(pageSize)
-          .exec()
-      ).map(async (el) => {
-        const userStatus = await userStatusUtil(el._id, validUser);
-        return await requestObjPostCommentBuilder(
-          {
-            ...el.toObject(),
-          } as IPostsRequest,
-          userStatus,
-        );
-      }),
-    );
-    totalCount = await Posts.find({ bloggerId: bloggerId || { $exists: true } })
-      .count()
-      .lean();
-    totalPages = Math.ceil((totalCount || 0) / pageSize);
-    return {
-      pagesCount: totalPages,
-      page: pageNumber,
-      pageSize,
-      totalCount,
-      items: allBloggersPosts,
-    };
+    try {
+      let totalCount: number | undefined = 0;
+      let totalPages = 0;
+      const allBloggersPosts = await Promise.all(
+        (
+          await Posts.find({ bloggerId: bloggerId || { $exists: true } })
+            .populate([{ path: 'bloggerId', select: '_id name', options: { lean: true } }])
+            .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
+            .limit(pageSize)
+            .exec()
+        ).map(async (el) => {
+          const userStatus = await userStatusUtil(el._id, null, validUser);
+          return await requestObjPostCommentBuilder(
+            {
+              ...el.toObject(),
+            } as IPostsRequest,
+            userStatus,
+          );
+        }),
+      );
+      totalCount = await Posts.find({ bloggerId: bloggerId || { $exists: true } })
+        .count()
+        .lean();
+      totalPages = Math.ceil((totalCount || 0) / pageSize);
+      return {
+        pagesCount: totalPages,
+        page: pageNumber,
+        pageSize,
+        totalCount,
+        items: allBloggersPosts,
+      };
+    } catch (err) {
+      return err;
+    }
   },
   async createPost(bodyParams: IReqPosts, bloggerId?: string) {
     const postId = new mongoose.Types.ObjectId();
@@ -66,7 +70,6 @@ export const postsRepositoryDB = {
       };
       return requestObjZeroBuilder(result);
     } catch (err) {
-      console.log(err);
       return `Fail in DB: ${err}`;
     }
   },

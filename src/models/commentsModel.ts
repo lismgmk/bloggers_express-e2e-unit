@@ -11,9 +11,9 @@ export const commentsSchema = new Schema<IComments>(
       min: [20, 'Too short'],
       max: [300, 'Too length'],
     },
-    userId: [{ type: Schema?.Types.ObjectId, ref: 'Users', required: true }],
+    userId: { type: Schema?.Types.ObjectId, ref: 'Users', required: true },
     addedAt: Date,
-    postId: [{ type: Schema?.Types.ObjectId, ref: 'Posts', required: true }],
+    postId: { type: Schema?.Types.ObjectId, ref: 'Posts', required: true },
   },
   { versionKey: false },
 );

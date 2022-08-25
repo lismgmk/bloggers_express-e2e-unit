@@ -17,7 +17,12 @@ export const postsRouter = Router({});
 postsRouter.get('/', noBlockCheckAccessService, async (req, res) => {
   const limit = parseInt(req.query?.PageSize as string) || 10;
   const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
-  res.status(200).send(await postsRepositoryDB.getAllPosts(limit, pageNumber, req.user || null));
+  const allPosts = await postsRepositoryDB.getAllPosts(limit, pageNumber, req.user || null);
+  if (typeof allPosts === 'string') {
+    res.status(430).send(allPosts);
+  } else {
+    res.status(200).send(allPosts);
+  }
 });
 
 postsRouter.post(
@@ -79,6 +84,7 @@ postsRouter.put(
     } else {
       const updatedPost = await likesRepositoryDB.upDateLikesInfo(
         postId,
+        null,
         req.body.likeStatus,
         req.user!._id!,
         req.user!.accountData.userName,
@@ -91,15 +97,15 @@ postsRouter.put(
     }
   },
 );
-postsRouter.get('/:id/comments', async (req, res) => {
-  const postId = req.params?.id;
+postsRouter.get('/:id/comments', noBlockCheckAccessService, async (req, res) => {
+  const commentId = req.params?.id;
   const limit = parseInt(req.query?.PageSize as string) || 10;
   const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
-  const post = await postsRepositoryDB.checkPostById(postId);
-  if (!post) {
+  const comments = await postsRepositoryDB.checkPostById(commentId);
+  if (!comments) {
     res.send(404);
   } else {
-    res.status(200).send(await commentsRepositoryDb.getAllComments(limit, pageNumber, postId));
+    res.status(200).send(await commentsRepositoryDb.getAllComments(limit, pageNumber, req.user || null, commentId));
   }
 });
 
@@ -120,14 +126,18 @@ postsRouter.post(
         const userObjectId = new mongoose.Types.ObjectId(req.user!._id!);
         const postObjectId = new mongoose.Types.ObjectId(postId);
         const newComment = await commentsRepositoryDb.createComment(req.body.content, userObjectId, postObjectId);
-        newComment && res.status(201).send(newComment);
+        if (typeof newComment === 'string') {
+          res.status(430).send(newComment);
+        } else {
+          res.status(201).send(newComment);
+        }
       }
     }
   },
 );
 
 postsRouter.get('/:id', noBlockCheckAccessService, async (req, res) => {
-  const userStatus = await userStatusUtil(req.params.id, req.user || null);
+  const userStatus = await userStatusUtil(req.params.id, null, req.user || null);
   const post = await postsRepositoryDB.getPostById(req.params.id, userStatus);
   post ? res.status(200).send(post) : res.send(404);
 });
