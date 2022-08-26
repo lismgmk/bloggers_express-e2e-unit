@@ -1,13 +1,21 @@
 import express, { Router } from 'express';
-import { testingRepositoryDB } from '../repositories/testin-repository-db';
+import { TestingRepositoryDB } from '../repositories/testin-repository-db';
 
 export const testingRouter = Router({});
 
-testingRouter.delete('/all-data', async (req: express.Request, res: express.Response) => {
-  const deleteAllData = await testingRepositoryDB.deleteAll();
-  if (deleteAllData) {
-    res.send(204);
-  } else {
-    res.send(400);
+export class TestingController {
+  testingRepositoryDB: TestingRepositoryDB;
+  constructor() {
+    this.testingRepositoryDB = new TestingRepositoryDB();
   }
-});
+  async deleteAllCollections(req: express.Request, res: express.Response) {
+    const deleteAllData = await this.testingRepositoryDB.deleteAll();
+    if (deleteAllData) {
+      res.send(204);
+    } else {
+      res.send(400);
+    }
+  }
+}
+const testingController = new TestingController();
+testingRouter.delete('/all-data', testingController.deleteAllCollections.bind(testingController));

@@ -1,16 +1,16 @@
-import express from 'express';
-import cors from 'cors';
 import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import { config } from 'dotenv';
+import express from 'express';
+import path from 'path';
+import { main } from './connect-db';
 import { authRouter } from './routes/auth-route';
 import { bloggersRouter } from './routes/bloggers-route';
-import { postsRouter } from './routes/posts-route';
-import { connectToDatabase } from './connect-db';
-import { config } from 'dotenv';
-import path from 'path';
 import { commentsRouter } from './routes/comments-route';
-import { usersRouter } from './routes/users-route';
+import { postsRouter } from './routes/posts-route';
 import { testingRouter } from './routes/testing-route';
-import cookieParser from 'cookie-parser';
+import { usersRouter } from './routes/users-route';
 
 config({ path: path.join(__dirname, '..', '.env') });
 
@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.set('trust proxy', true);
-connectToDatabase()
+main()
   .then(() => {
     app.use('/bloggers', bloggersRouter);
     app.use('/posts', postsRouter);

@@ -1,25 +1,20 @@
-import { BlackList } from '../models/blackListModel';
-import { Bloggers } from '../models/bloggersModel';
-import { Comments } from '../models/commentsModel';
-import { IpUsers } from '../models/ipUserModel';
-import { Likes } from '../models/likesModel';
-import { Posts } from '../models/postsModel';
-import { Users } from '../models/usersModel';
+import { injectable } from 'inversify';
+import mongoose from 'mongoose';
 
-export const testingRepositoryDB = {
+@injectable()
+export class TestingRepositoryDB {
   async deleteAll() {
     try {
-      const resultBloggers = await Bloggers.deleteMany({}).lean();
-      const resultPosts = await Posts.deleteMany({});
-      const resultComments = await Comments.deleteMany({});
-      const resultUsers = await Users.deleteMany({});
-      const ipUsers = await IpUsers.deleteMany({});
-      const blackListTokens = await BlackList.deleteMany({});
-      const likes = await Likes.deleteMany({});
+      const collections = mongoose.connection.collections;
+      await Promise.all(
+        Object.values(collections).map(async (collection) => {
+          await collection.deleteMany({});
+        }),
+      );
       return true;
     } catch (err) {
       console.log(err);
       return false;
     }
-  },
-};
+  }
+}
