@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
+import { CheckTokenService, CheckTokenController } from '../application/check-token-controller';
+import { container } from '../inversify.config';
 import { errorFormatter } from '../utils/error-util';
 import { authRepositoryDB } from '../repositories/auth-repository-db';
 import requestIp from 'request-ip';
@@ -12,6 +14,7 @@ import { jwtPassService } from '../utils/jwt-pass-service';
 import { blackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
 import { checkAccessTokenService } from '../application/check-access-token-service';
 import { expiredAccess, expiredRefresh } from '../constants';
+import { UserController } from './users-route';
 
 export const authRouter = Router({});
 authRouter.post(
@@ -182,8 +185,8 @@ authRouter.post('/logout', checkRefreshTokenService, async (req, res) => {
     return res.send(204);
   }
 });
-
-authRouter.get('/me', checkAccessTokenService, async (req, res) => {
+const checkTokenController = container.resolve(CheckTokenController);
+authRouter.get('/me', checkTokenController.accessToken.bind(checkTokenController), async (req, res) => {
   return res.status(200).send({
     email: req.user!.accountData.email,
     login: req.user!.accountData.userName,

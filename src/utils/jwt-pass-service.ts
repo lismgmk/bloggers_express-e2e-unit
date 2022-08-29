@@ -23,7 +23,6 @@ export const jwtPassService = {
         return decode;
       }
     });
-    console.log(verify, 'dddd');
     return verify;
   },
 };

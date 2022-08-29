@@ -1,10 +1,13 @@
 import bcrypt from 'bcryptjs';
 import { add } from 'date-fns';
+import { injectable } from 'inversify';
 import { ObjectId, ObjectID } from 'mongodb';
 import { Users } from '../models/usersModel';
 import { IPaginationResponse, IUsersRes } from '../types';
+import 'reflect-metadata';
 
-export const usersRepositoryDB = {
+@injectable()
+export class UsersRepositoryDB {
   async getAllUsers(
     pageSize: number,
     pageNumber: number,
@@ -28,7 +31,7 @@ export const usersRepositoryDB = {
       totalCount,
       items: usersPortion,
     };
-  },
+  }
 
   async createUser(
     login: string,
@@ -64,7 +67,7 @@ export const usersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
 
   async getUserById(id: string) {
     try {
@@ -73,14 +76,16 @@ export const usersRepositoryDB = {
     } catch (err) {
       return false;
     }
-  },
+  }
+
   async getUserByEmail(email: string) {
     try {
       return await Users.findOne({ 'accountData.email': { $eq: email } });
     } catch (err) {
       return false;
     }
-  },
+  }
+
   async updateCodeByEmail(email: string, code: string) {
     try {
       return await Users.findOneAndUpdate(
@@ -90,40 +95,42 @@ export const usersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
+
   async getUserByLogin(login: string) {
     try {
       return await Users.findOne({ 'accountData.userName': { $eq: login } });
     } catch (err) {
       return false;
     }
-  },
+  }
 
   async deleteUser(id: string) {
     try {
-      const idVal = new ObjectID(id);
-      return await Users.findByIdAndDelete(idVal);
+      return await Users.findByIdAndDelete(id);
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
+
   async deleteUserByLogin(login: string) {
     try {
       return await Users.findOneAndDelete({ 'accountData.userName': login });
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
+
   async confirmUserById(id: string | ObjectId, confirm: boolean) {
     try {
-      const idVal = new ObjectID(id);
-      return await Users.findByIdAndUpdate(idVal, {
+      return await Users.findByIdAndUpdate(id, {
         $set: { 'emailConfirmation.isConfirmed': confirm, 'emailConfirmation.attemptCount': 0 },
       });
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
+
   async confirmUserByLogin(login: string) {
     try {
       return await Users.findOneAndUpdate(
@@ -133,5 +140,5 @@ export const usersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
-};
+  }
+}

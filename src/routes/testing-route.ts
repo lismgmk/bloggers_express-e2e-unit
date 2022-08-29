@@ -1,21 +1,9 @@
-import express, { Router } from 'express';
-import { TestingRepositoryDB } from '../repositories/testin-repository-db';
+import { Router } from 'express';
+import 'reflect-metadata';
+import { TestingController } from '../controllers/testing-controller';
+import { container } from '../inversify.config';
 
 export const testingRouter = Router({});
 
-export class TestingController {
-  testingRepositoryDB: TestingRepositoryDB;
-  constructor() {
-    this.testingRepositoryDB = new TestingRepositoryDB();
-  }
-  async deleteAllCollections(req: express.Request, res: express.Response) {
-    const deleteAllData = await this.testingRepositoryDB.deleteAll();
-    if (deleteAllData) {
-      res.send(204);
-    } else {
-      res.send(400);
-    }
-  }
-}
-const testingController = new TestingController();
-testingRouter.delete('/all-data', testingController.deleteAllCollections.bind(testingController));
+const testingContainer = container.resolve(TestingController);
+testingRouter.delete('/all-data', testingContainer.deleteAllCollections.bind(testingContainer));

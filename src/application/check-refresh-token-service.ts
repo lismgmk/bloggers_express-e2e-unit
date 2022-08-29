@@ -1,6 +1,6 @@
 import express from 'express';
 import { blackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
-import { usersRepositoryDB } from '../repositories/users-repository-db';
+import { UsersRepositoryDB } from '../repositories/users-repository-db';
 import { jwtPassService } from '../utils/jwt-pass-service';
 
 export const checkRefreshTokenService = async (
@@ -12,7 +12,7 @@ export const checkRefreshTokenService = async (
 
   if (tokenRefresh) {
     const verifyUser = jwtPassService.verifyJwt(tokenRefresh);
-    const user = await usersRepositoryDB.getUserById(verifyUser!.id!);
+    const user = await UsersRepositoryDB.getUserById(verifyUser!.id!);
     if (verifyUser && user) {
       const isChecked = tokenRefresh && (await blackListTokensRepositoryDB.checkToken(tokenRefresh));
       if (!isChecked) {
