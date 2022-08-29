@@ -3,9 +3,10 @@ import { injectable, inject } from 'inversify';
 import { blackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
 import { jwtPassService } from '../utils/jwt-pass-service';
+import 'reflect-metadata';
 
 @injectable()
-export class CheckTokenController {
+export class CheckTokenService {
   constructor(@inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB) {}
 
   async noBlockToken(req: express.Request, res: express.Response, next: express.NextFunction) {

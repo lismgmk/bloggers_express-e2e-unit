@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import { ObjectId } from 'mongodb';
-import { noBlockCheckAccessService } from '../application/noBlock-check-access-token-service';
 import { errorFormatter } from '../utils/error-util';
 import basicAuth from 'express-basic-auth';
 import { bloggersRepositoryDB } from '../repositories/bloggers-repository-db';

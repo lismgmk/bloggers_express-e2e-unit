@@ -1,195 +1,56 @@
 import { Router } from 'express';
-import { body, validationResult } from 'express-validator';
-import { CheckTokenService, CheckTokenController } from '../application/check-token-controller';
+import { CheckIpServiceUser } from '../application/check-ip-service';
+import { CheckTokenService } from '../application/check-token-service';
+import { AuthController } from '../controllers/auth-controller';
 import { container } from '../inversify.config';
-import { errorFormatter } from '../utils/error-util';
-import { authRepositoryDB } from '../repositories/auth-repository-db';
-import requestIp from 'request-ip';
-import { usersRepositoryDB } from '../repositories/users-repository-db';
-import { mailService } from '../utils/mail-service';
-import { v4 as uuidv4 } from 'uuid';
-import { checkIpServiceUser } from '../application/check-ip-service';
-import { checkRefreshTokenService } from '../application/check-refresh-token-service';
-import { jwtPassService } from '../utils/jwt-pass-service';
-import { blackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
-import { checkAccessTokenService } from '../application/check-access-token-service';
-import { expiredAccess, expiredRefresh } from '../constants';
-import { UserController } from './users-route';
+import { AuthValidator } from '../validators/auth-validator';
+import 'reflect-metadata';
 
 export const authRouter = Router({});
+
+const checkTokenService = container.resolve(CheckTokenService);
+const checkIpServiceUser = container.resolve(CheckIpServiceUser);
+const authValidator = container.resolve(AuthValidator);
+const authController = container.resolve(AuthController);
+
 authRouter.post(
   '/login',
-  checkIpServiceUser,
-  body('login').trim().isLength({ min: 3, max: 10 }).exists().withMessage('invalid length'),
-  body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
-
-  async (req, res) => {
-    const result = validationResult(req).formatWith(errorFormatter);
-    const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    }
-    if (!isCheck) {
-      return res.send(401);
-    } else {
-      const user = await usersRepositoryDB.getUserByLogin(req.body.login);
-      if (user) {
-        const refreshToken = jwtPassService.createJwt(user._id, expiredRefresh);
-        return res
-          .cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV !== 'development',
-          })
-          .status(200)
-          .send(isCheck);
-      } else {
-        return res.status(430).send('Db error');
-      }
-    }
-  },
+  checkIpServiceUser.ipStatus.bind(checkIpServiceUser),
+  authValidator.login.bind(authValidator),
+  authController.login.bind(authController),
 );
 
 authRouter.post(
   '/registration',
-  checkIpServiceUser,
-  body('login')
-    .trim()
-    .isLength({ min: 3, max: 10 })
-    .bail()
-    .exists()
-    .bail()
-    .custom(async (value) => {
-      return usersRepositoryDB.getUserByLogin(value).then((user) => {
-        if (user) {
-          return Promise.reject();
-        }
-      });
-    })
-    .withMessage('invalid value'),
-
-  body('password').trim().isLength({ min: 6, max: 20 }).exists().withMessage('invalid length'),
-  body('email')
-    .matches(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)
-    .exists()
-    .bail()
-    .custom(async (value) => {
-      return usersRepositoryDB.getUserByEmail(value).then((user) => {
-        if (user) {
-          return Promise.reject();
-        }
-      });
-    })
-    .withMessage(
-      "The field Email must match the regular expression '^[\\\\w-\\\\.]+@([\\\\w-]+\\\\.)+[\\\\w-]{2,4}$'.",
-    ),
-  async (req, res) => {
-    const result = validationResult(req).formatWith(errorFormatter);
-    const userIp = requestIp.getClientIp(req);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    }
-
-    const confirmationCode = uuidv4();
-
-    await usersRepositoryDB.createUser(req.body.login, req.body.password, req.body.email, userIp!, confirmationCode);
-    const isSendStatus = await mailService.sendEmail(req.body.email, confirmationCode);
-    if (isSendStatus.error) {
-      await usersRepositoryDB.deleteUserByLogin(req.body.login);
-      return res.status(400).send('failed delete user');
-    } else {
-      return res.status(204).send(isSendStatus.data);
-    }
-  },
+  checkIpServiceUser.ipStatus.bind(checkIpServiceUser),
+  authValidator.registration.bind(authValidator),
+  authController.registration.bind(authController),
 );
 
 authRouter.post(
   '/registration-email-resending',
-  checkIpServiceUser,
-  body('email')
-    .matches(/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/)
-    .exists()
-    .bail()
-    .custom(async (value) => {
-      const user = await usersRepositoryDB.getUserByEmail(value);
-      if (!user || user.emailConfirmation.isConfirmed === true) {
-        return Promise.reject();
-      }
-    })
-    .withMessage(
-      "The field Email must match the regular expression '^[\\\\w-\\\\.]+@([\\\\w-]+\\\\.)+[\\\\w-]{2,4}$'.",
-    ),
-  async (req, res) => {
-    const result = validationResult(req).formatWith(errorFormatter);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    }
-    const newCode = uuidv4();
-    await usersRepositoryDB.updateCodeByEmail(req.body.email, newCode);
-    const isSendStatus = await mailService.sendEmail(req.body.email, newCode);
-    if (isSendStatus.error) {
-      await usersRepositoryDB.deleteUserByLogin(req.body.login);
-      return res.status(400).send('failed delete user');
-    } else {
-      return res.send(204);
-    }
-  },
+  checkIpServiceUser.ipStatus.bind(checkIpServiceUser),
+  authValidator.registrationEmailResending.bind(authValidator),
+  authController.registrationEmailResending.bind(authController),
 );
 
 authRouter.post(
   '/registration-confirmation',
-  checkIpServiceUser,
-  body('code')
-    .exists()
-    .bail()
-    .custom(async (value) => {
-      return authRepositoryDB.confirmEmail(value).then((user) => {
-        if (!user) {
-          return Promise.reject();
-        }
-      });
-    })
-    .withMessage('code error'),
-  async (req, res) => {
-    const result = validationResult(req).formatWith(errorFormatter);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    } else {
-      return res.send(204);
-    }
-  },
+  checkIpServiceUser.ipStatus.bind(checkIpServiceUser),
+  authValidator.registrationConfirmation.bind(authValidator),
+  authController.registrationConfirmation.bind(authController),
 );
 
-authRouter.post('/refresh-token', checkRefreshTokenService, async (req, res) => {
-  const accessToken = jwtPassService.createJwt(req.user!._id!, expiredAccess);
-  const refreshToken = jwtPassService.createJwt(req.user!._id!, expiredRefresh);
-  const blackToken = await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
-  if (typeof blackToken === 'string') {
-    res.status(430).send(blackToken);
-  } else {
-    return res
-      .cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development',
-      })
-      .status(200)
-      .send({ accessToken });
-  }
-});
+authRouter.post(
+  '/refresh-token',
+  checkTokenService.refreshToken.bind(checkTokenService),
+  authController.getRefreshAccessToken.bind(authController),
+);
 
-authRouter.post('/logout', checkRefreshTokenService, async (req, res) => {
-  const confirmedUser = await usersRepositoryDB.confirmUserById(req.user!._id!.toString(), false);
-  const blackToken = await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
-  if (typeof blackToken === 'string' || typeof confirmedUser === 'string') {
-    res.status(430).send(`${blackToken} ${confirmedUser}`);
-  } else {
-    return res.send(204);
-  }
-});
-const checkTokenController = container.resolve(CheckTokenController);
-authRouter.get('/me', checkTokenController.accessToken.bind(checkTokenController), async (req, res) => {
-  return res.status(200).send({
-    email: req.user!.accountData.email,
-    login: req.user!.accountData.userName,
-    userId: req.user!._id!.toString(),
-  });
-});
+authRouter.post(
+  '/logout',
+  checkTokenService.refreshToken.bind(checkTokenService),
+  authController.logout.bind(authController),
+);
+
+authRouter.get('/me', checkTokenService.accessToken.bind(checkTokenService), authController.me.bind(authController));
