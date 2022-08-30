@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import 'reflect-metadata';
 import { userController, userValidator } from '../inversify.config';
+import 'reflect-metadata';
 
 export const usersRouter = Router({});
 

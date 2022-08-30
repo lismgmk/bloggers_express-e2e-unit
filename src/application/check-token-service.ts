@@ -1,13 +1,14 @@
 import express from 'express';
-import { injectable, inject } from 'inversify';
+import { injectable } from 'inversify';
+import 'reflect-metadata';
 import { blackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
 import { jwtPassService } from '../utils/jwt-pass-service';
-import 'reflect-metadata';
 
 @injectable()
 export class CheckTokenService {
-  constructor(@inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB) {}
+  // constructor(@inject(Symbols.UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB) {}
+  constructor(protected usersRepositoryDB: UsersRepositoryDB) {}
 
   async noBlockToken(req: express.Request, res: express.Response, next: express.NextFunction) {
     const authHeader = req.headers['authorization'];

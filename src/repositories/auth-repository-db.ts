@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { injectable, inject } from 'inversify';
+import 'reflect-metadata';
 import { expiredAccess } from '../constants';
 import { Users } from '../models/usersModel';
 import { addUserAttempt } from '../utils/add-user-attempt';
@@ -8,7 +9,9 @@ import { UsersRepositoryDB } from './users-repository-db';
 
 @injectable()
 export class AuthRepositoryDB {
+  // constructor(@inject(Symbols.UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB) {}
   constructor(@inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB) {}
+  // constructor(protected usersRepositoryDB: UsersRepositoryDB) {}
 
   async authUser(login: string, password: string): Promise<{ accessToken: string } | null> {
     const attemptCountUser = await Users.findOne({ 'accountData.userName': login }).exec();

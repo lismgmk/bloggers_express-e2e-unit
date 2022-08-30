@@ -3,12 +3,13 @@ import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
 import { AuthRepositoryDB } from '../repositories/auth-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
-import 'reflect-metadata';
 
 @injectable()
 export class AuthValidator {
   constructor(
+    // @inject(Symbols.UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
     @inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
+    // protected usersRepositoryDB: UsersRepositoryDB,
     @inject(AuthRepositoryDB) protected authRepositoryDB: AuthRepositoryDB,
   ) {}
   login() {

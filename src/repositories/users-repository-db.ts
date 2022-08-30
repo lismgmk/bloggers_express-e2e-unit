@@ -1,10 +1,10 @@
+import 'reflect-metadata';
 import bcrypt from 'bcryptjs';
 import { add } from 'date-fns';
 import { injectable } from 'inversify';
-import { ObjectId, ObjectID } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { Users } from '../models/usersModel';
 import { IPaginationResponse, IUsersRes } from '../types';
-import 'reflect-metadata';
 
 @injectable()
 export class UsersRepositoryDB {
@@ -71,7 +71,7 @@ export class UsersRepositoryDB {
 
   async getUserById(id: string) {
     try {
-      const user = await Users.findById(new ObjectID(id)).lean();
+      const user = await Users.findById(new ObjectId(id)).lean();
       return user;
     } catch (err) {
       return false;
