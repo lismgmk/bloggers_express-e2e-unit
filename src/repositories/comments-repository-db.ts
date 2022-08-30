@@ -1,11 +1,14 @@
+import { injectable } from 'inversify';
 import { Types } from 'mongoose';
 import { Comments } from '../models/commentsModel';
 import { IUser, statusType } from '../types';
 import { requestCommentZeroBuilder } from '../utils/request-comment-zero-builder';
 import { requestObjCommentBuilder, ICommentsRequest } from '../utils/request-obj-comment-builder';
 import { userStatusUtil } from '../utils/user-status-util';
+import 'reflect-metadata';
 
-export const commentsRepositoryDb = {
+@injectable()
+export class CommentsRepositoryDb {
   async getAllComments(pageSize: number, pageNumber: number, validUser: IUser, postId: string) {
     try {
       let totalCount: number | undefined = 0;
@@ -38,7 +41,7 @@ export const commentsRepositoryDb = {
     } catch (err) {
       return err;
     }
-  },
+  }
 
   async createComment(content: string, userId: Types.ObjectId, postId: Types.ObjectId) {
     const newComment = new Comments({
@@ -61,7 +64,7 @@ export const commentsRepositoryDb = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
 
   async updateComment(content: string, id: string) {
     try {
@@ -72,11 +75,12 @@ export const commentsRepositoryDb = {
     } catch (err) {
       return err;
     }
-  },
+  }
+
   async checkCommentById(id: string) {
     const comment = await Comments?.findById(id).exec();
     return comment;
-  },
+  }
 
   async getCommentById(commentId: string, userStatus: statusType) {
     const comment = await Comments.findById(commentId)
@@ -94,7 +98,7 @@ export const commentsRepositoryDb = {
     } else {
       return false;
     }
-  },
+  }
 
   async deleteComment(id: string) {
     try {
@@ -102,5 +106,5 @@ export const commentsRepositoryDb = {
     } catch (err) {
       return err;
     }
-  },
-};
+  }
+}

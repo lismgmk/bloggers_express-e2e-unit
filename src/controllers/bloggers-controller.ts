@@ -4,12 +4,15 @@ import { inject, injectable } from 'inversify';
 import { ObjectId } from 'mongodb';
 import 'reflect-metadata';
 import { BloggersRepositoryDB } from '../repositories/bloggers-repository-db';
-import { postsRepositoryDB } from '../repositories/posts-repository-db';
+import { PostsRepositoryDB } from '../repositories/posts-repository-db';
 import { errorFormatter } from '../utils/error-util';
 
 @injectable()
 export class BloggersController {
-  constructor(@inject(BloggersRepositoryDB) protected bloggersRepositoryDB: BloggersRepositoryDB) {}
+  constructor(
+    @inject(BloggersRepositoryDB) protected bloggersRepositoryDB: BloggersRepositoryDB,
+    @inject(PostsRepositoryDB) protected postsRepositoryDB: PostsRepositoryDB,
+  ) {}
 
   async getAllBloggers(req: express.Request, res: express.Response) {
     const limit = parseInt(req.query?.PageSize as string) || 10;
@@ -54,7 +57,12 @@ export class BloggersController {
         const limit = parseInt(req.query?.PageSize as string) || 10;
         const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
         const bloggerId = req.params.bloggerId;
-        const bloggersPostsSlice = await postsRepositoryDB.getAllPosts(limit, pageNumber, req.user || null, bloggerId);
+        const bloggersPostsSlice = await this.postsRepositoryDB.getAllPosts(
+          limit,
+          pageNumber,
+          req.user || null,
+          bloggerId,
+        );
         if (typeof bloggersPostsSlice === 'string') {
           res.status(430).send(bloggersPostsSlice);
         } else {
@@ -77,7 +85,7 @@ export class BloggersController {
       const blogger = await this.bloggersRepositoryDB.getBloggerById(req.params.bloggerId);
       if (blogger) {
         const bloggerId = req.params.bloggerId;
-        const newPost = await postsRepositoryDB.createPost({ ...req.body, bloggerId });
+        const newPost = await this.postsRepositoryDB.createPost({ ...req.body, bloggerId });
         if (typeof newPost === 'string') {
           res.status(430).send(newPost);
         } else {

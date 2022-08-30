@@ -4,7 +4,7 @@ import { inject, injectable } from 'inversify';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
 import { expiredAccess, expiredRefresh } from '../constants';
-import { authRepositoryDB } from '../repositories/auth-repository-db';
+import { AuthRepositoryDB } from '../repositories/auth-repository-db';
 import { blackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
 import { errorFormatter } from '../utils/error-util';
@@ -14,11 +14,14 @@ import 'reflect-metadata';
 
 @injectable()
 export class AuthController {
-  constructor(@inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB) {}
+  constructor(
+    @inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
+    @inject(AuthRepositoryDB) protected authRepositoryDB: AuthRepositoryDB,
+  ) {}
 
   async login(req: express.Request, res: express.Response) {
     const result = validationResult(req).formatWith(errorFormatter);
-    const isCheck = await authRepositoryDB.authUser(req.body.login, req.body.password);
+    const isCheck = await this.authRepositoryDB.authUser(req.body.login, req.body.password);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     }

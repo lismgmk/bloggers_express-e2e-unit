@@ -1,11 +1,14 @@
+import { injectable } from 'inversify';
 import mongoose from 'mongoose';
 import { Posts } from '../models/postsModel';
 import { IPosts, IReqPosts, statusType, IUser } from '../types';
 import { requestObjPostCommentBuilder, IPostsRequest } from '../utils/request-obj-post-comment-builder';
 import { requestObjZeroBuilder } from '../utils/request-obj-zero-builder';
 import { userStatusUtil } from '../utils/user-status-util';
+import 'reflect-metadata';
 
-export const postsRepositoryDB = {
+@injectable()
+export class PostsRepositoryDB {
   async getAllPosts(pageSize: number, pageNumber: number, validUser: IUser, bloggerId?: string) {
     try {
       let totalCount: number | undefined = 0;
@@ -41,7 +44,7 @@ export const postsRepositoryDB = {
     } catch (err) {
       return err;
     }
-  },
+  }
   async createPost(bodyParams: IReqPosts, bloggerId?: string) {
     const postId = new mongoose.Types.ObjectId();
     const bloggerIdParam = bloggerId
@@ -72,11 +75,11 @@ export const postsRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
 
   async checkPostById(postId: string) {
-    return  await Posts.findById(postId).exec();
-  },
+    return await Posts.findById(postId).exec();
+  }
 
   async getPostById(postId: string, userStatus: statusType) {
     const post = await Posts.findById(postId)
@@ -90,7 +93,7 @@ export const postsRepositoryDB = {
     } else {
       return false;
     }
-  },
+  }
 
   async upDatePost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>, id: string) {
     try {
@@ -104,7 +107,7 @@ export const postsRepositoryDB = {
     } catch (err) {
       return err;
     }
-  },
+  }
 
   async deletePost(id: string) {
     try {
@@ -112,5 +115,5 @@ export const postsRepositoryDB = {
     } catch (err) {
       return err;
     }
-  },
-};
+  }
+}

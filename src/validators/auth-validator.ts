@@ -1,13 +1,16 @@
 import { body } from 'express-validator';
 import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
-import { authRepositoryDB } from '../repositories/auth-repository-db';
+import { AuthRepositoryDB } from '../repositories/auth-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
 import 'reflect-metadata';
 
 @injectable()
 export class AuthValidator {
-  constructor(@inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB) {}
+  constructor(
+    @inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
+    @inject(AuthRepositoryDB) protected authRepositoryDB: AuthRepositoryDB,
+  ) {}
   login() {
     return [
       body('login').trim().isLength({ min: 3, max: 10 }).exists().withMessage('invalid length'),
@@ -73,7 +76,7 @@ export class AuthValidator {
         .exists()
         .bail()
         .custom(async (value) => {
-          return authRepositoryDB.confirmEmail(value).then((user) => {
+          return this.authRepositoryDB.confirmEmail(value).then((user) => {
             if (!user) {
               return Promise.reject();
             }

@@ -2,6 +2,7 @@ import { injectable } from 'inversify';
 import { ObjectID } from 'mongodb';
 import { Bloggers } from '../models/bloggersModel';
 import { IBloggers, IPaginationResponse } from '../types';
+import 'reflect-metadata';
 
 @injectable()
 export class BloggersRepositoryDB {
