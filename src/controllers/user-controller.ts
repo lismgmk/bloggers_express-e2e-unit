@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import express from 'express';
 import { validationResult } from 'express-validator';
 import { injectable, inject } from 'inversify';
@@ -10,9 +9,7 @@ import { errorFormatter } from '../utils/error-util';
 
 @injectable()
 export class UserController {
-  // constructor(@inject(Symbols.UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB) {}
   constructor(@inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB) {}
-  // constructor(protected usersRepositoryDB: UsersRepositoryDB) {}
 
   async getAllUsers(req: express.Request, res: express.Response) {
     const limit = parseInt(req.query?.PageSize as string) || 10;

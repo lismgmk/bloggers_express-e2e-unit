@@ -1,7 +1,6 @@
 import { injectable } from 'inversify';
 import { Types } from 'mongoose';
 import { Likes } from '../models/likesModel';
-import 'reflect-metadata';
 
 @injectable()
 export class LikesRepositoryDB {

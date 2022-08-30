@@ -1,10 +1,9 @@
 import express from 'express';
 import { validationResult } from 'express-validator';
 import { inject, injectable } from 'inversify';
-import 'reflect-metadata';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
-import { expiredAccess, expiredRefresh } from '../constants';
+import { expiredAccess, expiredRefresh } from '../variables';
 import { AuthRepositoryDB } from '../repositories/auth-repository-db';
 import { blackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
@@ -15,9 +14,7 @@ import { mailService } from '../utils/mail-service';
 @injectable()
 export class AuthController {
   constructor(
-    // @inject(Symbols.UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
     @inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
-    // protected usersRepositoryDB: UsersRepositoryDB,
     @inject(AuthRepositoryDB) protected authRepositoryDB: AuthRepositoryDB,
   ) {}
 

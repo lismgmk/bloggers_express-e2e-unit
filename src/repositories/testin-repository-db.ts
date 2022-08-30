@@ -1,6 +1,5 @@
 import { injectable } from 'inversify';
 import mongoose from 'mongoose';
-import 'reflect-metadata';
 
 @injectable()
 export class TestingRepositoryDB {

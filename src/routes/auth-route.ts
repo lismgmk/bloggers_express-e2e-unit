@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import 'reflect-metadata';
 import { checkIpServiceUser, authValidator, authController, checkTokenService } from '../inversify.config';
 
 export const authRouter = Router({});

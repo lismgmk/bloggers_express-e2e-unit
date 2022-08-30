@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import 'reflect-metadata';
 import { bloggersValidator, checkTokenService, bloggersController } from '../inversify.config';
 
 export const bloggersRouter = Router({});

@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import mongoose from 'mongoose';
+import mongoose, { ConnectOptions } from 'mongoose';
 
 config();
 
@@ -13,7 +13,12 @@ export const db_black_list_tokens_collection_name_str = process.env.BLACK_LIST_T
 export const db_connection_mongoose_str = process.env.DB_CONN_MONGOOS_STRING || '';
 
 export async function main() {
-  await mongoose.connect(db_connection_mongoose_str, { useNewUrlParser: true, useUnifiedTopology: true }, (err) =>
-    err ? console.log(err) : console.log('Mongoose success connected'),
+  mongoose.connect(
+    db_connection_mongoose_str,
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    } as ConnectOptions,
+    (err) => (err ? console.log(err) : console.log('Mongoose success connected')),
   );
 }

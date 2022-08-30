@@ -7,9 +7,7 @@ import { UsersRepositoryDB } from '../repositories/users-repository-db';
 @injectable()
 export class AuthValidator {
   constructor(
-    // @inject(Symbols.UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
     @inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
-    // protected usersRepositoryDB: UsersRepositoryDB,
     @inject(AuthRepositoryDB) protected authRepositoryDB: AuthRepositoryDB,
   ) {}
   login() {

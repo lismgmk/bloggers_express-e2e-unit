@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import bcrypt from 'bcryptjs';
 import { add } from 'date-fns';
 import { injectable } from 'inversify';
@@ -22,7 +21,7 @@ export class UsersRepositoryDB {
     ).map((i) => {
       return { id: i._id, login: i.accountData.userName };
     });
-    totalCount = await Users.find({}).count().lean();
+    totalCount = await Users.countDocuments({}).lean();
     totalPages = Math.ceil((totalCount || 0) / pageSize);
     return {
       pagesCount: totalPages,

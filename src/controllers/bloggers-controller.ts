@@ -2,7 +2,6 @@ import express from 'express';
 import { validationResult } from 'express-validator';
 import { inject, injectable } from 'inversify';
 import { ObjectId } from 'mongodb';
-import 'reflect-metadata';
 import { BloggersRepositoryDB } from '../repositories/bloggers-repository-db';
 import { PostsRepositoryDB } from '../repositories/posts-repository-db';
 import { errorFormatter } from '../utils/error-util';

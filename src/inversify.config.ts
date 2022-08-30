@@ -51,16 +51,3 @@ export const userController = container.resolve(UserController);
 export const bloggersController = container.resolve(BloggersController);
 export const postsController = container.resolve(PostsController);
 export const commentsController = container.resolve(CommentsController);
-
-// export const Symbols = {
-//   UsersRepositoryDB: Symbol.for('UsersRepositoryDB'),
-// };
-
-// new ContainerModule((bind: interfaces.Bind) => {
-//   bind<TestingRepositoryDB>(TestingRepositoryDB).toSelf();
-//   bind<UsersRepositoryDB>(UsersRepositoryDB).toSelf();
-//   bind<BloggersRepositoryDB>(BloggersRepositoryDB).toSelf();
-//   bind<CommentsRepositoryDb>(CommentsRepositoryDb).toSelf();
-//   bind<PostsRepositoryDB>(PostsRepositoryDB).toSelf();
-//   bind<LikesRepositoryDB>(LikesRepositoryDB).toSelf();
-// });

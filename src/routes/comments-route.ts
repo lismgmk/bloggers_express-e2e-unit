@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { commentsValidator, checkTokenService, commentsController } from '../inversify.config';
-import 'reflect-metadata';
 
 export const commentsRouter = Router({});
 

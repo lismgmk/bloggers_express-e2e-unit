@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import 'reflect-metadata';
 import { postsValidator, checkTokenService, postsController } from '../inversify.config';
 
 export const postsRouter = Router({});

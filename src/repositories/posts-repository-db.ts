@@ -5,7 +5,6 @@ import { IPosts, IReqPosts, statusType, IUser } from '../types';
 import { requestObjPostCommentBuilder, IPostsRequest } from '../utils/request-obj-post-comment-builder';
 import { requestObjZeroBuilder } from '../utils/request-obj-zero-builder';
 import { userStatusUtil } from '../utils/user-status-util';
-import 'reflect-metadata';
 
 @injectable()
 export class PostsRepositoryDB {
@@ -22,17 +21,10 @@ export class PostsRepositoryDB {
             .exec()
         ).map(async (el) => {
           const userStatus = await userStatusUtil(el._id, null, validUser);
-          return await requestObjPostCommentBuilder(
-            {
-              ...el.toObject(),
-            } as IPostsRequest,
-            userStatus,
-          );
+          return await requestObjPostCommentBuilder(el.toObject() as IPostsRequest, userStatus);
         }),
       );
-      totalCount = await Posts.find({ bloggerId: bloggerId || { $exists: true } })
-        .count()
-        .lean();
+      totalCount = await Posts.countDocuments({ bloggerId: bloggerId || { $exists: true } }).lean();
       totalPages = Math.ceil((totalCount || 0) / pageSize);
       return {
         pagesCount: totalPages,
@@ -68,9 +60,7 @@ export class PostsRepositoryDB {
         options: { lean: true },
       });
 
-      const result = {
-        ...resCreatedPost.toObject(),
-      };
+      const result = resCreatedPost.toObject();
       return requestObjZeroBuilder(result);
     } catch (err) {
       return `Fail in DB: ${err}`;
@@ -86,9 +76,7 @@ export class PostsRepositoryDB {
       .populate([{ path: 'bloggerId', select: '_id name', options: { lean: true } }])
       .exec();
     if (post) {
-      const result = {
-        ...post.toObject(),
-      };
+      const result = post.toObject();
       return await requestObjPostCommentBuilder(result as IPostsRequest, userStatus);
     } else {
       return false;

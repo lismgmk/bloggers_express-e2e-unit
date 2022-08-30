@@ -3,7 +3,6 @@ import { validationResult } from 'express-validator';
 import { injectable, inject } from 'inversify';
 import { ObjectId } from 'mongodb';
 import mongoose from 'mongoose';
-import 'reflect-metadata';
 import { CommentsRepositoryDb } from '../repositories/comments-repository-db';
 import { LikesRepositoryDB } from '../repositories/likes-repository-db';
 import { PostsRepositoryDB } from '../repositories/posts-repository-db';

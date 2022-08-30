@@ -5,7 +5,6 @@ import { IUser, statusType } from '../types';
 import { requestCommentZeroBuilder } from '../utils/request-comment-zero-builder';
 import { requestObjCommentBuilder, ICommentsRequest } from '../utils/request-obj-comment-builder';
 import { userStatusUtil } from '../utils/user-status-util';
-import 'reflect-metadata';
 
 @injectable()
 export class CommentsRepositoryDb {
@@ -29,7 +28,7 @@ export class CommentsRepositoryDb {
           return await requestObjCommentBuilder({ ...el.toObject() }, userStatus);
         }),
       );
-      totalCount = await Comments.findOne({ postId }).count().lean();
+      totalCount = await Comments.countDocuments({ postId }).lean();
       totalPages = Math.ceil((totalCount || 0) / pageSize);
       return {
         pagesCount: totalPages,
@@ -57,9 +56,8 @@ export class CommentsRepositoryDb {
         select: ' _id accountData',
         options: { lean: true },
       });
-      const result = {
-        ...resCreatedComment.toObject(),
-      };
+      const result = resCreatedComment.toObject();
+
       return requestCommentZeroBuilder(result);
     } catch (err) {
       return `Fail in DB: ${err}`;
@@ -91,9 +89,7 @@ export class CommentsRepositoryDb {
       })
       .exec();
     if (comment) {
-      const result = {
-        ...comment.toObject(),
-      };
+      const result = comment.toObject();
       return await requestObjCommentBuilder(result as ICommentsRequest, userStatus);
     } else {
       return false;

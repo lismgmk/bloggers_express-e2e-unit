@@ -3,7 +3,6 @@ import { injectable } from 'inversify';
 import requestIp from 'request-ip';
 import { subSeconds } from 'date-fns';
 import { IpUsers } from '../models/ipUserModel';
-import 'reflect-metadata';
 
 @injectable()
 export class CheckIpServiceUser {
