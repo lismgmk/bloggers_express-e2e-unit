@@ -1,8 +1,10 @@
+import { injectable } from 'inversify';
 import { ObjectID } from 'mongodb';
 import { Bloggers } from '../models/bloggersModel';
 import { IBloggers, IPaginationResponse } from '../types';
 
-export const bloggersRepositoryDB = {
+@injectable()
+export class BloggersRepositoryDB {
   async getAllBloggers(
     pageSize: number,
     pageNumber: number,
@@ -30,7 +32,7 @@ export const bloggersRepositoryDB = {
       totalCount,
       items: allBloggers,
     };
-  },
+  }
 
   async createBlogger(name: string, youtubeUrl: string): Promise<IBloggers | string> {
     const newBlogger = new Bloggers({
@@ -43,7 +45,7 @@ export const bloggersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
 
   async getBloggerById(id: string): Promise<IBloggers | boolean> {
     try {
@@ -52,7 +54,7 @@ export const bloggersRepositoryDB = {
     } catch (err) {
       return false;
     }
-  },
+  }
   async upDateBlogger(name: string, youtubeUrl: string, id: string) {
     try {
       const idVal = new ObjectID(id);
@@ -60,7 +62,7 @@ export const bloggersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
   async deleteBlogger(id: string) {
     try {
       const idVal = new ObjectID(id);
@@ -68,5 +70,5 @@ export const bloggersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
-};
+  }
+}

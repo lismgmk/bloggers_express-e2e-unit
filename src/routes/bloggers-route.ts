@@ -1,180 +1,39 @@
 import { Router } from 'express';
-import { body, validationResult } from 'express-validator';
-import { ObjectId } from 'mongodb';
-import { errorFormatter } from '../utils/error-util';
-import basicAuth from 'express-basic-auth';
-import { bloggersRepositoryDB } from '../repositories/bloggers-repository-db';
-import { postsRepositoryDB } from '../repositories/posts-repository-db';
+import 'reflect-metadata';
+import { bloggersValidator, checkTokenService, bloggersController } from '../inversify.config';
 
 export const bloggersRouter = Router({});
 
-bloggersRouter.get('/', async (req, res) => {
-  const limit = parseInt(req.query?.PageSize as string) || 10;
-  const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
-  const SearchNameTerm = req.query?.SearchNameTerm as string;
-  res.status(200).send(await bloggersRepositoryDB.getAllBloggers(limit, pageNumber, SearchNameTerm));
-});
+bloggersRouter.get('/', bloggersController.getAllBloggers.bind(bloggersController));
 
 bloggersRouter.post(
   '/',
-  basicAuth({
-    users: { admin: 'qwerty' },
-  }),
-  body('name').trim().isLength({ min: 1, max: 15 }).exists().withMessage('invalid length'),
-  body('youtubeUrl')
-    .isLength({ min: 1, max: 100 })
-    .bail()
-    .exists()
-    .bail()
-    .matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/)
-    .withMessage('invalid url'),
-  async (req, res) => {
-    const result = validationResult(req).formatWith(errorFormatter);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    } else {
-      const newBlogger = await bloggersRepositoryDB.createBlogger(req.body.name, req.body.youtubeUrl);
-      if (typeof newBlogger === 'string') {
-        res.status(430).send(newBlogger);
-      } else {
-        res.status(201).send(newBlogger);
-      }
-    }
-  },
+  bloggersValidator.addBlogger.bind(bloggersValidator),
+  bloggersController.addBlogger.bind(bloggersController),
 );
 
-bloggersRouter.get('/:id', async (req, res) => {
-  if (!ObjectId.isValid(req.params.id)) {
-    return res.send(404);
-  } else {
-    const blogger = await bloggersRepositoryDB.getBloggerById(req.params.id);
-    if (!blogger) {
-      res.status(404).send(blogger);
-    } else {
-      res.status(200).send(blogger);
-    }
-  }
-});
+bloggersRouter.get('/:id', bloggersController.getBloggerById.bind(bloggersController));
 
-bloggersRouter.get('/:bloggerId/posts', noBlockCheckAccessService, async (req, res) => {
-  if (!ObjectId.isValid(req.params.bloggerId)) {
-    return res.send(404);
-  } else {
-    const blogger = await bloggersRepositoryDB.getBloggerById(req.params.bloggerId);
-    if (blogger) {
-      const limit = parseInt(req.query?.PageSize as string) || 10;
-      const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
-      const bloggerId = req.params.bloggerId;
-      const bloggersPostsSlice = await postsRepositoryDB.getAllPosts(limit, pageNumber, req.user || null, bloggerId);
-      if (typeof bloggersPostsSlice === 'string') {
-        res.status(430).send(bloggersPostsSlice);
-      } else {
-        res.status(200).send(bloggersPostsSlice);
-      }
-    } else {
-      res.send(404);
-    }
-  }
-});
+bloggersRouter.get(
+  '/:bloggerId/posts',
+  checkTokenService.noBlockToken.bind(checkTokenService),
+  bloggersController.getPostsForBloggerId.bind(bloggersController),
+);
 
 bloggersRouter.post(
   '/:bloggerId/posts',
-  basicAuth({
-    users: { admin: 'qwerty' },
-  }),
-  body('title').trim().isLength({ min: 1, max: 30 }).bail().exists().withMessage('invalid title'),
-  body('shortDescription')
-    .trim()
-    .isLength({ min: 1, max: 100 })
-    .bail()
-    .exists()
-    .withMessage('invalid shortDescription'),
-  body('content').trim().isLength({ min: 1, max: 1000 }).bail().exists().withMessage('invalid content'),
-  async (req, res) => {
-    if (!ObjectId.isValid(req.params.bloggerId)) {
-      return res.send(404);
-    } else {
-      const result = validationResult(req).formatWith(errorFormatter);
-      if (!result.isEmpty()) {
-        return res.status(400).send({ errorsMessages: result.array() });
-      }
-      const blogger = await bloggersRepositoryDB.getBloggerById(req.params.bloggerId);
-      if (blogger) {
-        const bloggerId = req.params.bloggerId;
-        const newPost = await postsRepositoryDB.createPost({ ...req.body, bloggerId });
-        if (typeof newPost === 'string') {
-          res.status(430).send(newPost);
-        } else {
-          res.status(201).send(newPost);
-        }
-      } else {
-        res.send(404);
-      }
-    }
-  },
+  bloggersValidator.changePostsForBlogger.bind(bloggersValidator),
+  bloggersController.changePostsForBloggerId.bind(bloggersController),
 );
 
 bloggersRouter.put(
   '/:id',
-  basicAuth({
-    users: { admin: 'qwerty' },
-  }),
-  body('name').trim().isLength({ min: 1, max: 15 }).exists().withMessage('invalid length'),
-  body('youtubeUrl')
-    .isLength({ min: 1, max: 100 })
-    .bail()
-    .exists()
-    .bail()
-    .matches(/^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/)
-    .withMessage('invalid url'),
-  async (req, res) => {
-    if (!ObjectId.isValid(req.params.id)) {
-      return res.send(404);
-    } else {
-      const result = validationResult(req).formatWith(errorFormatter);
-      if (!result.isEmpty()) {
-        return res.status(400).send({ errorsMessages: result.array() });
-      } else {
-        const blogger = await bloggersRepositoryDB.getBloggerById(req.params?.id);
-        if (!blogger) {
-          res.send(404);
-        } else {
-          const updatedBlogger = await bloggersRepositoryDB.upDateBlogger(
-            req.body.name,
-            req.body.youtubeUrl,
-            req.params?.id,
-          );
-          if (typeof updatedBlogger === 'string') {
-            res.status(404).send(updatedBlogger);
-          } else {
-            res.send(204);
-          }
-        }
-      }
-    }
-  },
+  bloggersValidator.changeBlogger.bind(bloggersValidator),
+  bloggersController.changeBlogger.bind(bloggersController),
 );
 
 bloggersRouter.delete(
   '/:id',
-  basicAuth({
-    users: { admin: 'qwerty' },
-  }),
-  async (req, res) => {
-    if (!ObjectId.isValid(req.params.id)) {
-      return res.send(404);
-    } else {
-      const blogger = await bloggersRepositoryDB.getBloggerById(req.params?.id);
-      if (!blogger) {
-        res.send(404);
-      } else {
-        const deletedBlogger = await bloggersRepositoryDB.deleteBlogger(req.params.id);
-        if (typeof deletedBlogger === 'string') {
-          res.status(430).send(deletedBlogger);
-        } else {
-          res.send(204);
-        }
-      }
-    }
-  },
+  bloggersValidator.deleteBlogger.bind(bloggersValidator),
+  bloggersController.deleteBlogger.bind(bloggersController),
 );

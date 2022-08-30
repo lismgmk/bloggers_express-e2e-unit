@@ -1,17 +1,8 @@
 import { Router } from 'express';
-import { CheckIpServiceUser } from '../application/check-ip-service';
-import { CheckTokenService } from '../application/check-token-service';
-import { AuthController } from '../controllers/auth-controller';
-import { container } from '../inversify.config';
-import { AuthValidator } from '../validators/auth-validator';
 import 'reflect-metadata';
+import { checkIpServiceUser, authValidator, authController, checkTokenService } from '../inversify.config';
 
 export const authRouter = Router({});
-
-const checkTokenService = container.resolve(CheckTokenService);
-const checkIpServiceUser = container.resolve(CheckIpServiceUser);
-const authValidator = container.resolve(AuthValidator);
-const authController = container.resolve(AuthController);
 
 authRouter.post(
   '/login',
