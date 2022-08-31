@@ -1,15 +1,14 @@
 import nodemailer from 'nodemailer';
+import { db_service_email_str, db_service_pass_str } from '../connect-db';
 
 export const mailService = {
   async sendEmail(email: string, code: string) {
     const clientPort = '7000';
-    const serviceEmail = 'lismgmk2@gmail.com';
-    const servicePass = 'gexdmwmdxditrmou';
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: serviceEmail,
-        pass: servicePass,
+        user: db_service_email_str,
+        pass: db_service_pass_str,
       },
     });
 

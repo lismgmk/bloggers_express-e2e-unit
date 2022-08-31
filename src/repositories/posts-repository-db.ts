@@ -2,8 +2,7 @@ import { injectable } from 'inversify';
 import mongoose from 'mongoose';
 import { Posts } from '../models/postsModel';
 import { IPosts, IReqPosts, statusType, IUser } from '../types';
-import { requestObjPostCommentBuilder, IPostsRequest } from '../utils/request-obj-post-comment-builder';
-import { requestObjZeroBuilder } from '../utils/request-obj-zero-builder';
+import { RequestBuilder, IPostsRequest } from '../utils/request-posts-comments';
 import { userStatusUtil } from '../utils/user-status-util';
 
 @injectable()
@@ -21,7 +20,8 @@ export class PostsRepositoryDB {
             .exec()
         ).map(async (el) => {
           const userStatus = await userStatusUtil(el._id, null, validUser);
-          return await requestObjPostCommentBuilder(el.toObject() as IPostsRequest, userStatus);
+          const post = new RequestBuilder(el.toObject(), null, userStatus);
+          return await post.postObj();
         }),
       );
       totalCount = await Posts.countDocuments({ bloggerId: bloggerId || { $exists: true } }).lean();
@@ -61,7 +61,8 @@ export class PostsRepositoryDB {
       });
 
       const result = resCreatedPost.toObject();
-      return requestObjZeroBuilder(result);
+      const newObjPost = new RequestBuilder(result as IPostsRequest, null);
+      return await newObjPost.postObj();
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
@@ -77,7 +78,8 @@ export class PostsRepositoryDB {
       .exec();
     if (post) {
       const result = post.toObject();
-      return await requestObjPostCommentBuilder(result as IPostsRequest, userStatus);
+      const postObj = new RequestBuilder(result as IPostsRequest, null, userStatus);
+      return await postObj.postObj();
     } else {
       return false;
     }

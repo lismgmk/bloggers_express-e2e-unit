@@ -11,6 +11,8 @@ export const db_ip_users_collection_name_str = process.env.IP_USERS_COLLECTION_N
 export const db_likes_collection_name_str = process.env.LIKES_COLLECTION_NAME || '';
 export const db_black_list_tokens_collection_name_str = process.env.BLACK_LIST_TOKENS_COLLECTION_NAME || '';
 export const db_connection_mongoose_str = process.env.DB_CONN_MONGOOS_STRING || '';
+export const db_service_email_str = process.env.SERVICEEMAIL || '';
+export const db_service_pass_str = process.env.SERVICEPASS || '';
 
 export async function main() {
   mongoose.connect(
