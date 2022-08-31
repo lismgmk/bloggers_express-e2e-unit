@@ -1,8 +1,10 @@
-import { ObjectID } from 'mongodb';
+import { injectable } from 'inversify';
+import { ObjectId } from 'mongodb';
 import { Bloggers } from '../models/bloggersModel';
 import { IBloggers, IPaginationResponse } from '../types';
 
-export const bloggersRepositoryDB = {
+@injectable()
+export class BloggersRepositoryDB {
   async getAllBloggers(
     pageSize: number,
     pageNumber: number,
@@ -30,7 +32,7 @@ export const bloggersRepositoryDB = {
       totalCount,
       items: allBloggers,
     };
-  },
+  }
 
   async createBlogger(name: string, youtubeUrl: string): Promise<IBloggers | string> {
     const newBlogger = new Bloggers({
@@ -43,30 +45,30 @@ export const bloggersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
 
   async getBloggerById(id: string): Promise<IBloggers | boolean> {
     try {
-      const blogger = await Bloggers.findById(new ObjectID(id));
+      const blogger = await Bloggers.findById(new ObjectId(id));
       return { id: blogger!._id, name: blogger!.name, youtubeUrl: blogger!.youtubeUrl };
     } catch (err) {
       return false;
     }
-  },
+  }
   async upDateBlogger(name: string, youtubeUrl: string, id: string) {
     try {
-      const idVal = new ObjectID(id);
+      const idVal = new ObjectId(id);
       return await Bloggers.findByIdAndUpdate(idVal, { $set: { name, youtubeUrl } });
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
   async deleteBlogger(id: string) {
     try {
-      const idVal = new ObjectID(id);
+      const idVal = new ObjectId(id);
       return await Bloggers.findByIdAndDelete(idVal);
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
-};
+  }
+}

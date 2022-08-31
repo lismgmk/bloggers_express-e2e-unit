@@ -1,7 +1,9 @@
+import { injectable } from 'inversify';
 import { Types } from 'mongoose';
 import { Likes } from '../models/likesModel';
 
-export const likesRepositoryDB = {
+@injectable()
+export class LikesRepositoryDB {
   async upDateLikesInfo(
     postId: string | null,
     commentId: string | null,
@@ -38,5 +40,5 @@ export const likesRepositoryDB = {
         return err;
       }
     }
-  },
-};
+  }
+}

@@ -75,44 +75,11 @@ export interface IPosts {
   bloggerName: string;
 }
 
-export interface postsResult {
-  _id?: Types.ObjectId;
-  shortDescription?: string;
-  content?: string | null;
-  title?: string | null;
-  bloggerId?: IBloggers | Types.ObjectId;
-  bloggerName: string;
-  extendedLikesInfo: IExtendedLikesInfo | Types.ObjectId;
-}
 export interface IReqPosts {
   shortDescription: string;
   content: string;
   title: string;
   bloggerId?: string;
-}
-
-export interface INewestLikes {
-  addedAt: string;
-  userId: string;
-  login: string;
-}
-
-export interface IExtendedLikesInfo {
-  likesCount: number;
-  dislikesCount: number;
-  myStatus: myStatus;
-  newestLikes: INewestLikes[];
-}
-
-export interface IPostsResponse {
-  id: string;
-  shortDescription?: string;
-  content?: string | null;
-  title: string | null;
-  bloggerId: string;
-  bloggerName: string;
-  addedAt: string;
-  extendedLikesInfo: IExtendedLikesInfo;
 }
 
 export interface IPaginationResponse<Item> {

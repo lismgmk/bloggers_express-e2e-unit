@@ -17,13 +17,13 @@ export const jwtPassService = {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || '', (err, decode) => {
       if (err) {
         verify = null;
+        console.log(err, 'error Verify');
         return err;
       } else {
         verify = decode;
         return decode;
       }
     });
-    console.log(verify, 'dddd');
     return verify;
   },
 };

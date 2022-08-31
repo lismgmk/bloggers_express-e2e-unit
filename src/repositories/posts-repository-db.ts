@@ -1,11 +1,12 @@
+import { injectable } from 'inversify';
 import mongoose from 'mongoose';
 import { Posts } from '../models/postsModel';
 import { IPosts, IReqPosts, statusType, IUser } from '../types';
-import { requestObjPostCommentBuilder, IPostsRequest } from '../utils/request-obj-post-comment-builder';
-import { requestObjZeroBuilder } from '../utils/request-obj-zero-builder';
+import { RequestBuilder, IPostsRequest } from '../utils/request-posts-comments';
 import { userStatusUtil } from '../utils/user-status-util';
 
-export const postsRepositoryDB = {
+@injectable()
+export class PostsRepositoryDB {
   async getAllPosts(pageSize: number, pageNumber: number, validUser: IUser, bloggerId?: string) {
     try {
       let totalCount: number | undefined = 0;
@@ -19,17 +20,11 @@ export const postsRepositoryDB = {
             .exec()
         ).map(async (el) => {
           const userStatus = await userStatusUtil(el._id, null, validUser);
-          return await requestObjPostCommentBuilder(
-            {
-              ...el.toObject(),
-            } as IPostsRequest,
-            userStatus,
-          );
+          const post = new RequestBuilder(el.toObject(), null, userStatus);
+          return await post.postObj();
         }),
       );
-      totalCount = await Posts.find({ bloggerId: bloggerId || { $exists: true } })
-        .count()
-        .lean();
+      totalCount = await Posts.countDocuments({ bloggerId: bloggerId || { $exists: true } }).lean();
       totalPages = Math.ceil((totalCount || 0) / pageSize);
       return {
         pagesCount: totalPages,
@@ -41,7 +36,7 @@ export const postsRepositoryDB = {
     } catch (err) {
       return err;
     }
-  },
+  }
   async createPost(bodyParams: IReqPosts, bloggerId?: string) {
     const postId = new mongoose.Types.ObjectId();
     const bloggerIdParam = bloggerId
@@ -65,32 +60,30 @@ export const postsRepositoryDB = {
         options: { lean: true },
       });
 
-      const result = {
-        ...resCreatedPost.toObject(),
-      };
-      return requestObjZeroBuilder(result);
+      const result = resCreatedPost.toObject();
+      const newObjPost = new RequestBuilder(result as IPostsRequest, null);
+      return await newObjPost.postObj();
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
 
   async checkPostById(postId: string) {
-    return  await Posts.findById(postId).exec();
-  },
+    return await Posts.findById(postId).exec();
+  }
 
   async getPostById(postId: string, userStatus: statusType) {
     const post = await Posts.findById(postId)
       .populate([{ path: 'bloggerId', select: '_id name', options: { lean: true } }])
       .exec();
     if (post) {
-      const result = {
-        ...post.toObject(),
-      };
-      return await requestObjPostCommentBuilder(result as IPostsRequest, userStatus);
+      const result = post.toObject();
+      const postObj = new RequestBuilder(result as IPostsRequest, null, userStatus);
+      return await postObj.postObj();
     } else {
       return false;
     }
-  },
+  }
 
   async upDatePost(bodyParams: Omit<IPosts, 'id' | 'bloggerName'>, id: string) {
     try {
@@ -104,7 +97,7 @@ export const postsRepositoryDB = {
     } catch (err) {
       return err;
     }
-  },
+  }
 
   async deletePost(id: string) {
     try {
@@ -112,5 +105,5 @@ export const postsRepositoryDB = {
     } catch (err) {
       return err;
     }
-  },
-};
+  }
+}

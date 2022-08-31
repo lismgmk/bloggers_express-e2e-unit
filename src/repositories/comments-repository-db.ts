@@ -1,11 +1,12 @@
+import { injectable } from 'inversify';
 import { Types } from 'mongoose';
 import { Comments } from '../models/commentsModel';
 import { IUser, statusType } from '../types';
-import { requestCommentZeroBuilder } from '../utils/request-comment-zero-builder';
-import { requestObjCommentBuilder, ICommentsRequest } from '../utils/request-obj-comment-builder';
+import { RequestBuilder, ICommentsRequest } from '../utils/request-posts-comments';
 import { userStatusUtil } from '../utils/user-status-util';
 
-export const commentsRepositoryDb = {
+@injectable()
+export class CommentsRepositoryDb {
   async getAllComments(pageSize: number, pageNumber: number, validUser: IUser, postId: string) {
     try {
       let totalCount: number | undefined = 0;
@@ -23,10 +24,11 @@ export const commentsRepositoryDb = {
             .exec()
         ).map(async (el) => {
           const userStatus = await userStatusUtil(null, el._id, validUser);
-          return await requestObjCommentBuilder({ ...el.toObject() }, userStatus);
+          const comment = new RequestBuilder(null, el.toObject(), userStatus);
+          return await comment.commentObj();
         }),
       );
-      totalCount = await Comments.findOne({ postId }).count().lean();
+      totalCount = await Comments.countDocuments({ postId }).lean();
       totalPages = Math.ceil((totalCount || 0) / pageSize);
       return {
         pagesCount: totalPages,
@@ -38,7 +40,7 @@ export const commentsRepositoryDb = {
     } catch (err) {
       return err;
     }
-  },
+  }
 
   async createComment(content: string, userId: Types.ObjectId, postId: Types.ObjectId) {
     const newComment = new Comments({
@@ -54,14 +56,13 @@ export const commentsRepositoryDb = {
         select: ' _id accountData',
         options: { lean: true },
       });
-      const result = {
-        ...resCreatedComment.toObject(),
-      };
-      return requestCommentZeroBuilder(result);
+      const result = resCreatedComment.toObject();
+      const newObjComment = new RequestBuilder(null, result as ICommentsRequest);
+      return await newObjComment.commentObj();
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
 
   async updateComment(content: string, id: string) {
     try {
@@ -72,11 +73,12 @@ export const commentsRepositoryDb = {
     } catch (err) {
       return err;
     }
-  },
+  }
+
   async checkCommentById(id: string) {
     const comment = await Comments?.findById(id).exec();
     return comment;
-  },
+  }
 
   async getCommentById(commentId: string, userStatus: statusType) {
     const comment = await Comments.findById(commentId)
@@ -87,14 +89,13 @@ export const commentsRepositoryDb = {
       })
       .exec();
     if (comment) {
-      const result = {
-        ...comment.toObject(),
-      };
-      return await requestObjCommentBuilder(result as ICommentsRequest, userStatus);
+      const result = comment.toObject();
+      const newObjComment = new RequestBuilder(null, result as ICommentsRequest);
+      return await newObjComment.commentObj();
     } else {
       return false;
     }
-  },
+  }
 
   async deleteComment(id: string) {
     try {
@@ -102,5 +103,5 @@ export const commentsRepositoryDb = {
     } catch (err) {
       return err;
     }
-  },
-};
+  }
+}

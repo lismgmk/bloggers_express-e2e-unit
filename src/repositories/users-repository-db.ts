@@ -1,10 +1,12 @@
 import bcrypt from 'bcryptjs';
 import { add } from 'date-fns';
-import { ObjectId, ObjectID } from 'mongodb';
+import { injectable } from 'inversify';
+import { ObjectId } from 'mongodb';
 import { Users } from '../models/usersModel';
 import { IPaginationResponse, IUsersRes } from '../types';
 
-export const usersRepositoryDB = {
+@injectable()
+export class UsersRepositoryDB {
   async getAllUsers(
     pageSize: number,
     pageNumber: number,
@@ -19,7 +21,7 @@ export const usersRepositoryDB = {
     ).map((i) => {
       return { id: i._id, login: i.accountData.userName };
     });
-    totalCount = await Users.find({}).count().lean();
+    totalCount = await Users.countDocuments({}).lean();
     totalPages = Math.ceil((totalCount || 0) / pageSize);
     return {
       pagesCount: totalPages,
@@ -28,7 +30,7 @@ export const usersRepositoryDB = {
       totalCount,
       items: usersPortion,
     };
-  },
+  }
 
   async createUser(
     login: string,
@@ -64,23 +66,25 @@ export const usersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
 
   async getUserById(id: string) {
     try {
-      const user = await Users.findById(new ObjectID(id)).lean();
+      const user = await Users.findById(new ObjectId(id)).lean();
       return user;
     } catch (err) {
       return false;
     }
-  },
+  }
+
   async getUserByEmail(email: string) {
     try {
       return await Users.findOne({ 'accountData.email': { $eq: email } });
     } catch (err) {
       return false;
     }
-  },
+  }
+
   async updateCodeByEmail(email: string, code: string) {
     try {
       return await Users.findOneAndUpdate(
@@ -90,40 +94,42 @@ export const usersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
+
   async getUserByLogin(login: string) {
     try {
       return await Users.findOne({ 'accountData.userName': { $eq: login } });
     } catch (err) {
       return false;
     }
-  },
+  }
 
   async deleteUser(id: string) {
     try {
-      const idVal = new ObjectID(id);
-      return await Users.findByIdAndDelete(idVal);
+      return await Users.findByIdAndDelete(id);
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
+
   async deleteUserByLogin(login: string) {
     try {
       return await Users.findOneAndDelete({ 'accountData.userName': login });
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
+
   async confirmUserById(id: string | ObjectId, confirm: boolean) {
     try {
-      const idVal = new ObjectID(id);
-      return await Users.findByIdAndUpdate(idVal, {
+      return await Users.findByIdAndUpdate(id, {
         $set: { 'emailConfirmation.isConfirmed': confirm, 'emailConfirmation.attemptCount': 0 },
       });
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
+  }
+
   async confirmUserByLogin(login: string) {
     try {
       return await Users.findOneAndUpdate(
@@ -133,5 +139,5 @@ export const usersRepositoryDB = {
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
-  },
-};
+  }
+}

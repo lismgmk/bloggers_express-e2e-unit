@@ -1,11 +1,15 @@
 import bcrypt from 'bcryptjs';
-import { expiredAccess } from '../constants';
+import { injectable, inject } from 'inversify';
+import { expiredAccess } from '../variables';
 import { Users } from '../models/usersModel';
 import { addUserAttempt } from '../utils/add-user-attempt';
 import { jwtPassService } from '../utils/jwt-pass-service';
-import { usersRepositoryDB } from './users-repository-db';
+import { UsersRepositoryDB } from './users-repository-db';
 
-export const authRepositoryDB = {
+@injectable()
+export class AuthRepositoryDB {
+  constructor(@inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB) {}
+
   async authUser(login: string, password: string): Promise<{ accessToken: string } | null> {
     const attemptCountUser = await Users.findOne({ 'accountData.userName': login }).exec();
     const isMatch =
@@ -18,7 +22,7 @@ export const authRepositoryDB = {
       const accessToken = jwtPassService.createJwt(attemptCountUser!._id!, expiredAccess);
       return { accessToken };
     }
-  },
+  }
   async confirmEmail(code: string) {
     const confirmedUser = await Users.findOne({ 'emailConfirmation.confirmationCode': { $eq: code } }).exec();
     if (!confirmedUser) {
@@ -27,8 +31,8 @@ export const authRepositoryDB = {
     if (confirmedUser!.emailConfirmation.isConfirmed === true) {
       return false;
     } else {
-      await usersRepositoryDB.confirmUserById(confirmedUser!._id, true);
+      await this.usersRepositoryDB.confirmUserById(confirmedUser!._id, true);
       return true;
     }
-  },
-};
+  }
+}

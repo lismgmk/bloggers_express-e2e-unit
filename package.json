@@ -11,7 +11,8 @@
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "lint:check": "eslint .",
-    "lint:fix": "eslint --fix ."
+    "lint:fix": "eslint --fix .",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --coverage"
   },
   "author": "",
   "license": "ISC",
