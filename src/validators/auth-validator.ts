@@ -1,15 +1,15 @@
 import { body } from 'express-validator';
-import { injectable, inject } from 'inversify';
-import 'reflect-metadata';
 import { AuthRepositoryDB } from '../repositories/auth-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
 
-@injectable()
-export class AuthValidator {
-  constructor(
-    @inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
-    @inject(AuthRepositoryDB) protected authRepositoryDB: AuthRepositoryDB,
-  ) {}
+// @injectable()
+class AuthValidator {
+  protected usersRepositoryDB: UsersRepositoryDB;
+  protected authRepositoryDB: AuthRepositoryDB;
+  constructor() {
+    this.usersRepositoryDB = new UsersRepositoryDB();
+    this.authRepositoryDB = new AuthRepositoryDB(new UsersRepositoryDB());
+  }
   login() {
     return [
       body('login').trim().isLength({ min: 3, max: 10 }).exists().withMessage('invalid length'),
@@ -85,3 +85,4 @@ export class AuthValidator {
     ];
   }
 }
+export const authValidator = new AuthValidator();

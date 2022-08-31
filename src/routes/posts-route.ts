@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { postsValidator, checkTokenService, postsController } from '../inversify.config';
+import { checkTokenService, postsController } from '../inversify.config';
+import { postsValidator } from '../validators/posts-validator';
 
 export const postsRouter = Router({});
 
@@ -9,12 +10,12 @@ postsRouter.get(
   postsController.getAllPosts.bind(postsController),
 );
 
-postsRouter.post('/', postsValidator.addPost.bind(postsValidator), postsController.addPost.bind(postsController));
+postsRouter.post('/', postsValidator.addPost(), postsController.addPost.bind(postsController));
 
 postsRouter.put(
   '/:id/like-status',
   checkTokenService.accessToken.bind(checkTokenService),
-  postsValidator.changeLikeStatus.bind(postsValidator),
+  postsValidator.changeLikeStatus(),
   postsController.changeLikeStatus.bind(postsController),
 );
 postsRouter.get(
@@ -26,7 +27,7 @@ postsRouter.get(
 postsRouter.post(
   '/:id/comments',
   checkTokenService.accessToken.bind(checkTokenService),
-  postsValidator.addCommentByPostId.bind(postsValidator),
+  postsValidator.addCommentByPostId(),
   postsController.addCommentByPostId.bind(postsController),
 );
 
@@ -36,14 +37,6 @@ postsRouter.get(
   postsController.getPostById.bind(postsController),
 );
 
-postsRouter.put(
-  '/:id',
-  postsValidator.changePost.bind(postsValidator),
-  postsController.changePost.bind(postsController),
-);
+postsRouter.put('/:id', postsValidator.changePost(), postsController.changePost.bind(postsController));
 
-postsRouter.delete(
-  '/:id',
-  postsValidator.deletePost.bind(postsValidator),
-  postsController.deletePost.bind(postsController),
-);
+postsRouter.delete('/:id', postsValidator.deletePost(), postsController.deletePost.bind(postsController));

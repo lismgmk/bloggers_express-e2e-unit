@@ -1,10 +1,9 @@
 import basicAuth from 'express-basic-auth';
 import { body } from 'express-validator';
-import { injectable } from 'inversify';
-import 'reflect-metadata';
 
-@injectable()
-export class BloggersValidator {
+// @injectable()
+// export class BloggersValidator {
+class BloggersValidator {
   addBlogger() {
     return [
       basicAuth({
@@ -61,3 +60,4 @@ export class BloggersValidator {
     ];
   }
 }
+export const bloggersValidator = new BloggersValidator();

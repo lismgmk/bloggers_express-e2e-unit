@@ -1,33 +1,34 @@
 import { Router } from 'express';
-import { checkIpServiceUser, authValidator, authController, checkTokenService } from '../inversify.config';
+import { checkIpServiceUser, authController, checkTokenService } from '../inversify.config';
+import { authValidator } from '../validators/auth-validator';
 
 export const authRouter = Router({});
 
 authRouter.post(
   '/login',
   checkIpServiceUser.ipStatus.bind(checkIpServiceUser),
-  authValidator.login.bind(authValidator),
+  authValidator.login(),
   authController.login.bind(authController),
 );
 
 authRouter.post(
   '/registration',
   checkIpServiceUser.ipStatus.bind(checkIpServiceUser),
-  authValidator.registration.bind(authValidator),
+  authValidator.registration(),
   authController.registration.bind(authController),
 );
 
 authRouter.post(
   '/registration-email-resending',
   checkIpServiceUser.ipStatus.bind(checkIpServiceUser),
-  authValidator.registrationEmailResending.bind(authValidator),
+  authValidator.registrationEmailResending(),
   authController.registrationEmailResending.bind(authController),
 );
 
 authRouter.post(
   '/registration-confirmation',
   checkIpServiceUser.ipStatus.bind(checkIpServiceUser),
-  authValidator.registrationConfirmation.bind(authValidator),
+  authValidator.registrationConfirmation(),
   authController.registrationConfirmation.bind(authController),
 );
 

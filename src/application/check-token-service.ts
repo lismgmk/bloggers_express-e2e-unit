@@ -59,10 +59,9 @@ export class CheckTokenService {
   }
   async refreshToken(req: express.Request, res: express.Response, next: express.NextFunction) {
     const tokenRefresh = req.cookies.refreshToken;
-
     if (tokenRefresh) {
       const verifyUser = jwtPassService.verifyJwt(tokenRefresh);
-      const user = await this.usersRepositoryDB.getUserById(verifyUser!.id!);
+      const user = verifyUser && (await this.usersRepositoryDB.getUserById(verifyUser.id!));
       if (verifyUser && user) {
         const isChecked = tokenRefresh && (await blackListTokensRepositoryDB.checkToken(tokenRefresh));
         if (!isChecked) {

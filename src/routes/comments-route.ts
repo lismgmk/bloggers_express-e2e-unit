@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { commentsValidator, checkTokenService, commentsController } from '../inversify.config';
+import { checkTokenService, commentsController } from '../inversify.config';
+import { commentsValidator } from '../validators/comments-validator';
 
 export const commentsRouter = Router({});
 
@@ -12,7 +13,7 @@ commentsRouter.get(
 commentsRouter.put(
   '/:id',
   checkTokenService.accessToken.bind(checkTokenService),
-  commentsValidator.changeComment.bind(commentsValidator),
+  commentsValidator.changeComment(),
   commentsController.changeComment.bind(commentsController),
 );
 
@@ -25,6 +26,6 @@ commentsRouter.delete(
 commentsRouter.put(
   '/:id/like-status',
   checkTokenService.accessToken.bind(checkTokenService),
-  commentsValidator.changeLikeStatus.bind(commentsValidator),
+  commentsValidator.changeLikeStatus(),
   commentsController.changeLikeStatus.bind(commentsController),
 );

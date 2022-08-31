@@ -1,10 +1,8 @@
-import 'reflect-metadata';
 import basicAuth from 'express-basic-auth';
 import { body } from 'express-validator';
-import { injectable } from 'inversify';
 
-@injectable()
-export class UserValidator {
+// @injectable()
+class UserValidator {
   createUser() {
     return [
       basicAuth({
@@ -29,3 +27,5 @@ export class UserValidator {
     ];
   }
 }
+
+export const userValidator = new UserValidator();

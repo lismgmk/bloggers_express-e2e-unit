@@ -17,6 +17,7 @@ export class UserController {
     res.status(200).send(await this.usersRepositoryDB.getAllUsers(limit, pageNumber));
   }
   async createUser(req: express.Request, res: express.Response) {
+    console.log(req, 'ffffffff');
     const result = validationResult(req).formatWith(errorFormatter);
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });

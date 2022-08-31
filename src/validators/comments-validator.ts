@@ -1,10 +1,9 @@
 import { body } from 'express-validator';
-import { injectable } from 'inversify';
 import 'reflect-metadata';
 import { myStatus } from '../types';
 
-@injectable()
-export class CommentsValidator {
+// @injectable()
+class CommentsValidator {
   changeComment() {
     return [body('content').trim().isLength({ min: 20, max: 300 }).exists().withMessage('invalid length')];
   }
@@ -22,3 +21,5 @@ export class CommentsValidator {
     ];
   }
 }
+
+export const commentsValidator = new CommentsValidator();
