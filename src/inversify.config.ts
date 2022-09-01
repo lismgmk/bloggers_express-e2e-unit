@@ -9,12 +9,14 @@ import { PostsController } from './controllers/posts-controller';
 import { TestingController } from './controllers/testing-controller';
 import { UserController } from './controllers/user-controller';
 import { AuthRepositoryDB } from './repositories/auth-repository-db';
+import { BlackListTokensRepositoryDB } from './repositories/black-list-tokens-repository-db';
 import { BloggersRepositoryDB } from './repositories/bloggers-repository-db';
 import { CommentsRepositoryDb } from './repositories/comments-repository-db';
 import { LikesRepositoryDB } from './repositories/likes-repository-db';
 import { PostsRepositoryDB } from './repositories/posts-repository-db';
 import { TestingRepositoryDB } from './repositories/testin-repository-db';
 import { UsersRepositoryDB } from './repositories/users-repository-db';
+import { JwtPassService } from './utils/jwt-pass-service';
 
 export const container = new Container();
 
@@ -25,10 +27,13 @@ container.bind<CommentsRepositoryDb>(CommentsRepositoryDb).toSelf();
 container.bind<PostsRepositoryDB>(PostsRepositoryDB).toSelf();
 container.bind<LikesRepositoryDB>(LikesRepositoryDB).toSelf();
 container.bind<AuthRepositoryDB>(AuthRepositoryDB).toSelf();
+container.bind<BlackListTokensRepositoryDB>(BlackListTokensRepositoryDB).toSelf();
+container.bind<JwtPassService>(JwtPassService).toSelf();
 
 //services
 export const checkTokenService = container.resolve(CheckTokenService);
 export const checkIpServiceUser = container.resolve(CheckIpServiceUser);
+export const jwtPassService = container.resolve(JwtPassService);
 
 //validators
 // export const authValidator = container.resolve(AuthValidator);

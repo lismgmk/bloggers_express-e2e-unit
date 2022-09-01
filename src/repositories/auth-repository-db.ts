@@ -1,25 +1,29 @@
-import bcrypt from 'bcryptjs';
+import 'reflect-metadata';
 import { injectable, inject } from 'inversify';
+import { JwtPassService } from '../utils/jwt-pass-service';
 import { expiredAccess } from '../variables';
 import { Users } from '../models/usersModel';
-import { addUserAttempt } from '../utils/add-user-attempt';
-import { jwtPassService } from '../utils/jwt-pass-service';
 import { UsersRepositoryDB } from './users-repository-db';
 
 @injectable()
 export class AuthRepositoryDB {
-  constructor(@inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB) {}
+  constructor(
+    @inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
+    @inject(JwtPassService) protected jwtPassService: JwtPassService,
+  ) {}
 
   async authUser(login: string, password: string): Promise<{ accessToken: string } | null> {
-    const attemptCountUser = await Users.findOne({ 'accountData.userName': login }).exec();
-    const isMatch =
-      attemptCountUser && (await bcrypt.compare(password, attemptCountUser.accountData.passwordHash ?? ''));
-    if (!attemptCountUser || !isMatch) {
-      await addUserAttempt.addAttemptByLogin(login, false);
+    const existentUser = await Users.findOne({ 'accountData.userName': login }).exec();
+    let isMatch = false;
+    if (existentUser) {
+      isMatch = await this.jwtPassService.checkPassBcrypt(password, existentUser.accountData.passwordHash ?? '');
+    }
+    if (!existentUser || !isMatch) {
+      await this.usersRepositoryDB.addAttemptByLogin(login, false);
       return null;
     } else {
-      await addUserAttempt.addAttemptByLogin(login, true);
-      const accessToken = jwtPassService.createJwt(attemptCountUser!._id!, expiredAccess);
+      await this.usersRepositoryDB.addAttemptByLogin(login, true);
+      const accessToken = this.jwtPassService.createJwt(existentUser!._id!, expiredAccess);
       return { accessToken };
     }
   }

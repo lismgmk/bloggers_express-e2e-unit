@@ -3,12 +3,12 @@ import { validationResult } from 'express-validator';
 import { inject, injectable } from 'inversify';
 import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
+import { BlackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
+import { JwtPassService } from '../utils/jwt-pass-service';
 import { expiredAccess, expiredRefresh } from '../variables';
 import { AuthRepositoryDB } from '../repositories/auth-repository-db';
-import { blackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
 import { errorFormatter } from '../utils/error-util';
-import { jwtPassService } from '../utils/jwt-pass-service';
 import { mailService } from '../utils/mail-service';
 
 @injectable()
@@ -16,6 +16,8 @@ export class AuthController {
   constructor(
     @inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
     @inject(AuthRepositoryDB) protected authRepositoryDB: AuthRepositoryDB,
+    @inject(BlackListTokensRepositoryDB) protected blackListTokensRepositoryDB: BlackListTokensRepositoryDB,
+    @inject(JwtPassService) protected jwtPassService: JwtPassService,
   ) {}
 
   async login(req: express.Request, res: express.Response) {
@@ -29,7 +31,7 @@ export class AuthController {
     } else {
       const user = await this.usersRepositoryDB.getUserByLogin(req.body.login);
       if (user) {
-        const refreshToken = jwtPassService.createJwt(user._id, expiredRefresh);
+        const refreshToken = this.jwtPassService.createJwt(user._id, expiredRefresh);
         return res
           .cookie('refreshToken', refreshToken, {
             httpOnly: true,
@@ -94,9 +96,9 @@ export class AuthController {
   }
 
   async getRefreshAccessToken(req: express.Request, res: express.Response) {
-    const accessToken = jwtPassService.createJwt(req.user!._id!, expiredAccess);
-    const refreshToken = jwtPassService.createJwt(req.user!._id!, expiredRefresh);
-    const blackToken = await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
+    const accessToken = this.jwtPassService.createJwt(req.user!._id!, expiredAccess);
+    const refreshToken = this.jwtPassService.createJwt(req.user!._id!, expiredRefresh);
+    const blackToken = await this.blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
     if (typeof blackToken === 'string') {
       res.status(430).send(blackToken);
     } else {
@@ -112,7 +114,7 @@ export class AuthController {
 
   async logout(req: express.Request, res: express.Response) {
     const confirmedUser = await this.usersRepositoryDB.confirmUserById(req.user!._id!.toString(), false);
-    const blackToken = await blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
+    const blackToken = await this.blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
     if (typeof blackToken === 'string' || typeof confirmedUser === 'string') {
       res.status(430).send(`${blackToken} ${confirmedUser}`);
     } else {

@@ -47,18 +47,12 @@ export class BloggersRepositoryDB {
     }
   }
 
-  async getBloggerById(id: string): Promise<IBloggers | boolean> {
-    try {
-      const blogger = await Bloggers.findById(new ObjectId(id));
-      return { id: blogger!._id, name: blogger!.name, youtubeUrl: blogger!.youtubeUrl };
-    } catch (err) {
-      return false;
-    }
+  async getBloggerById(id: string) {
+    return Bloggers.findById(id);
   }
   async upDateBlogger(name: string, youtubeUrl: string, id: string) {
     try {
-      const idVal = new ObjectId(id);
-      return await Bloggers.findByIdAndUpdate(idVal, { $set: { name, youtubeUrl } });
+      return await Bloggers.findByIdAndUpdate(id, { $set: { name, youtubeUrl } });
     } catch (err) {
       return `Fail in DB: ${err}`;
     }

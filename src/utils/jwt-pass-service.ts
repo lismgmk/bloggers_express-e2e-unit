@@ -1,16 +1,17 @@
+import 'reflect-metadata';
+import bcrypt from 'bcryptjs';
+import { injectable } from 'inversify';
 import JWT from 'jsonwebtoken';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
-interface UserPayload {
-  id?: string;
-}
 
-export const jwtPassService = {
+@injectable()
+export class JwtPassService {
   createJwt(id: ObjectId, expiresIn: string) {
     return JWT.sign({ id }, process.env.ACCESS_TOKEN_SECRET ?? '', {
       expiresIn,
     });
-  },
+  }
   verifyJwt(token: string) {
     let verify: any = {};
 
@@ -25,5 +26,9 @@ export const jwtPassService = {
       }
     });
     return verify;
-  },
-};
+  }
+
+  async checkPassBcrypt(password: string, hash: string) {
+    return await bcrypt.compare(password, hash);
+  }
+}

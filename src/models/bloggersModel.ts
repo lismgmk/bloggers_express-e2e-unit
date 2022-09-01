@@ -13,9 +13,9 @@ export const bloggersSchema = new Schema<IBloggers>(
         validator: function (v: string) {
           return /^https:\/\/([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$/.test(v);
         },
-        message: (props) => `${props.value} is not a valid phone number!`,
+        message: (props) => `${props.value} is not a valid url`,
       },
-      required: [true, 'User phone number required'],
+      required: [true, 'User url number required'],
       unique: true,
     },
   },
