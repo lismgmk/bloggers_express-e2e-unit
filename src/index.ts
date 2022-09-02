@@ -14,27 +14,29 @@ import { usersRouter } from './routes/users-route';
 
 config({ path: path.join(__dirname, '..', '.env') });
 
-const app = express();
+export const app = express();
 const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.set('trust proxy', true);
-main()
-  .then(() => {
-    app.use('/bloggers', bloggersRouter);
-    app.use('/posts', postsRouter);
-    app.use('/auth', authRouter);
-    app.use('/comments', commentsRouter);
-    app.use('/users', usersRouter);
-    app.use('/testing', testingRouter);
+if (process.env.NODE_ENV !== 'test') {
+  main()
+    .then(() => {
+      app.use('/bloggers', bloggersRouter);
+      app.use('/posts', postsRouter);
+      app.use('/auth', authRouter);
+      app.use('/comments', commentsRouter);
+      app.use('/users', usersRouter);
+      app.use('/testing', testingRouter);
 
-    app.listen(port, () => {
-      console.log(`Server started at http://localhost:${port}`);
+      app.listen(port, () => {
+        console.log(`Server started at http://localhost:${port}`);
+      });
+    })
+    .catch((error: Error) => {
+      console.error('Database connection failed', error);
+      process.exit();
     });
-  })
-  .catch((error: Error) => {
-    console.error('Database connection failed', error);
-    process.exit();
-  });
+}

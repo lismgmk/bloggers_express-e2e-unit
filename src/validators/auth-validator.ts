@@ -1,14 +1,16 @@
 import { body } from 'express-validator';
+import { injectable } from 'inversify';
 import { AuthRepositoryDB } from '../repositories/auth-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
+import { JwtPassService } from '../utils/jwt-pass-service';
 
-// @injectable()
+@injectable()
 class AuthValidator {
   protected usersRepositoryDB: UsersRepositoryDB;
   protected authRepositoryDB: AuthRepositoryDB;
   constructor() {
     this.usersRepositoryDB = new UsersRepositoryDB();
-    this.authRepositoryDB = new AuthRepositoryDB(new UsersRepositoryDB());
+    this.authRepositoryDB = new AuthRepositoryDB(new UsersRepositoryDB(), new JwtPassService());
   }
   login() {
     return [

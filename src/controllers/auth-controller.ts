@@ -5,11 +5,11 @@ import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
 import { BlackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
 import { JwtPassService } from '../utils/jwt-pass-service';
+import { MailService } from '../utils/mail-service';
 import { expiredAccess, expiredRefresh } from '../variables';
 import { AuthRepositoryDB } from '../repositories/auth-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
 import { errorFormatter } from '../utils/error-util';
-import { mailService } from '../utils/mail-service';
 
 @injectable()
 export class AuthController {
@@ -18,6 +18,7 @@ export class AuthController {
     @inject(AuthRepositoryDB) protected authRepositoryDB: AuthRepositoryDB,
     @inject(BlackListTokensRepositoryDB) protected blackListTokensRepositoryDB: BlackListTokensRepositoryDB,
     @inject(JwtPassService) protected jwtPassService: JwtPassService,
+    @inject(MailService) protected mailService: MailService,
   ) {}
 
   async login(req: express.Request, res: express.Response) {
@@ -53,19 +54,18 @@ export class AuthController {
     }
 
     const confirmationCode = uuidv4();
+    const isSendStatus = await this.mailService.sendEmail(req.body.email, confirmationCode);
 
-    await this.usersRepositoryDB.createUser(
-      req.body.login,
-      req.body.password,
-      req.body.email,
-      userIp!,
-      confirmationCode,
-    );
-    const isSendStatus = await mailService.sendEmail(req.body.email, confirmationCode);
     if (isSendStatus.error) {
-      await this.usersRepositoryDB.deleteUserByLogin(req.body.login);
-      return res.status(400).send('failed delete user');
+      return res.status(400).send('Error with sending email, user was not created');
     } else {
+      await this.usersRepositoryDB.createUser(
+        req.body.login,
+        req.body.password,
+        req.body.email,
+        userIp!,
+        confirmationCode,
+      );
       return res.status(204).send(isSendStatus.data);
     }
   }
@@ -77,7 +77,7 @@ export class AuthController {
     }
     const newCode = uuidv4();
     await this.usersRepositoryDB.updateCodeByEmail(req.body.email, newCode);
-    const isSendStatus = await mailService.sendEmail(req.body.email, newCode);
+    const isSendStatus = await this.mailService.sendEmail(req.body.email, newCode);
     if (isSendStatus.error) {
       await this.usersRepositoryDB.deleteUserByLogin(req.body.login);
       return res.status(400).send('failed delete user');

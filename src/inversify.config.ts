@@ -17,6 +17,7 @@ import { PostsRepositoryDB } from './repositories/posts-repository-db';
 import { TestingRepositoryDB } from './repositories/testin-repository-db';
 import { UsersRepositoryDB } from './repositories/users-repository-db';
 import { JwtPassService } from './utils/jwt-pass-service';
+import { MailService } from './utils/mail-service';
 
 export const container = new Container();
 
@@ -29,11 +30,13 @@ container.bind<LikesRepositoryDB>(LikesRepositoryDB).toSelf();
 container.bind<AuthRepositoryDB>(AuthRepositoryDB).toSelf();
 container.bind<BlackListTokensRepositoryDB>(BlackListTokensRepositoryDB).toSelf();
 container.bind<JwtPassService>(JwtPassService).toSelf();
+container.bind<MailService>(MailService).toSelf();
 
 //services
 export const checkTokenService = container.resolve(CheckTokenService);
 export const checkIpServiceUser = container.resolve(CheckIpServiceUser);
 export const jwtPassService = container.resolve(JwtPassService);
+// export const mailService = container.resolve(MailService);
 
 //validators
 // export const authValidator = container.resolve(AuthValidator);
