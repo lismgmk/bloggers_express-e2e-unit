@@ -1,5 +1,5 @@
 import { container } from '../inversify.config';
-import { fakerConnectDb } from '../testDb';
+import { fakerConnectDb } from '../testParams/fake-connect-db';
 import { IBloggers, IPaginationResponse } from '../types';
 import { BloggersRepositoryDB } from './bloggers-repository-db';
 

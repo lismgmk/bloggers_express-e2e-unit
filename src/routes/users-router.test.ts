@@ -1,33 +1,14 @@
 import { ObjectId } from 'mongodb';
 import supertest from 'supertest';
+import { newUser1, pageSize, pageNumber, newUser2, adminToken, invalidUser } from 'testParams/test-route-values';
 import { app } from '../index';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
-import { fakerConnectDb } from '../testDb';
+import { fakerConnectDb } from '../testParams/fake-connect-db';
 import { IUser } from '../types';
 
 const agent = supertest(app);
 
-describe('test user-router', function () {
-  const pageSize = 3;
-  const pageNumber = 1;
-  const adminToken = { correct: 'YWRtaW46cXdlcnR5', wrong: '00000000000' };
-
-  const newUser1 = {
-    login: 'User-1',
-    password: '123456',
-    email: 'someemail-1@mail.mail',
-    userIp: '1a',
-    confirmationCode: '11',
-  };
-
-  const newUser2 = {
-    login: 'User-2',
-    password: '123456',
-    email: 'someemail-2@mail.mail',
-    userIp: '2a',
-    confirmationCode: '22',
-  };
-
+describe('test user-router "/users"', function () {
   const usersRepositoryDB = new UsersRepositoryDB();
 
   beforeAll(async () => {
@@ -42,7 +23,7 @@ describe('test user-router', function () {
     await fakerConnectDb.closeDatabase();
   });
 
-  describe('test get "/" endpoint - get all users', () => {
+  describe('test get "/" endpoint ', () => {
     it('should return all users', async () => {
       await usersRepositoryDB.createUser(
         newUser1.login,
@@ -79,13 +60,9 @@ describe('test user-router', function () {
     });
   });
 
-  describe('test post  "/" endpoint - create confirmed user', () => {
+  describe('test post  "/" endpoint ', () => {
     const bodyParams = { login: newUser1.login, password: newUser1.password, email: newUser1.email };
-    const invalidUser = {
-      login: 'Us',
-      password: '12',
-      email: 'someemailmail.mail',
-    };
+
     it('should create new user with confirm field true', async () => {
       await agent
         .post(`/users`)
@@ -126,7 +103,7 @@ describe('test user-router', function () {
     });
   });
 
-  describe('test delete  "/:id" endpoint - delete user', () => {
+  describe('test delete  "/:id" endpoint ', () => {
     let userId = new ObjectId();
     beforeEach(async () => {
       await usersRepositoryDB.createUser(

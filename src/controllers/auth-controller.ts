@@ -28,7 +28,7 @@ export class AuthController {
       return res.status(400).send({ errorsMessages: result.array() });
     }
     if (!isCheck) {
-      return res.send(401);
+      return res.sendStatus(401);
     } else {
       const user = await this.usersRepositoryDB.getUserByLogin(req.body.login);
       if (user) {
@@ -66,7 +66,7 @@ export class AuthController {
         userIp!,
         confirmationCode,
       );
-      return res.status(204).send(isSendStatus.data);
+      return res.sendStatus(204);
     }
   }
 
@@ -82,7 +82,7 @@ export class AuthController {
       await this.usersRepositoryDB.deleteUserByLogin(req.body.login);
       return res.status(400).send('failed delete user');
     } else {
-      return res.send(204);
+      return res.sendStatus(204);
     }
   }
 
@@ -91,7 +91,7 @@ export class AuthController {
     if (!result.isEmpty()) {
       return res.status(400).send({ errorsMessages: result.array() });
     } else {
-      return res.send(204);
+      return res.sendStatus(204);
     }
   }
 
@@ -100,7 +100,7 @@ export class AuthController {
     const refreshToken = this.jwtPassService.createJwt(req.user!._id!, expiredRefresh);
     const blackToken = await this.blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
     if (typeof blackToken === 'string') {
-      res.status(430).send(blackToken);
+      res.status(400).send(blackToken);
     } else {
       return res
         .cookie('refreshToken', refreshToken, {
@@ -116,9 +116,9 @@ export class AuthController {
     const confirmedUser = await this.usersRepositoryDB.confirmUserById(req.user!._id!.toString(), false);
     const blackToken = await this.blackListTokensRepositoryDB.addToken(req.cookies.refreshToken);
     if (typeof blackToken === 'string' || typeof confirmedUser === 'string') {
-      res.status(430).send(`${blackToken} ${confirmedUser}`);
+      res.status(400).send(`${blackToken} ${confirmedUser}`);
     } else {
-      return res.send(204);
+      return res.sendStatus(204);
     }
   }
 

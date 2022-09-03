@@ -1,4 +1,4 @@
-import { fakerConnectDb } from '../testDb';
+import { fakerConnectDb } from '../testParams/fake-connect-db';
 import { IUser } from '../types';
 import { AuthRepositoryDB } from './auth-repository-db';
 import { UsersRepositoryDB } from './users-repository-db';

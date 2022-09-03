@@ -72,13 +72,13 @@ export class CheckTokenService {
           req.user = user;
           return next();
         } else {
-          return res.send(401);
+          return res.sendStatus(401);
         }
       } else {
-        return res.send(401);
+        return res.sendStatus(401);
       }
     } else {
-      return res.send(401);
+      return res.sendStatus(401);
     }
   }
 }

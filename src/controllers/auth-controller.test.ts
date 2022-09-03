@@ -2,7 +2,7 @@ import { getMockRes, getMockReq } from '@jest-mock/express';
 import { AuthRepositoryDB } from '../repositories/auth-repository-db';
 import { BlackListTokensRepositoryDB } from '../repositories/black-list-tokens-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
-import { fakerConnectDb } from '../testDb';
+import { fakerConnectDb } from '../testParams/fake-connect-db';
 import { IUser } from '../types';
 import { JwtPassService } from '../utils/jwt-pass-service';
 import { MailService } from '../utils/mail-service';

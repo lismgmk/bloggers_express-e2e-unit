@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import { container } from '../inversify.config';
-import { fakerConnectDb } from '../testDb';
+import { fakerConnectDb } from '../testParams/fake-connect-db';
 import { BlackListTokensRepositoryDB } from './black-list-tokens-repository-db';
 
 export interface IToken {
