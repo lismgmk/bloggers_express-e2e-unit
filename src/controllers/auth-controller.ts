@@ -41,7 +41,7 @@ export class AuthController {
           .status(200)
           .send(isCheck);
       } else {
-        return res.status(430).send('Db error');
+        return res.status(400).send('Db error');
       }
     }
   }

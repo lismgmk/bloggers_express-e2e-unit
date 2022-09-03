@@ -21,16 +21,16 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.set('trust proxy', true);
+app.use('/bloggers', bloggersRouter);
+app.use('/posts', postsRouter);
+app.use('/auth', authRouter);
+app.use('/comments', commentsRouter);
+app.use('/users', usersRouter);
+app.use('/testing', testingRouter);
+
 if (process.env.NODE_ENV !== 'test') {
   main()
     .then(() => {
-      app.use('/bloggers', bloggersRouter);
-      app.use('/posts', postsRouter);
-      app.use('/auth', authRouter);
-      app.use('/comments', commentsRouter);
-      app.use('/users', usersRouter);
-      app.use('/testing', testingRouter);
-
       app.listen(port, () => {
         console.log(`Server started at http://localhost:${port}`);
       });

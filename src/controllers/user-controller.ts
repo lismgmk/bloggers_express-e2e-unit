@@ -37,17 +37,17 @@ export class UserController {
   }
   async deleteUser(req: express.Request, res: express.Response) {
     if (!ObjectId.isValid(req.params.id)) {
-      return res.send(404);
+      return res.sendStatus(404);
     } else {
       const user = await this.usersRepositoryDB.getUserById(req.params.id);
       if (!user) {
-        res.send(404);
+        res.sendStatus(404);
       } else {
         const deletedUser = await this.usersRepositoryDB.deleteUser(req.params.id);
         if (typeof deletedUser === 'string') {
-          res.status(430).send(deletedUser);
+          res.status(400).send(deletedUser);
         } else {
-          res.send(204);
+          res.sendStatus(204);
         }
       }
     }
