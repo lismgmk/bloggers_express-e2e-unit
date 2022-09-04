@@ -1,9 +1,9 @@
 import { ObjectId } from 'mongodb';
 import supertest from 'supertest';
-import { newUser1, pageSize, pageNumber, newUser2, adminToken, invalidUser } from 'testParams/test-route-values';
 import { app } from '../index';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
 import { fakerConnectDb } from '../testParams/fake-connect-db';
+import { newUser1, newUser2, pageSize, pageNumber, adminToken, invalidUser } from '../testParams/test-route-values';
 import { IUser } from '../types';
 
 const agent = supertest(app);

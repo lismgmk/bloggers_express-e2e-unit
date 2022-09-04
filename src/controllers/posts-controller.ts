@@ -22,7 +22,7 @@ export class PostsController {
     const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
     const allPosts = await this.postsRepositoryDB.getAllPosts(limit, pageNumber, req.user || null);
     if (typeof allPosts === 'string') {
-      res.status(430).send(allPosts);
+      res.status(400).send(allPosts);
     } else {
       res.status(200).send(allPosts);
     }
@@ -35,7 +35,7 @@ export class PostsController {
     } else {
       const newPost = await this.postsRepositoryDB.createPost(req.body);
       if (typeof newPost === 'string') {
-        res.status(430).send(newPost);
+        res.status(400).send(newPost);
       } else {
         res.status(201).send(newPost);
       }
@@ -64,7 +64,7 @@ export class PostsController {
           req.user!.accountData.userName,
         );
         if (typeof updatedPost === 'string') {
-          res.status(430).send(updatedPost);
+          res.status(400).send(updatedPost);
         } else {
           res.send(204);
         }
@@ -111,7 +111,7 @@ export class PostsController {
             postObjectId,
           );
           if (typeof newComment === 'string') {
-            res.status(430).send(newComment);
+            res.status(400).send(newComment);
           } else {
             res.status(201).send(newComment);
           }
@@ -144,7 +144,7 @@ export class PostsController {
         } else {
           const updatedPost = await this.postsRepositoryDB.upDatePost(req.body, req.params?.id);
           if (typeof updatedPost === 'string') {
-            res.status(430).send(updatedPost);
+            res.status(400).send(updatedPost);
           } else {
             res.send(204);
           }
@@ -163,7 +163,7 @@ export class PostsController {
       } else {
         const deletedPost = await this.postsRepositoryDB.deletePost(req.params.id);
         if (typeof deletedPost === 'string') {
-          res.status(430).send(deletedPost);
+          res.status(400).send(deletedPost);
         } else {
           res.send(204);
         }
