@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { Container } from 'inversify';
-import { CheckIpServiceUser } from './application/check-ip-service';
+import { CheckIpServiceUser, AttemptsLimit } from './application/check-ip-service';
 import { CheckTokenService } from './application/check-token-service';
 import { AuthController } from './controllers/auth-controller';
 import { BloggersController } from './controllers/bloggers-controller';
@@ -12,6 +12,7 @@ import { AuthRepositoryDB } from './repositories/auth-repository-db';
 import { BlackListTokensRepositoryDB } from './repositories/black-list-tokens-repository-db';
 import { BloggersRepositoryDB } from './repositories/bloggers-repository-db';
 import { CommentsRepositoryDb } from './repositories/comments-repository-db';
+import { IpUsersRepositoryDB } from './repositories/ipusers-repository-db';
 import { LikesRepositoryDB } from './repositories/likes-repository-db';
 import { PostsRepositoryDB } from './repositories/posts-repository-db';
 import { TestingRepositoryDB } from './repositories/testin-repository-db';
@@ -31,11 +32,15 @@ container.bind<AuthRepositoryDB>(AuthRepositoryDB).toSelf();
 container.bind<BlackListTokensRepositoryDB>(BlackListTokensRepositoryDB).toSelf();
 container.bind<JwtPassService>(JwtPassService).toSelf();
 container.bind<MailService>(MailService).toSelf();
+container.bind<IpUsersRepositoryDB>(IpUsersRepositoryDB).toSelf();
+container.bind<AttemptsLimit>(AttemptsLimit).toSelf();
 
 //services
 export const checkTokenService = container.resolve(CheckTokenService);
 export const checkIpServiceUser = container.resolve(CheckIpServiceUser);
 export const jwtPassService = container.resolve(JwtPassService);
+export const ipUsersRepositoryDB = container.resolve(IpUsersRepositoryDB);
+container.resolve(AttemptsLimit);
 // export const mailService = container.resolve(MailService);
 
 //validators
