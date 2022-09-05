@@ -1,31 +1,19 @@
 import { container } from '../inversify.config';
 import { fakerConnectDb } from '../testParams/fake-connect-db';
+import {
+  newBlogger_1,
+  newBlogger_2,
+  newBlogger_3,
+  pageSize,
+  pageNumber,
+  filterNameSlice,
+  incorrectUrlBlogger,
+  fakeId,
+} from '../testParams/test-route-values';
 import { IBloggers, IPaginationResponse } from '../types';
 import { BloggersRepositoryDB } from './bloggers-repository-db';
 
 describe('test bloggers repository', () => {
-  const pageSize = 3;
-  const pageNumber = 1;
-  const filterNameSlice = 'V';
-  const newBlogger_1 = {
-    name: 'Vova',
-    youtubeUrl: 'https://newChanel1.com',
-  };
-  const newBlogger_2 = {
-    name: 'Ira',
-    youtubeUrl: 'https://newChanel2.com',
-  };
-  const newBlogger_3 = {
-    name: 'Veranika',
-    youtubeUrl: 'https://newChanel3.com',
-  };
-
-  const incorrectUrlBlogger = {
-    name: 'new blogger',
-    youtubeUrl: 'https/newChanel.com',
-  };
-
-  const fakeId = { id: '63112e36862987f5978863c8' };
   const bloggersRepositoryDB = container.get<BloggersRepositoryDB>(BloggersRepositoryDB);
 
   beforeAll(async () => {

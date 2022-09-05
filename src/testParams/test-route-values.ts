@@ -22,3 +22,24 @@ export const invalidUser = {
   password: '12',
   email: 'someemailmail.mail',
 };
+
+//for bloggers route and repository
+export const filterNameSlice = 'V';
+export const newBlogger_1 = {
+  name: 'Vova',
+  youtubeUrl: 'https://newChanel1.com',
+};
+export const newBlogger_2 = {
+  name: 'Ira',
+  youtubeUrl: 'https://newChanel2.com',
+};
+export const newBlogger_3 = {
+  name: 'Veranika',
+  youtubeUrl: 'https://newChanel3.com',
+};
+
+export const incorrectUrlBlogger = {
+  name: 'new blogger',
+  youtubeUrl: 'https/newChanel.com',
+};
+export const fakeId = { id: '63112e36862987f5978863c8' };

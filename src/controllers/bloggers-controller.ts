@@ -27,7 +27,7 @@ export class BloggersController {
     } else {
       const newBlogger = await this.bloggersRepositoryDB.createBlogger(req.body.name, req.body.youtubeUrl);
       if (typeof newBlogger === 'string') {
-        res.status(430).send(newBlogger);
+        res.status(400).send(newBlogger);
       } else {
         res.status(201).send(newBlogger);
       }
@@ -36,7 +36,7 @@ export class BloggersController {
 
   async getBloggerById(req: express.Request, res: express.Response) {
     if (!ObjectId.isValid(req.params.id)) {
-      return res.send(404);
+      return res.sendStatus(404);
     } else {
       const blogger = await this.bloggersRepositoryDB.getBloggerById(req.params.id);
       if (!blogger) {
@@ -63,7 +63,7 @@ export class BloggersController {
           bloggerId,
         );
         if (typeof bloggersPostsSlice === 'string') {
-          res.status(430).send(bloggersPostsSlice);
+          res.status(400).send(bloggersPostsSlice);
         } else {
           res.status(200).send(bloggersPostsSlice);
         }
@@ -86,7 +86,7 @@ export class BloggersController {
         const bloggerId = req.params.bloggerId;
         const newPost = await this.postsRepositoryDB.createPost({ ...req.body, bloggerId });
         if (typeof newPost === 'string') {
-          res.status(430).send(newPost);
+          res.status(400).send(newPost);
         } else {
           res.status(201).send(newPost);
         }
@@ -106,7 +106,7 @@ export class BloggersController {
       } else {
         const blogger = await this.bloggersRepositoryDB.getBloggerById(req.params?.id);
         if (!blogger) {
-          res.send(404);
+          res.sendStatus(404);
         } else {
           const updatedBlogger = await this.bloggersRepositoryDB.upDateBlogger(
             req.body.name,
@@ -125,17 +125,17 @@ export class BloggersController {
 
   async deleteBlogger(req: express.Request, res: express.Response) {
     if (!ObjectId.isValid(req.params.id)) {
-      return res.send(404);
+      return res.sendStatus(404);
     } else {
       const blogger = await this.bloggersRepositoryDB.getBloggerById(req.params?.id);
       if (!blogger) {
-        res.send(404);
+        res.sendStatus(404);
       } else {
         const deletedBlogger = await this.bloggersRepositoryDB.deleteBlogger(req.params.id);
         if (typeof deletedBlogger === 'string') {
-          res.status(430).send(deletedBlogger);
+          res.status(400).send(deletedBlogger);
         } else {
-          res.send(204);
+          res.sendStatus(204);
         }
       }
     }

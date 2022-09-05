@@ -1,7 +1,8 @@
 import basicAuth from 'express-basic-auth';
 import { body } from 'express-validator';
+import { injectable } from 'inversify';
 
-// @injectable()
+@injectable()
 class UserValidator {
   createUser() {
     return [
