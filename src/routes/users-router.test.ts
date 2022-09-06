@@ -43,14 +43,6 @@ describe('test user-router "/users"', function () {
       await agent
         .get(`/users?PageSize=${pageSize}&PageNumber=${pageNumber}`)
         .expect(200)
-        // .expect((res) => {
-        //   expect(res.body.items.length).toBe(1);
-        //   expect(res.body.items[0].login).toBe(newUser1.login);
-        // })
-        // .end((err, res) => {
-        //   if (err) return err;
-        //   return res;
-        // });
         .then(async (res) => {
           expect(res.body.items.length).toBe(2);
           expect(res.body.items[0].login).toBe(newUser1.login);

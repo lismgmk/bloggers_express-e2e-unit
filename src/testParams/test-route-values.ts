@@ -1,3 +1,5 @@
+import { IReqPosts } from '../types';
+
 export const pageSize = 3;
 export const pageNumber = 1;
 export const adminToken = { correct: 'YWRtaW46cXdlcnR5', wrong: '00000000000' };
@@ -43,3 +45,12 @@ export const incorrectUrlBlogger = {
   youtubeUrl: 'https/newChanel.com',
 };
 export const fakeId = { id: '63112e36862987f5978863c8' };
+
+//for post router
+
+export const newPost_1_fn: (val: string) => IReqPosts = (bloggerId: string) => ({
+  shortDescription: 'some information about post_1',
+  content: 'all data for post_1....',
+  title: 'post_1 title',
+  bloggerId,
+});
