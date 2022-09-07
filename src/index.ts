@@ -9,6 +9,7 @@ import { authRouter } from './routes/auth-route';
 import { bloggersRouter } from './routes/bloggers-route';
 import { commentsRouter } from './routes/comments-route';
 import { postsRouter } from './routes/posts-route';
+import { quizRouter } from './routes/quiz-route';
 import { testingRouter } from './routes/testing-route';
 import { usersRouter } from './routes/users-route';
 
@@ -27,6 +28,7 @@ app.use('/auth', authRouter);
 app.use('/comments', commentsRouter);
 app.use('/users', usersRouter);
 app.use('/testing', testingRouter);
+app.use('/pair-game-quiz', quizRouter);
 
 if (process.env.NODE_ENV !== 'test') {
   main()

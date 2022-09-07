@@ -178,7 +178,7 @@ describe('test bloggers-router "/bloggers"', () => {
               pagesCount: pageNumber,
               page: pageNumber,
               pageSize: pageSize,
-              totalCount: expect.any(String),
+              totalCount: expect.any(Number),
               items: expect.arrayContaining([
                 expect.objectContaining({
                   addedAt: expect.any(String),
@@ -189,8 +189,8 @@ describe('test bloggers-router "/bloggers"', () => {
                   shortDescription: newPost_1_fn(id).shortDescription,
                   title: newPost_1_fn(id).title,
                   extendedLikesInfo: expect.objectContaining({
-                    dislikesCount: expect.any(String),
-                    likesCount: expect.any(String),
+                    dislikesCount: expect.any(Number),
+                    likesCount: expect.any(Number),
                     myStatus: expect.any(String),
                     newestLikes: expect.any(Array),
                   }),
