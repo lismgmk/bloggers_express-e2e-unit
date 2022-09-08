@@ -13,8 +13,10 @@ import { AuthRepositoryDB } from './repositories/auth-repository-db';
 import { BlackListTokensRepositoryDB } from './repositories/black-list-tokens-repository-db';
 import { BloggersRepositoryDB } from './repositories/bloggers-repository-db';
 import { CommentsRepositoryDb } from './repositories/comments-repository-db';
+import { GamesRepositoryDB } from './repositories/games-repository-db';
 import { IpUsersRepositoryDB } from './repositories/ipusers-repository-db';
 import { LikesRepositoryDB } from './repositories/likes-repository-db';
+import { PlayersRepositoryDB } from './repositories/players-repository-db';
 import { PostsRepositoryDB } from './repositories/posts-repository-db';
 import { TestingRepositoryDB } from './repositories/testin-repository-db';
 import { UsersRepositoryDB } from './repositories/users-repository-db';
@@ -34,6 +36,8 @@ container.bind<BlackListTokensRepositoryDB>(BlackListTokensRepositoryDB).toSelf(
 container.bind<JwtPassService>(JwtPassService).toSelf();
 container.bind<MailService>(MailService).toSelf();
 container.bind<IpUsersRepositoryDB>(IpUsersRepositoryDB).toSelf();
+container.bind<GamesRepositoryDB>(GamesRepositoryDB).toSelf();
+container.bind<PlayersRepositoryDB>(PlayersRepositoryDB).toSelf();
 container.bind<AttemptsLimit>(AttemptsLimit).toSelf();
 
 //services
@@ -41,6 +45,7 @@ export const checkTokenService = container.resolve(CheckTokenService);
 export const checkIpServiceUser = container.resolve(CheckIpServiceUser);
 export const jwtPassService = container.resolve(JwtPassService);
 export const ipUsersRepositoryDB = container.resolve(IpUsersRepositoryDB);
+container.resolve(GamesRepositoryDB);
 container.resolve(AttemptsLimit);
 // export const mailService = container.resolve(MailService);
 

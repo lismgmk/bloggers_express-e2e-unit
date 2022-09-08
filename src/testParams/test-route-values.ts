@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb';
 import { IReqPosts } from '../types';
 
 export const pageSize = 3;
@@ -54,3 +55,18 @@ export const newPost_1_fn: (val: string) => IReqPosts = (bloggerId: string) => (
   title: 'post_1 title',
   bloggerId,
 });
+
+//for players repository
+
+export const player_1 = {
+  userId: new ObjectId(),
+  playerId: new ObjectId(),
+  gameId: new ObjectId(),
+  login: 'User-1',
+};
+export const player_2 = {
+  userId: new ObjectId(),
+  playerId: new ObjectId(),
+  gameId: new ObjectId(),
+  login: 'User-1',
+};

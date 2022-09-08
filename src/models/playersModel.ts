@@ -1,13 +1,15 @@
 import { ObjectId } from 'mongodb';
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 import { db_players_collection_name_str } from '../connect-db';
+import { IAnswer } from '../types';
+import { answersSchema } from './answersModel';
 
 const { Schema } = mongoose;
 export interface IPlayersSchema {
   userId: ObjectId;
-  secondPlayerId?: ObjectId;
+  login: string;
   gameId: ObjectId;
-  answersId: ObjectId[];
+  answers: IAnswer[] | null;
 }
 
 export const playersSchema = new Schema<IPlayersSchema>(
@@ -15,23 +17,19 @@ export const playersSchema = new Schema<IPlayersSchema>(
     userId: {
       type: Schema?.Types.ObjectId,
       required: true,
-      ref: 'Users',
     },
-    secondPlayerId: {
-      type: Schema?.Types.ObjectId,
-      required: false,
-      ref: 'Users',
+    login: {
+      type: String,
+      required: true,
     },
     gameId: {
       type: Schema?.Types.ObjectId,
       required: true,
-      ref: 'Games',
     },
-    answersId: [
+    answers: [
       {
-        type: Types.ObjectId,
-        required: true,
-        ref: 'Answers',
+        type: answersSchema,
+        required: false,
       },
     ],
   },

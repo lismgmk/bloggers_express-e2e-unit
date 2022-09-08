@@ -1,5 +1,8 @@
 import express from 'express';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
+import { ObjectId } from 'mongodb';
+import { IGameSchema } from '../models/gamesModel';
+import { GamesRepositoryDB } from '../repositories/games-repository-db';
 import { IMyCurrentGameResponse, IPlayer, IAnswer, IUserQuiz } from '../types';
 
 @injectable()
@@ -11,7 +14,7 @@ export class QuizController {
   public user_1: IUserQuiz;
   public user_2: IUserQuiz;
 
-  constructor() {
+  constructor(@inject(GamesRepositoryDB) protected gamesRepositoryDB: GamesRepositoryDB) {
     this.user_1 = {
       id: '1234',
       login: 'Login',
@@ -59,7 +62,23 @@ export class QuizController {
     });
   }
   async connectionToGame(req: express.Request, res: express.Response) {
-    return res.sendStatus(200);
+    const startedGames = await this.gamesRepositoryDB.getStartedGame();
+    const userParams: { userId: ObjectId; login: string } = {
+      userId: req.user!._id!,
+      login: req.user!.accountData!.userName!,
+    };
+    let newGame: IGameSchema | string | null;
+
+    if (startedGames.length > 0) {
+      newGame = await this.gamesRepositoryDB.createPair({
+        secondPlayerId: userParams.userId,
+        login: userParams.login,
+        gameId: startedGames![0]._id,
+      });
+    } else {
+      newGame = await this.gamesRepositoryDB.createNewGame({ ...userParams, gameId: new ObjectId() });
+    }
+    return res.status(200).send(newGame);
   }
   async sendAnswer(req: express.Request, res: express.Response) {
     return res.status(200).send(this.answer);

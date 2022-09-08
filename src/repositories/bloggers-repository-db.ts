@@ -13,7 +13,7 @@ export class BloggersRepositoryDB {
     let totalCount: number | undefined = 0;
     let totalPages = 0;
     const namePart = new RegExp(bloggerNamePart);
-    totalCount = await Bloggers.find({ name: namePart }).count().lean();
+    totalCount = await Bloggers.countDocuments({ name: namePart });
     const allBloggers = await (
       await Bloggers.find({ name: namePart })
         .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
