@@ -130,3 +130,8 @@ export interface IMyCurrentGameResponse {
   startGameDate: Date;
   finishGameDate: Date;
 }
+export interface IResPlayer {
+  questionId: ObjectId;
+  answerStatus: IAnswerStatus;
+  addedAt: Date;
+}

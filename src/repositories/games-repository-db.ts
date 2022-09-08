@@ -1,14 +1,15 @@
 import { injectable, inject } from 'inversify';
-import _ from 'lodash';
 import { ObjectId } from 'mongodb';
 import { Games, IGameSchema } from '../models/gamesModel';
-import { Questions } from '../models/questionsModel';
-import { quizQuestions } from '../variables';
+import { PlayersQuestionsAnswersHelper } from '../utils/players-questions-answer-helper';
 import { PlayersRepositoryDB } from './players-repository-db';
 
 @injectable()
 export class GamesRepositoryDB {
-  constructor(@inject(PlayersRepositoryDB) protected playersRepositoryDB: PlayersRepositoryDB) {}
+  constructor(
+    @inject(PlayersRepositoryDB) protected playersRepositoryDB: PlayersRepositoryDB,
+    @inject(PlayersQuestionsAnswersHelper) protected playersQuestionsAnswersHelper: PlayersQuestionsAnswersHelper,
+  ) {}
 
   // async getAllUserGame(
   //   pageSize: number,
@@ -60,15 +61,7 @@ export class GamesRepositoryDB {
     gameId: ObjectId;
   }): Promise<IGameSchema | string> {
     try {
-      const fiveRandomQuestions = _.sampleSize(quizQuestions, 5);
-      const listQuestions = await Promise.all(
-        fiveRandomQuestions.map(async (el) => {
-          const questionId = new ObjectId();
-          const newQuestion = new Questions({ _id: questionId, body: el.body, correctAnswer: el.correctAnswer });
-          const question = await Questions.create(newQuestion);
-          return question;
-        }),
-      );
+      const listQuestions = await this.playersQuestionsAnswersHelper.createQuestions();
 
       const playerId = new ObjectId();
       await this.playersRepositoryDB.createNewPlayers({
@@ -76,6 +69,7 @@ export class GamesRepositoryDB {
         playerId,
         gameId: newGameData.gameId,
         login: newGameData.login,
+        questions: listQuestions,
       });
       const newGame = new Games({
         _id: newGameData.userId,
@@ -101,6 +95,7 @@ export class GamesRepositoryDB {
     gameId: ObjectId;
     secondPlayerId: ObjectId;
     login: string;
+    questions: any[];
   }): Promise<IGameSchema | string | null> {
     try {
       const secondPlayerId = new ObjectId();
@@ -109,6 +104,7 @@ export class GamesRepositoryDB {
         playerId: secondPlayerId,
         gameId: gamePairData.gameId,
         login: gamePairData.login,
+        questions: gamePairData.questions,
       });
       const update = { gameStatus: 'Active', secondPlayerId: secondPlayerId, pairCreatedDate: new Date() };
       return await Games.findByIdAndUpdate(gamePairData.gameId, { $set: update }, { new: true });
@@ -120,6 +116,15 @@ export class GamesRepositoryDB {
   async getStartedGame() {
     const game = await Games.find({ gameStatus: 'PendingSecondPlayer' }).exec();
     return game;
+  }
+
+  async getGameById(id: ObjectId): Promise<IGameSchema | string | null> {
+    try {
+      const game = await Games.findById(id).exec();
+      return game;
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
   }
   // async upDateBlogger(name: string, youtubeUrl: string, id: string) {
   //   try {

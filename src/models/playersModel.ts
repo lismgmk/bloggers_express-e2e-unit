@@ -6,6 +6,7 @@ import { answersSchema } from './answersModel';
 
 const { Schema } = mongoose;
 export interface IPlayersSchema {
+  _id: ObjectId;
   userId: ObjectId;
   login: string;
   gameId: ObjectId;

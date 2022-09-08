@@ -25,7 +25,7 @@ quizRouter.post(
 );
 quizRouter.post(
   '/pairs/my-current/answers',
-  // checkTokenService.accessToken.bind(checkTokenService),
+  checkTokenService.accessToken.bind(checkTokenService),
   quizController.sendAnswer.bind(quizController),
 );
 quizRouter.get('/users/top', quizController.getTopUsers.bind(quizController));

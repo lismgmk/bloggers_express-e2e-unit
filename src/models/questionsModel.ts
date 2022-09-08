@@ -1,8 +1,10 @@
+import { ObjectId } from 'mongodb';
 import mongoose from 'mongoose';
 import { db_questions_str } from '../connect-db';
 
 const { Schema } = mongoose;
 export interface IQuestionSchema {
+  _id: ObjectId;
   body: string;
   correctAnswer: string;
 }

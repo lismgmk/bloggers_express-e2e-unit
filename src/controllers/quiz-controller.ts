@@ -62,7 +62,7 @@ export class QuizController {
     });
   }
   async connectionToGame(req: express.Request, res: express.Response) {
-    const startedGames = await this.gamesRepositoryDB.getStartedGame();
+    const startedGames = (await this.gamesRepositoryDB.getStartedGame()) as IGameSchema[];
     const userParams: { userId: ObjectId; login: string } = {
       userId: req.user!._id!,
       login: req.user!.accountData!.userName!,
@@ -73,7 +73,8 @@ export class QuizController {
       newGame = await this.gamesRepositoryDB.createPair({
         secondPlayerId: userParams.userId,
         login: userParams.login,
-        gameId: startedGames![0]._id,
+        gameId: startedGames[0]._id,
+        questions: startedGames[0].questions,
       });
     } else {
       newGame = await this.gamesRepositoryDB.createNewGame({ ...userParams, gameId: new ObjectId() });

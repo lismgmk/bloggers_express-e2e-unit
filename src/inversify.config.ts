@@ -22,6 +22,7 @@ import { TestingRepositoryDB } from './repositories/testin-repository-db';
 import { UsersRepositoryDB } from './repositories/users-repository-db';
 import { JwtPassService } from './utils/jwt-pass-service';
 import { MailService } from './utils/mail-service';
+import { PlayersQuestionsAnswersHelper } from './utils/players-questions-answer-helper';
 
 export const container = new Container();
 
@@ -39,6 +40,7 @@ container.bind<IpUsersRepositoryDB>(IpUsersRepositoryDB).toSelf();
 container.bind<GamesRepositoryDB>(GamesRepositoryDB).toSelf();
 container.bind<PlayersRepositoryDB>(PlayersRepositoryDB).toSelf();
 container.bind<AttemptsLimit>(AttemptsLimit).toSelf();
+container.bind<PlayersQuestionsAnswersHelper>(PlayersQuestionsAnswersHelper).toSelf();
 
 //services
 export const checkTokenService = container.resolve(CheckTokenService);
