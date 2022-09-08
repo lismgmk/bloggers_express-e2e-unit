@@ -89,3 +89,44 @@ export interface IPaginationResponse<Item> {
   totalCount?: number;
   items?: Item[] | [];
 }
+
+export interface IPaginationResponse<Item> {
+  pagesCount: number;
+  page: number;
+  pageSize: number;
+  totalCount?: number;
+  items?: Item[] | [];
+}
+
+export type IAnswerStatus = 'Correct' | 'Incorrect';
+export type IGameStatus = 'PendingSecondPlayer' | 'Active' | 'Finished';
+
+export interface IAnswer {
+  questionId: string;
+  answerStatus: IAnswerStatus;
+  addedAt: Date;
+}
+export interface IUserQuiz {
+  id: string;
+  login: string;
+}
+export interface IPlayer {
+  answers: IAnswer[];
+  user: IUserQuiz;
+  score: number;
+}
+
+export interface IQuestion {
+  id: string;
+  body: string;
+}
+export interface IMyCurrentGameResponse {
+  id: string;
+  firstPlayer: IPlayer;
+  secondPlayer: IPlayer | null;
+  questions: IQuestion[];
+  status: IGameStatus;
+  pairCreatedDate: Date;
+  startGameDate: Date;
+  finishGameDate: Date;
+}

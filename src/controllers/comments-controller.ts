@@ -39,7 +39,7 @@ export class CommentsController {
         } else {
           const updatedComment = await this.commentsRepositoryDb.updateComment(req.body.content, req.params?.id);
           if (typeof updatedComment === 'string') {
-            res.status(430).send(updatedComment);
+            res.status(400).send(updatedComment);
           } else {
             res.send(204);
           }
@@ -60,7 +60,7 @@ export class CommentsController {
       } else {
         const deletedComment = await this.commentsRepositoryDb.deleteComment(req.params?.id);
         if (typeof deletedComment === 'string') {
-          res.status(430).send(deletedComment);
+          res.status(400).send(deletedComment);
         } else {
           res.send(204);
         }
@@ -89,7 +89,7 @@ export class CommentsController {
           req.user!.accountData.userName,
         );
         if (typeof updatedPost === 'string') {
-          res.status(430).send(updatedPost);
+          res.status(400).send(updatedPost);
         } else {
           res.send(204);
         }

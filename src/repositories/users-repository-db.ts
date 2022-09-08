@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import bcrypt from 'bcryptjs';
 import { add } from 'date-fns';
 import { injectable } from 'inversify';
@@ -138,6 +139,16 @@ export class UsersRepositoryDB {
       );
     } catch (err) {
       return `Fail in DB: ${err}`;
+    }
+  }
+
+  async addAttemptByLogin(login: string, restoreFlag: boolean) {
+    try {
+      const filter = { 'accountData.userName': login };
+      const update = { $inc: { 'emailConfirmation.attemptCount': restoreFlag ? 0 : 1 } };
+      await Users.findOneAndUpdate(filter, update).exec();
+    } catch (err) {
+      return err;
     }
   }
 }

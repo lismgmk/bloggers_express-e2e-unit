@@ -13,7 +13,7 @@ export class BloggersRepositoryDB {
     let totalCount: number | undefined = 0;
     let totalPages = 0;
     const namePart = new RegExp(bloggerNamePart);
-    totalCount = await Bloggers.find({ name: namePart }).count().lean();
+    totalCount = await Bloggers.countDocuments({ name: namePart });
     const allBloggers = await (
       await Bloggers.find({ name: namePart })
         .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
@@ -47,18 +47,12 @@ export class BloggersRepositoryDB {
     }
   }
 
-  async getBloggerById(id: string): Promise<IBloggers | boolean> {
-    try {
-      const blogger = await Bloggers.findById(new ObjectId(id));
-      return { id: blogger!._id, name: blogger!.name, youtubeUrl: blogger!.youtubeUrl };
-    } catch (err) {
-      return false;
-    }
+  async getBloggerById(id: string) {
+    return Bloggers.findById(id);
   }
   async upDateBlogger(name: string, youtubeUrl: string, id: string) {
     try {
-      const idVal = new ObjectId(id);
-      return await Bloggers.findByIdAndUpdate(idVal, { $set: { name, youtubeUrl } });
+      return await Bloggers.findByIdAndUpdate(id, { $set: { name, youtubeUrl } });
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
