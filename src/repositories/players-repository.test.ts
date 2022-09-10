@@ -52,7 +52,7 @@ describe('test players-repository', () => {
       expect(updatedPlayer).toMatchObject(
         expect.objectContaining({
           questionId: expect.any(ObjectId),
-          answerStatus: 'Correct',
+          answerStatus: 'Incorrect',
           addedAt: expect.any(Date),
         }),
       );

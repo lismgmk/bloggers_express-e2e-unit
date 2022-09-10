@@ -126,6 +126,16 @@ export class GamesRepositoryDB {
       return `Fail in DB: ${err}`;
     }
   }
+  async getActiveGameByPlayerId(id: ObjectId): Promise<IGameSchema | string | null> {
+    try {
+      const game = await Games.findOne({
+        $and: [{ $or: [{ firstPlayerId: id }, { secondPlayerId: id }] }, { gameStatus: 'Active' }],
+      });
+      return game;
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
+  }
   // async upDateBlogger(name: string, youtubeUrl: string, id: string) {
   //   try {
   //     return await Bloggers.findByIdAndUpdate(id, { $set: { name, youtubeUrl } });

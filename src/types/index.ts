@@ -105,6 +105,7 @@ export interface IAnswer {
   questionId: string;
   answerStatus: IAnswerStatus;
   addedAt: Date;
+  correctAnswer: string;
 }
 export interface IUserQuiz {
   id: string;

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { checkTokenService, quizController } from '../inversify.config';
+import { checkTokenService, quizController, quizService } from '../inversify.config';
 
 export const quizRouter = Router({});
 
@@ -26,6 +26,7 @@ quizRouter.post(
 quizRouter.post(
   '/pairs/my-current/answers',
   checkTokenService.accessToken.bind(checkTokenService),
+  quizService.countRequest.bind(quizService),
   quizController.sendAnswer.bind(quizController),
 );
 quizRouter.get('/users/top', quizController.getTopUsers.bind(quizController));

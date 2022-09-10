@@ -35,8 +35,8 @@ export class PlayersRepositoryDB {
 
   async findPlayerByUserId(userId: ObjectId): Promise<IPlayersSchema | string | null> {
     try {
-      const player = await Players.findOne({ userId }).exec();
-      return player;
+      const player = await Players.find({ userId }).lean();
+      return player[0];
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
@@ -49,23 +49,39 @@ export class PlayersRepositoryDB {
   }): Promise<Partial<IResPlayer> | string> {
     try {
       let resPlayer: Partial<IResPlayer> = {};
-      await Players.findById(answerData.playerId)
-        .then((player: any) => {
-          const currentAnswer = player.answers[answerData.numberQuestion];
-          if (answerData.answer === currentAnswer.correctAnswer) {
-            currentAnswer.answerStatus = 'Correct';
-          } else {
-            currentAnswer.answerStatus = 'Incorrect';
-          }
-          currentAnswer.addedAt = new Date();
-          resPlayer = {
-            questionId: currentAnswer.questionId,
-            answerStatus: currentAnswer.answerStatus,
-            addedAt: currentAnswer.addedAt,
-          };
-          return player.save();
-        })
-        .catch((e) => console.log(e, 'error!!!!!!'));
+      const player = await Players.findById(answerData.playerId);
+      const currentAnswer = player!.answers![answerData.numberQuestion];
+      if (answerData.answer === currentAnswer!.correctAnswer) {
+        currentAnswer.answerStatus = 'Correct';
+      } else {
+        currentAnswer.answerStatus = 'Incorrect';
+      }
+      currentAnswer.addedAt = new Date();
+      resPlayer = {
+        questionId: new ObjectId(currentAnswer.questionId),
+        answerStatus: currentAnswer.answerStatus,
+        addedAt: currentAnswer.addedAt,
+      };
+      player!.save();
+      // await Players.findById(answerData.playerId)
+      //   .then(
+      //     (player: (Document<unknown, any, IPlayersSchema> & IPlayersSchema & Required<{ _id: ObjectId }>) | null) => {
+      //       const currentAnswer = player!.answers![answerData.numberQuestion];
+      //       if (answerData.answer === currentAnswer!.correctAnswer) {
+      //         currentAnswer.answerStatus = 'Correct';
+      //       } else {
+      //         currentAnswer.answerStatus = 'Incorrect';
+      //       }
+      //       currentAnswer.addedAt = new Date();
+      //       resPlayer = {
+      //         questionId: new ObjectId(currentAnswer.questionId),
+      //         answerStatus: currentAnswer.answerStatus,
+      //         addedAt: currentAnswer.addedAt,
+      //       };
+      //       return player!.save();
+      //     },
+      //   )
+      //   .catch((e) => console.log(e, 'error!!!!!!'));
       return resPlayer;
     } catch (err) {
       return `Fail in DB: ${err}`;

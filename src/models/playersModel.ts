@@ -11,6 +11,7 @@ export interface IPlayersSchema {
   login: string;
   gameId: ObjectId;
   answers: IAnswer[] | null;
+  numberAnswer: number;
 }
 
 export const playersSchema = new Schema<IPlayersSchema>(
@@ -27,6 +28,7 @@ export const playersSchema = new Schema<IPlayersSchema>(
       type: Schema?.Types.ObjectId,
       required: true,
     },
+    numberAnswer: Number,
     answers: [
       {
         type: answersSchema,

@@ -23,7 +23,7 @@ export class QuizController {
       id: '1234',
       login: 'Login',
     };
-    this.answer = { questionId: '1238', answerStatus: 'Correct', addedAt: new Date() };
+    this.answer = { questionId: '1238', answerStatus: 'Correct', addedAt: new Date(), correctAnswer: 'yes' };
     this.player_1 = {
       answers: [this.answer],
       user: this.user_1,
