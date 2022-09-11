@@ -1,5 +1,5 @@
-import 'reflect-metadata';
 import { Container } from 'inversify';
+import 'reflect-metadata';
 import { CheckIpServiceUser, AttemptsLimit } from './application/check-ip-service';
 import { CheckTokenService } from './application/check-token-service';
 import { QuizService, QuestionsAmount } from './application/quiz-service';
@@ -42,7 +42,6 @@ container.bind<GamesRepositoryDB>(GamesRepositoryDB).toSelf();
 container.bind<PlayersRepositoryDB>(PlayersRepositoryDB).toSelf();
 container.bind<AttemptsLimit>(AttemptsLimit).toSelf();
 container.bind<PlayersQuestionsAnswersHelper>(PlayersQuestionsAnswersHelper).toSelf();
-container.bind<QuizService>(QuizService).toSelf();
 container.bind<QuestionsAmount>(QuestionsAmount).toSelf();
 //services
 export const checkTokenService = container.resolve(CheckTokenService);
@@ -51,7 +50,6 @@ export const jwtPassService = container.resolve(JwtPassService);
 export const ipUsersRepositoryDB = container.resolve(IpUsersRepositoryDB);
 container.resolve(GamesRepositoryDB);
 container.resolve(AttemptsLimit);
-container.resolve(QuizService);
 container.resolve(QuestionsAmount);
 // export const mailService = container.resolve(MailService);
 

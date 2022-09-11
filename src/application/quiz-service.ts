@@ -13,32 +13,34 @@ export class QuestionsAmount {
 
 @injectable()
 export class QuizService {
-  private count;
   constructor(
-    @inject(QuestionsAmount) protected questionsAmount: QuestionsAmount,
+    // @inject(QuestionsAmount) protected questionsAmount: QuestionsAmount,
     @inject(PlayersRepositoryDB) protected playersRepositoryDB: PlayersRepositoryDB,
     @inject(GamesRepositoryDB) protected gamesRepositoryDB: GamesRepositoryDB,
-  ) {
-    this.count = 0;
-  }
+  ) {}
 
-  async countRequest(req: express.Request, res: express.Response, next: express.NextFunction) {
-    const player = await this.playersRepositoryDB.findPlayerByUserId(req.user!._id!);
-    if (typeof player !== 'string') {
-      const activeGame = await this.gamesRepositoryDB.getActiveGameByPlayerId(player!._id!);
-      if (typeof activeGame !== 'string') {
-      } else {
-        res.sendStatus(403);
+  async getActivePlayerAndGame(req: express.Request, res: express.Response, next: express.NextFunction) {
+    const player = await this.playersRepositoryDB.findActivePlayerByUserId(req.user!._id!);
+    if (typeof player !== 'string' && player) {
+      req.currentPlayer = player;
+      const activeGame = await this.gamesRepositoryDB.getActiveGameById(player!.gameId);
+      if (typeof activeGame !== 'string' && activeGame) {
+        const firstPlayer = await this.playersRepositoryDB.getPlayerById(activeGame.firstPlayerId);
+        const secondPlayer = await this.playersRepositoryDB.getPlayerById(activeGame.secondPlayerId);
+        const gameFirstPlayer = await this.playersRepositoryDB.checkTimer(firstPlayer!);
+        const gameSecondPlayer = await this.playersRepositoryDB.checkTimer(secondPlayer!);
+        if (gameFirstPlayer === 'gameOver' || gameSecondPlayer === 'gameOver') {
+          return res.status(403);
+        }
+        req.currentActiveGame = activeGame;
       }
-    } else {
-      res.sendStatus(403);
+      if (typeof activeGame === 'string') {
+        return res.status(400).send(`Dd error: ${activeGame}`);
+      }
     }
-    if (this.count >= this.questionsAmount.CONST_QUESTIONS) {
-      res.sendStatus(403);
-    } else {
-      req.countRequest = this.count;
-      this.count += 1;
-      return next();
+    if (typeof player !== 'string') {
+      return res.status(400).send(`Dd error: ${player}`);
     }
+    return next();
   }
 }

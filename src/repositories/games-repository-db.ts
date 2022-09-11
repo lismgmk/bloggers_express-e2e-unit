@@ -114,14 +114,12 @@ export class GamesRepositoryDB {
   }
 
   async getStartedGame() {
-    const game = await Games.find({ gameStatus: 'PendingSecondPlayer' }).exec();
-    return game;
+    return Games.find({ gameStatus: 'PendingSecondPlayer' }).exec();
   }
 
-  async getGameById(id: ObjectId): Promise<IGameSchema | string | null> {
+  async getActiveGameById(id: ObjectId): Promise<IGameSchema | string | null> {
     try {
-      const game = await Games.findById(id).exec();
-      return game;
+      return Games.findById(id).exec();
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
@@ -136,19 +134,43 @@ export class GamesRepositoryDB {
       return `Fail in DB: ${err}`;
     }
   }
-  // async upDateBlogger(name: string, youtubeUrl: string, id: string) {
-  //   try {
-  //     return await Bloggers.findByIdAndUpdate(id, { $set: { name, youtubeUrl } });
-  //   } catch (err) {
-  //     return `Fail in DB: ${err}`;
-  //   }
-  // }
-  // async deleteBlogger(id: string) {
-  //   try {
-  //     const idVal = new ObjectId(id);
-  //     return await Bloggers.findByIdAndDelete(idVal);
-  //   } catch (err) {
-  //     return `Fail in DB: ${err}`;
-  //   }
-  // }
+  async finishActiveGameById(currentGame: IGameSchema): Promise<IGameSchema | string | null> {
+    try {
+      let winner: ObjectId | null = null;
+      const firstPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.firstPlayerId);
+      const secondPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.secondPlayerId);
+      if (
+        typeof firstPlayer !== 'string' &&
+        typeof secondPlayer !== 'string' &&
+        firstPlayer!.score < secondPlayer!.score
+      ) {
+        winner = secondPlayer!._id;
+      }
+      if (
+        typeof firstPlayer !== 'string' &&
+        typeof secondPlayer !== 'string' &&
+        firstPlayer!.score > secondPlayer!.score
+      ) {
+        winner = firstPlayer!._id;
+      }
+      const update = {
+        finishGameDate: new Date(),
+        winnerUserId: winner!,
+        gameStatus: 'Finished',
+      };
+      return await this.upDateGameAfterFinish(currentGame._id, update);
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
+  }
+  async upDateGameAfterFinish(
+    gameId: ObjectId,
+    updateData: {
+      finishGameDate: Date;
+      winnerUserId: ObjectId;
+      gameStatus: string;
+    },
+  ) {
+    return Games.findByIdAndUpdate(gameId, updateData);
+  }
 }

@@ -13,7 +13,7 @@ describe('test quiz service', function () {
           return countQuestionLimit;
         },
       } as QuestionsAmount;
-      const quizService = new QuizService(mockQuestionsAmount);
+      // const quizService = new QuizService(mockQuestionsAmount);
 
       const mockResponse = {
         status: (code) => {
@@ -24,11 +24,11 @@ describe('test quiz service', function () {
       const req = {} as express.Request;
       const next = jest.fn() as express.NextFunction;
 
-      await quizService.countRequest(req, mockResponse, next);
+      // await quizService.countRequest(req, mockResponse, next);
 
       expect(next).toBeCalledTimes(1);
 
-      await quizService.countRequest(req, mockResponse, next);
+      // await quizService.countRequest(req, mockResponse, next);
       expect(statusResp).toBe(403);
       // const allUsers1 = await ipUsersRepositoryDB.getAllUsersIp({ userIp: req.ip, path: req.path });
       //

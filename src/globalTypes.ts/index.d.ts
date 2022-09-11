@@ -1,3 +1,5 @@
+import { IGameSchema } from '../models/gamesModel';
+import { IPlayersSchema } from '../models/playersModel';
 import { IUser } from '../types';
 
 // declare global {
@@ -11,6 +13,7 @@ import { IUser } from '../types';
 declare module 'express-serve-static-core' {
   interface Request {
     user: IUser;
-    countRequest: number | 'end';
+    currentActiveGame: IGameSchema;
+    currentPlayer: IPlayersSchema;
   }
 }
