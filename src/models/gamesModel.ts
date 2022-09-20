@@ -14,8 +14,6 @@ export interface IGameSchema {
   pairCreatedDate: Date;
   startGameDate: Date;
   finishGameDate: Date;
-  firstPlayerScore: number;
-  secondPlayerScore: number;
   winnerUserId: ObjectId;
 }
 
@@ -42,8 +40,6 @@ export const gamesSchema = new Schema<IGameSchema>(
     startGameDate: Date,
     finishGameDate: Date,
     winnerUserId: Schema?.Types.ObjectId,
-    firstPlayerScore: Number,
-    secondPlayerScore: Number,
   },
   { versionKey: false },
 );

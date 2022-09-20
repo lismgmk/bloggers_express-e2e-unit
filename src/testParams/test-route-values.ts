@@ -63,10 +63,24 @@ export const player_1 = {
   playerId: new ObjectId(),
   gameId: new ObjectId(),
   login: 'User-1',
+  questions: [
+    { _id: new ObjectId(), body: 'Do you like JS?', correctAnswer: 'yes' },
+    { _id: new ObjectId(), body: 'Do you like TS?', correctAnswer: 'no' },
+    { _id: new ObjectId(), body: 'Do you like Jest?', correctAnswer: 'yes' },
+    { _id: new ObjectId(), body: 'Do you like Java?', correctAnswer: 'no' },
+    { _id: new ObjectId(), body: 'Do you like React?', correctAnswer: 'yes' },
+  ],
 };
 export const player_2 = {
   userId: new ObjectId(),
   playerId: new ObjectId(),
   gameId: new ObjectId(),
-  login: 'User-1',
+  login: 'User-2',
+  questions: [
+    { _id: new ObjectId(), body: 'Do you like JS?', correctAnswer: 'yes' },
+    { _id: new ObjectId(), body: 'Do you like TS?', correctAnswer: 'no' },
+    { _id: new ObjectId(), body: 'Do you like Jest?', correctAnswer: 'yes' },
+    { _id: new ObjectId(), body: 'Do you like Java?', correctAnswer: 'no' },
+    { _id: new ObjectId(), body: 'Do you like React?', correctAnswer: 'yes' },
+  ],
 };

@@ -105,6 +105,7 @@ export interface IAnswer {
   questionId: string;
   answerStatus: IAnswerStatus;
   addedAt: Date;
+  correctAnswer: string;
 }
 export interface IUserQuiz {
   id: string;
@@ -129,4 +130,9 @@ export interface IMyCurrentGameResponse {
   pairCreatedDate: Date;
   startGameDate: Date;
   finishGameDate: Date;
+}
+export interface IResPlayer {
+  questionId: ObjectId;
+  answerStatus: IAnswerStatus;
+  addedAt: Date;
 }

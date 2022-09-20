@@ -8,18 +8,20 @@ export interface IAnswerSchema {
   questionId: ObjectId;
   answerStatus: IAnswerStatus;
   addedAt: Date;
-  numberQuestion: number;
+  body: string;
+  correctAnswer: string;
 }
 
 export const answersSchema = new Schema<IAnswerSchema>(
   {
     answerStatus: {
       type: String,
-      required: true,
+      required: false,
     },
     addedAt: Date,
-    questionId: { type: Schema?.Types.ObjectId, ref: 'Questions', required: true },
-    numberQuestion: Number,
+    questionId: { type: Schema?.Types.ObjectId, required: true },
+    body: { type: String, required: true },
+    correctAnswer: { type: String, required: true },
   },
   { versionKey: false },
 );

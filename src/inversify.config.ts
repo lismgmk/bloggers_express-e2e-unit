@@ -1,7 +1,9 @@
-import 'reflect-metadata';
 import { Container } from 'inversify';
+import 'reflect-metadata';
 import { CheckIpServiceUser, AttemptsLimit } from './application/check-ip-service';
+import { CheckTimerService } from './application/check-timer-service';
 import { CheckTokenService } from './application/check-token-service';
+import { QuizService } from './application/quiz-service';
 import { AuthController } from './controllers/auth-controller';
 import { BloggersController } from './controllers/bloggers-controller';
 import { CommentsController } from './controllers/comments-controller';
@@ -22,6 +24,7 @@ import { TestingRepositoryDB } from './repositories/testin-repository-db';
 import { UsersRepositoryDB } from './repositories/users-repository-db';
 import { JwtPassService } from './utils/jwt-pass-service';
 import { MailService } from './utils/mail-service';
+import { PlayersQuestionsAnswersHelper } from './utils/players-questions-answer-helper';
 
 export const container = new Container();
 
@@ -39,7 +42,9 @@ container.bind<IpUsersRepositoryDB>(IpUsersRepositoryDB).toSelf();
 container.bind<GamesRepositoryDB>(GamesRepositoryDB).toSelf();
 container.bind<PlayersRepositoryDB>(PlayersRepositoryDB).toSelf();
 container.bind<AttemptsLimit>(AttemptsLimit).toSelf();
-
+container.bind<PlayersQuestionsAnswersHelper>(PlayersQuestionsAnswersHelper).toSelf();
+// container.bind<QuestionsAmount>(QuestionsAmount).toSelf();
+container.bind<CheckTimerService>(CheckTimerService).toSelf();
 //services
 export const checkTokenService = container.resolve(CheckTokenService);
 export const checkIpServiceUser = container.resolve(CheckIpServiceUser);
@@ -47,6 +52,7 @@ export const jwtPassService = container.resolve(JwtPassService);
 export const ipUsersRepositoryDB = container.resolve(IpUsersRepositoryDB);
 container.resolve(GamesRepositoryDB);
 container.resolve(AttemptsLimit);
+// container.resolve(QuestionsAmount);
 // export const mailService = container.resolve(MailService);
 
 //validators
@@ -64,3 +70,4 @@ export const bloggersController = container.resolve(BloggersController);
 export const postsController = container.resolve(PostsController);
 export const commentsController = container.resolve(CommentsController);
 export const quizController = container.resolve(QuizController);
+export const quizService = container.resolve(QuizService);
