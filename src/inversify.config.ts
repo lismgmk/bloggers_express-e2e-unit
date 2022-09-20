@@ -1,8 +1,9 @@
 import { Container } from 'inversify';
 import 'reflect-metadata';
 import { CheckIpServiceUser, AttemptsLimit } from './application/check-ip-service';
+import { CheckTimerService } from './application/check-timer-service';
 import { CheckTokenService } from './application/check-token-service';
-import { QuizService, QuestionsAmount } from './application/quiz-service';
+import { QuizService } from './application/quiz-service';
 import { AuthController } from './controllers/auth-controller';
 import { BloggersController } from './controllers/bloggers-controller';
 import { CommentsController } from './controllers/comments-controller';
@@ -42,7 +43,8 @@ container.bind<GamesRepositoryDB>(GamesRepositoryDB).toSelf();
 container.bind<PlayersRepositoryDB>(PlayersRepositoryDB).toSelf();
 container.bind<AttemptsLimit>(AttemptsLimit).toSelf();
 container.bind<PlayersQuestionsAnswersHelper>(PlayersQuestionsAnswersHelper).toSelf();
-container.bind<QuestionsAmount>(QuestionsAmount).toSelf();
+// container.bind<QuestionsAmount>(QuestionsAmount).toSelf();
+container.bind<CheckTimerService>(CheckTimerService).toSelf();
 //services
 export const checkTokenService = container.resolve(CheckTokenService);
 export const checkIpServiceUser = container.resolve(CheckIpServiceUser);
@@ -50,7 +52,7 @@ export const jwtPassService = container.resolve(JwtPassService);
 export const ipUsersRepositoryDB = container.resolve(IpUsersRepositoryDB);
 container.resolve(GamesRepositoryDB);
 container.resolve(AttemptsLimit);
-container.resolve(QuestionsAmount);
+// container.resolve(QuestionsAmount);
 // export const mailService = container.resolve(MailService);
 
 //validators

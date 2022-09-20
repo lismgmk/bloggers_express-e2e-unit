@@ -5,6 +5,7 @@ import { IGameSchema } from '../models/gamesModel';
 import { GamesRepositoryDB } from '../repositories/games-repository-db';
 import { PlayersRepositoryDB } from '../repositories/players-repository-db';
 import { IMyCurrentGameResponse, IPlayer, IAnswer, IUserQuiz } from '../types';
+import { countQuestions } from '../variables';
 
 @injectable()
 export class QuizController {
@@ -66,27 +67,35 @@ export class QuizController {
     });
   }
   async connectionToGame(req: express.Request, res: express.Response) {
-    const startedGames = (await this.gamesRepositoryDB.getStartedGame()) as IGameSchema[];
+    if (req.currentActiveGame) {
+      return res.sendStatus(403);
+    }
+    const startedGames = (await this.gamesRepositoryDB.getStartedGame()) as IGameSchema;
     const userParams: { userId: ObjectId; login: string } = {
       userId: req.user!._id!,
       login: req.user!.accountData!.userName!,
     };
     let newGame: IGameSchema | string | null;
 
-    if (startedGames.length > 0) {
+    if (startedGames) {
       newGame = await this.gamesRepositoryDB.createPair({
         secondPlayerId: userParams.userId,
         login: userParams.login,
-        gameId: startedGames[0]._id,
-        questions: startedGames[0].questions,
+        gameId: startedGames._id,
+        questions: startedGames.questions,
       });
     } else {
-      newGame = await this.gamesRepositoryDB.createNewGame({ ...userParams, gameId: new ObjectId() });
+      const gameId = new ObjectId();
+      newGame = await this.gamesRepositoryDB.createNewGame({ ...userParams, gameId });
     }
     return res.status(200).send(newGame);
   }
   async sendAnswer(req: express.Request, res: express.Response) {
-    if (!req.currentPlayer || (req.currentPlayer && req.currentPlayer.numberAnswer > 5) || !req.currentActiveGame) {
+    if (
+      !req.currentPlayer ||
+      (req.currentPlayer && req.currentPlayer.numberAnswer > countQuestions) ||
+      !req.currentActiveGame
+    ) {
       res.sendStatus(403);
     } else {
       const sendAnswer = await this.playersRepositoryDB.setAnswerPlayer({
@@ -96,15 +105,10 @@ export class QuizController {
       const firstPlayer = await this.playersRepositoryDB.getPlayerById(req.currentActiveGame.firstPlayerId);
       const secondPlayer = await this.playersRepositoryDB.getPlayerById(req.currentActiveGame.secondPlayerId);
 
-      if (
-        typeof firstPlayer !== 'string' &&
-        firstPlayer!.numberAnswer === 5 &&
-        typeof secondPlayer !== 'string' &&
-        secondPlayer!.numberAnswer === 5
-      ) {
+      if (firstPlayer!.numberAnswer === countQuestions && secondPlayer!.numberAnswer === countQuestions) {
         await this.gamesRepositoryDB.finishActiveGameById(req.currentActiveGame);
       }
-      if (typeof firstPlayer !== 'string' && typeof secondPlayer !== 'string' && firstPlayer && secondPlayer) {
+      if (firstPlayer && secondPlayer) {
         await this.playersRepositoryDB.checkSettingBonusScore({ firstPlayer, secondPlayer });
       }
 

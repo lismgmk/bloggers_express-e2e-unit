@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import _ from 'lodash';
 import { ObjectId } from 'mongodb';
 import { IQuestionSchema, Questions } from '../models/questionsModel';
-import { quizQuestions } from '../variables';
+import { quizQuestions, countQuestions } from '../variables';
 
 @injectable()
 export class PlayersQuestionsAnswersHelper {
@@ -13,13 +13,12 @@ export class PlayersQuestionsAnswersHelper {
   }
 
   async createQuestions() {
-    const fiveRandomQuestions = _.sampleSize(quizQuestions, 5);
+    const fiveRandomQuestions = _.sampleSize(quizQuestions, countQuestions);
     return await Promise.all(
       fiveRandomQuestions.map(async (el) => {
         const questionId = new ObjectId();
         const newQuestion = new Questions({ _id: questionId, body: el.body, correctAnswer: el.correctAnswer });
-        const question = await Questions.create(newQuestion);
-        return question;
+        return await Questions.create(newQuestion);
       }),
     );
   }

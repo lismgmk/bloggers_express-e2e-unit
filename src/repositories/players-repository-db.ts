@@ -1,17 +1,16 @@
-import { differenceInMinutes } from 'date-fns';
 import { injectable, inject } from 'inversify';
 import { ObjectId } from 'mongodb';
 import { Players, IPlayersSchema } from '../models/playersModel';
 import { IQuestionSchema } from '../models/questionsModel';
 import { IResPlayer } from '../types';
 import { PlayersQuestionsAnswersHelper } from '../utils/players-questions-answer-helper';
-import { GamesRepositoryDB } from './games-repository-db';
+import { countQuestions } from '../variables';
 
 @injectable()
 export class PlayersRepositoryDB {
   constructor(
-    @inject(PlayersQuestionsAnswersHelper) protected playersQuestionsAnswersHelper: PlayersQuestionsAnswersHelper,
-    @inject(GamesRepositoryDB) protected gamesRepositoryDB: GamesRepositoryDB,
+    @inject(PlayersQuestionsAnswersHelper)
+    protected playersQuestionsAnswersHelper: PlayersQuestionsAnswersHelper,
   ) {}
 
   async createNewPlayers(playerData: {
@@ -28,6 +27,9 @@ export class PlayersRepositoryDB {
         login: playerData.login,
         gameId: playerData.gameId,
         answers: this.playersQuestionsAnswersHelper.answerItem(playerData.questions),
+        numberAnswer: 0,
+        score: 0,
+        startTimeQuestion: null,
       });
       await Players.create(newPlayer);
       return newPlayer;
@@ -109,41 +111,41 @@ export class PlayersRepositoryDB {
   }
   async checkSettingBonusScore(scoreData: { firstPlayer: IPlayersSchema; secondPlayer: IPlayersSchema }) {
     if (
-      scoreData.firstPlayer.numberAnswer === 5 &&
+      scoreData.firstPlayer.numberAnswer === countQuestions &&
       scoreData.firstPlayer.score >= 1 &&
-      scoreData.secondPlayer.numberAnswer < 5
+      scoreData.secondPlayer.numberAnswer < countQuestions
     ) {
       await Players.findByIdAndUpdate(scoreData.firstPlayer._id, { $inc: { score: 1 } });
       await Players.findByIdAndUpdate(scoreData.secondPlayer._id, { finishTimeQuestion: new Date() });
     }
     if (
-      scoreData.secondPlayer.numberAnswer === 5 &&
+      scoreData.secondPlayer.numberAnswer === countQuestions &&
       scoreData.secondPlayer.score >= 1 &&
-      scoreData.firstPlayer.numberAnswer < 5
+      scoreData.firstPlayer.numberAnswer < countQuestions
     ) {
       await Players.findByIdAndUpdate(scoreData.secondPlayer._id, { $inc: { score: 1 } });
       await Players.findByIdAndUpdate(scoreData.firstPlayer._id, { finishTimeQuestion: new Date() });
     }
   }
-  async checkTimer(player: IPlayersSchema) {
-    if (player.startTimeQuestion && differenceInMinutes(new Date(), player.startTimeQuestion) > 1) {
-      const currentGame = await this.gamesRepositoryDB.getActiveGameByPlayerId(player._id);
-      if (currentGame && typeof currentGame !== 'string' && player._id === currentGame.firstPlayerId) {
-        await this.gamesRepositoryDB.upDateGameAfterFinish(currentGame._id, {
-          finishGameDate: new Date(),
-          winnerUserId: currentGame.secondPlayerId!,
-          gameStatus: 'Finished',
-        });
-        return 'gameOver';
-      }
-      if (currentGame && typeof currentGame !== 'string' && player._id === currentGame.secondPlayerId) {
-        await this.gamesRepositoryDB.upDateGameAfterFinish(currentGame._id, {
-          finishGameDate: new Date(),
-          winnerUserId: currentGame.firstPlayerId!,
-          gameStatus: 'Finished',
-        });
-        return 'gameOver';
-      }
-    }
-  }
+  // async checkTimer(player: IPlayersSchema) {
+  //   if (player.startTimeQuestion && differenceInMinutes(new Date(), player.startTimeQuestion) > 1) {
+  //     const currentGame = await this.gamesRepositoryDB.getActiveGameByPlayerId(player._id);
+  //     if (currentGame && typeof currentGame !== 'string' && player._id === currentGame.firstPlayerId) {
+  //       await this.gamesRepositoryDB.upDateGameAfterFinish(currentGame._id, {
+  //         finishGameDate: new Date(),
+  //         winnerUserId: currentGame.secondPlayerId!,
+  //         gameStatus: 'Finished',
+  //       });
+  //       return 'gameOver';
+  //     }
+  //     if (currentGame && typeof currentGame !== 'string' && player._id === currentGame.secondPlayerId) {
+  //       await this.gamesRepositoryDB.upDateGameAfterFinish(currentGame._id, {
+  //         finishGameDate: new Date(),
+  //         winnerUserId: currentGame.firstPlayerId!,
+  //         gameStatus: 'Finished',
+  //       });
+  //       return 'gameOver';
+  //     }
+  //   }
+  // }
 }

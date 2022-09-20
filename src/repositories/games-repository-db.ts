@@ -72,16 +72,14 @@ export class GamesRepositoryDB {
         questions: listQuestions,
       });
       const newGame = new Games({
-        _id: newGameData.userId,
-        firstPlayerId: playerId,
-        questions: listQuestions,
+        _id: newGameData.gameId,
         gameStatus: 'PendingSecondPlayer',
+        questions: listQuestions,
+        firstPlayerId: playerId,
         secondPlayerId: null,
         pairCreatedDate: null,
         startGameDate: new Date(),
         finishGameDate: null,
-        firstPlayerScore: null,
-        secondPlayerScore: null,
         winnerUserId: null,
       });
 
@@ -107,14 +105,15 @@ export class GamesRepositoryDB {
         questions: gamePairData.questions,
       });
       const update = { gameStatus: 'Active', secondPlayerId: secondPlayerId, pairCreatedDate: new Date() };
-      return await Games.findByIdAndUpdate(gamePairData.gameId, { $set: update }, { new: true });
+      const newGame = await Games.findByIdAndUpdate(gamePairData.gameId, { $set: update }, { new: true });
+      return newGame;
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
   }
 
   async getStartedGame() {
-    return Games.find({ gameStatus: 'PendingSecondPlayer' }).exec();
+    return Games.findOne({ gameStatus: 'PendingSecondPlayer' }).exec();
   }
 
   async getActiveGameById(id: ObjectId): Promise<IGameSchema | string | null> {
@@ -139,18 +138,10 @@ export class GamesRepositoryDB {
       let winner: ObjectId | null = null;
       const firstPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.firstPlayerId);
       const secondPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.secondPlayerId);
-      if (
-        typeof firstPlayer !== 'string' &&
-        typeof secondPlayer !== 'string' &&
-        firstPlayer!.score < secondPlayer!.score
-      ) {
+      if (firstPlayer!.score < secondPlayer!.score) {
         winner = secondPlayer!._id;
       }
-      if (
-        typeof firstPlayer !== 'string' &&
-        typeof secondPlayer !== 'string' &&
-        firstPlayer!.score > secondPlayer!.score
-      ) {
+      if (firstPlayer!.score > secondPlayer!.score) {
         winner = firstPlayer!._id;
       }
       const update = {

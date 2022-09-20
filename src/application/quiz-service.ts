@@ -3,20 +3,14 @@ import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
 import { GamesRepositoryDB } from '../repositories/games-repository-db';
 import { PlayersRepositoryDB } from '../repositories/players-repository-db';
-
-@injectable()
-export class QuestionsAmount {
-  public get CONST_QUESTIONS() {
-    return 5;
-  }
-}
+import { CheckTimerService } from './check-timer-service';
 
 @injectable()
 export class QuizService {
   constructor(
-    // @inject(QuestionsAmount) protected questionsAmount: QuestionsAmount,
     @inject(PlayersRepositoryDB) protected playersRepositoryDB: PlayersRepositoryDB,
     @inject(GamesRepositoryDB) protected gamesRepositoryDB: GamesRepositoryDB,
+    @inject(CheckTimerService) protected checkTimerService: CheckTimerService,
   ) {}
 
   async getActivePlayerAndGame(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -27,8 +21,8 @@ export class QuizService {
       if (typeof activeGame !== 'string' && activeGame) {
         const firstPlayer = await this.playersRepositoryDB.getPlayerById(activeGame.firstPlayerId);
         const secondPlayer = await this.playersRepositoryDB.getPlayerById(activeGame.secondPlayerId);
-        const gameFirstPlayer = await this.playersRepositoryDB.checkTimer(firstPlayer!);
-        const gameSecondPlayer = await this.playersRepositoryDB.checkTimer(secondPlayer!);
+        const gameFirstPlayer = await this.checkTimerService.checkTimer(firstPlayer!);
+        const gameSecondPlayer = await this.checkTimerService.checkTimer(secondPlayer!);
         if (gameFirstPlayer === 'gameOver' || gameSecondPlayer === 'gameOver') {
           return res.status(403);
         }
@@ -38,7 +32,7 @@ export class QuizService {
         return res.status(400).send(`Dd error: ${activeGame}`);
       }
     }
-    if (typeof player !== 'string') {
+    if (typeof player === 'string') {
       return res.status(400).send(`Dd error: ${player}`);
     }
     return next();

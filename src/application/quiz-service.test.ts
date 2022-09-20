@@ -1,18 +1,15 @@
 import express from 'express';
-import { QuizService, QuestionsAmount } from './quiz-service';
 
 describe('test quiz service', function () {
   describe('test ipStatus method', () => {
-    const countQuestionLimit = 1;
-
     it('should not call next when attempt enter >= limit attempt for login path', async () => {
       let statusResp = 0;
 
-      const mockQuestionsAmount = {
-        get CONST_QUESTIONS() {
-          return countQuestionLimit;
-        },
-      } as QuestionsAmount;
+      // const mockQuestionsAmount = {
+      //   get CONST_QUESTIONS() {
+      //     return countQuestionLimit;
+      //   },
+      // } as QuestionsAmount;
       // const quizService = new QuizService(mockQuestionsAmount);
 
       const mockResponse = {
