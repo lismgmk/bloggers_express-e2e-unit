@@ -2,6 +2,7 @@ import express from 'express';
 import { injectable, inject } from 'inversify';
 import { ObjectId } from 'mongodb';
 import { IGameSchema } from '../models/gamesModel';
+import { IPlayersSchema } from '../models/playersModel';
 import { GamesRepositoryDB } from '../repositories/games-repository-db';
 import { PlayersRepositoryDB } from '../repositories/players-repository-db';
 import { IMyCurrentGameResponse, IPlayer, IAnswer, IUserQuiz } from '../types';
@@ -91,25 +92,33 @@ export class QuizController {
     return res.status(200).send(newGame);
   }
   async sendAnswer(req: express.Request, res: express.Response) {
+    console.log(req.currentPlayer.numberAnswer, countQuestions);
     if (
       !req.currentPlayer ||
-      (req.currentPlayer && req.currentPlayer.numberAnswer > countQuestions) ||
+      (req.currentPlayer && req.currentPlayer.numberAnswer >= countQuestions) ||
       !req.currentActiveGame
     ) {
       res.sendStatus(403);
     } else {
+      let notCurrentPlayer: IPlayersSchema | null;
+      if (req.currentActiveGame.firstPlayerId === req.currentPlayer._id) {
+        notCurrentPlayer = await this.playersRepositoryDB.getPlayerById(req.currentActiveGame.secondPlayerId);
+      } else {
+        notCurrentPlayer = await this.playersRepositoryDB.getPlayerById(req.currentActiveGame.firstPlayerId);
+      }
       const sendAnswer = await this.playersRepositoryDB.setAnswerPlayer({
         playerId: req.currentPlayer._id,
         answer: req.body.answer,
+        notCurrentPlayerNumberAnswer: notCurrentPlayer!.numberAnswer,
       });
       const firstPlayer = await this.playersRepositoryDB.getPlayerById(req.currentActiveGame.firstPlayerId);
       const secondPlayer = await this.playersRepositoryDB.getPlayerById(req.currentActiveGame.secondPlayerId);
-
-      if (firstPlayer!.numberAnswer === countQuestions && secondPlayer!.numberAnswer === countQuestions) {
-        await this.gamesRepositoryDB.finishActiveGameById(req.currentActiveGame);
-      }
+      // console.log(firstPlayer, secondPlayer);
       if (firstPlayer && secondPlayer) {
         await this.playersRepositoryDB.checkSettingBonusScore({ firstPlayer, secondPlayer });
+      }
+      if (firstPlayer!.numberAnswer >= countQuestions && secondPlayer!.numberAnswer >= countQuestions) {
+        await this.gamesRepositoryDB.finishActiveGameById(firstPlayer!, secondPlayer!);
       }
 
       // const countAnswersFirstPlayer = await this.playersRepositoryDB.checkNumberAnswer(

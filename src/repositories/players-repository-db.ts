@@ -32,6 +32,7 @@ export class PlayersRepositoryDB {
         startTimeQuestion: null,
       });
       await Players.create(newPlayer);
+      // console.log(newPlayer, 'newPlayer');
       return newPlayer;
     } catch (err) {
       return `Fail in DB: ${err}`;
@@ -53,6 +54,14 @@ export class PlayersRepositoryDB {
       return `Fail in DB: ${err}`;
     }
   }
+  async findPlayerByUserId(userId: ObjectId): Promise<IPlayersSchema | string | null> {
+    try {
+      const player = await Players.findOne({ userId }).exec();
+      return player;
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
+  }
   // async checkNumberAnswer(id: ObjectId) {
   //   try {
   //     const player = (await Players.findById(id).lean()) as IPlayersSchema;
@@ -66,12 +75,21 @@ export class PlayersRepositoryDB {
   async getPlayerById(id: ObjectId) {
     return Players.findById(id);
   }
-  async setAnswerPlayer(answerData: { playerId: ObjectId; answer: string }): Promise<Partial<IResPlayer> | string> {
+
+  async setAnswerPlayer(answerData: {
+    playerId: ObjectId;
+    answer: string;
+    notCurrentPlayerNumberAnswer: number;
+  }): Promise<Partial<IResPlayer> | string> {
     try {
       let resPlayer: Partial<IResPlayer> = {};
       const player = await Players.findById(answerData.playerId);
       player!.numberAnswer += 1;
       const currentAnswer = player!.answers![player!.numberAnswer - 1];
+      // console.log(answerData.notCurrentPlayerNumberAnswer, countQuestions, 'startTimmmme');
+      if (answerData.notCurrentPlayerNumberAnswer === countQuestions) {
+        player!.startTimeQuestion = new Date();
+      }
       if (answerData.answer === currentAnswer!.correctAnswer) {
         currentAnswer.answerStatus = 'Correct';
         player!.score += 1;

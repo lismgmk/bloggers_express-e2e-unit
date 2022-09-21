@@ -14,8 +14,11 @@ export const quizQuestions = [
   { body: 'Do you like MUI?', correctAnswer: 'yes' },
 ];
 export let countQuestions: number;
+export let decideTimeAnswer: number;
 if (process.env.NODE_ENV === 'test') {
-  countQuestions = 2;
+  countQuestions = 3;
+  decideTimeAnswer = 1;
 } else {
   countQuestions = 5;
+  decideTimeAnswer = 60000;
 }

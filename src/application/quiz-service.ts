@@ -17,16 +17,19 @@ export class QuizService {
     const player = await this.playersRepositoryDB.findActivePlayerByUserId(req.user!._id!);
     if (typeof player !== 'string' && player) {
       req.currentPlayer = player;
-      const activeGame = await this.gamesRepositoryDB.getActiveGameById(player!.gameId);
+      const activeGame = await this.gamesRepositoryDB.getGameById(player!.gameId);
+      // console.log(activeGame, 'active game');
       if (typeof activeGame !== 'string' && activeGame) {
         const firstPlayer = await this.playersRepositoryDB.getPlayerById(activeGame.firstPlayerId);
         const secondPlayer = await this.playersRepositoryDB.getPlayerById(activeGame.secondPlayerId);
-        const gameFirstPlayer = await this.checkTimerService.checkTimer(firstPlayer!);
-        const gameSecondPlayer = await this.checkTimerService.checkTimer(secondPlayer!);
-        if (gameFirstPlayer === 'gameOver' || gameSecondPlayer === 'gameOver') {
-          return res.status(403);
-        }
+        // console.log(firstPlayer, secondPlayer, 'playersss');
         req.currentActiveGame = activeGame;
+        const gameFirstPlayer = await this.checkTimerService.checkTimer(firstPlayer!, activeGame);
+        const gameSecondPlayer = await this.checkTimerService.checkTimer(secondPlayer!, activeGame);
+        console.log(gameFirstPlayer, gameSecondPlayer);
+        if (gameFirstPlayer === 'gameOver' || gameSecondPlayer === 'gameOver') {
+          return res.sendStatus(403);
+        }
       }
       if (typeof activeGame === 'string') {
         return res.status(400).send(`Dd error: ${activeGame}`);

@@ -1,6 +1,7 @@
 import { injectable, inject } from 'inversify';
 import { ObjectId } from 'mongodb';
 import { Games, IGameSchema } from '../models/gamesModel';
+import { IPlayersSchema } from '../models/playersModel';
 import { PlayersQuestionsAnswersHelper } from '../utils/players-questions-answer-helper';
 import { PlayersRepositoryDB } from './players-repository-db';
 
@@ -116,7 +117,7 @@ export class GamesRepositoryDB {
     return Games.findOne({ gameStatus: 'PendingSecondPlayer' }).exec();
   }
 
-  async getActiveGameById(id: ObjectId): Promise<IGameSchema | string | null> {
+  async getGameById(id: ObjectId): Promise<IGameSchema | string | null> {
     try {
       return Games.findById(id).exec();
     } catch (err) {
@@ -133,23 +134,29 @@ export class GamesRepositoryDB {
       return `Fail in DB: ${err}`;
     }
   }
-  async finishActiveGameById(currentGame: IGameSchema): Promise<IGameSchema | string | null> {
+  async finishActiveGameById(
+    firstPlayer: IPlayersSchema,
+    secondPlayer: IPlayersSchema,
+  ): Promise<IGameSchema | string | null> {
     try {
       let winner: ObjectId | null = null;
-      const firstPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.firstPlayerId);
-      const secondPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.secondPlayerId);
+      // const firstPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.firstPlayerId);
+      // const secondPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.secondPlayerId);
       if (firstPlayer!.score < secondPlayer!.score) {
         winner = secondPlayer!._id;
       }
       if (firstPlayer!.score > secondPlayer!.score) {
         winner = firstPlayer!._id;
       }
+      if (firstPlayer!.score === secondPlayer!.score) {
+        winner = null;
+      }
       const update = {
         finishGameDate: new Date(),
         winnerUserId: winner!,
         gameStatus: 'Finished',
       };
-      return await this.upDateGameAfterFinish(currentGame._id, update);
+      return await this.upDateGameAfterFinish(firstPlayer.gameId, update);
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
