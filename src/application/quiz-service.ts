@@ -15,9 +15,10 @@ export class QuizService {
 
   async getActivePlayerAndGame(req: express.Request, res: express.Response, next: express.NextFunction) {
     const player = await this.playersRepositoryDB.findActivePlayerByUserId(req.user!._id!);
-    if (typeof player !== 'string' && player) {
-      req.currentPlayer = player;
-      const activeGame = await this.gamesRepositoryDB.getGameById(player!.gameId);
+
+    if (typeof player !== 'string' && player?.length > 0) {
+      req.currentPlayer = player[0];
+      const activeGame = await this.gamesRepositoryDB.getGameById(player![0].gameId);
       if (typeof activeGame !== 'string' && activeGame) {
         const firstPlayer = await this.playersRepositoryDB.getPlayerById(activeGame.firstPlayerId);
         const secondPlayer = await this.playersRepositoryDB.getPlayerById(activeGame.secondPlayerId);
@@ -32,6 +33,10 @@ export class QuizService {
         return res.status(400).send(`Dd error: ${activeGame}`);
       }
     }
+    // if (player.length === 0) {
+    //   console.log('playyyyyer');
+    //   return res.sendStatus(403);
+    // }
     if (typeof player === 'string') {
       return res.status(400).send(`Dd error: ${player}`);
     }

@@ -2,13 +2,13 @@ import { ObjectId } from 'mongodb';
 import mongoose from 'mongoose';
 import { db_games_collection_name_str } from '../connect-db';
 import { IGameStatus } from '../types';
-import { questionSchema } from './questionsModel';
+import { questionSchema, IQuestionSchema } from './questionsModel';
 
 const { Schema } = mongoose;
 export interface IGameSchema {
   _id: ObjectId;
   gameStatus: IGameStatus;
-  questions: ObjectId[];
+  questions: IQuestionSchema[];
   firstPlayerId: ObjectId;
   secondPlayerId: ObjectId;
   pairCreatedDate: Date;
@@ -31,10 +31,12 @@ export const gamesSchema = new Schema<IGameSchema>(
     firstPlayerId: {
       type: Schema?.Types.ObjectId,
       required: true,
+      ref: 'Players',
     },
     secondPlayerId: {
       type: Schema?.Types.ObjectId,
       required: false,
+      ref: 'Players',
     },
     pairCreatedDate: Date,
     startGameDate: Date,

@@ -112,8 +112,8 @@ export interface IUserQuiz {
   login: string;
 }
 export interface IPlayer {
-  answers: IAnswer[];
-  user: IUserQuiz;
+  answers: IAnswer[] | null;
+  user: IUserQuiz | null;
   score: number;
 }
 
