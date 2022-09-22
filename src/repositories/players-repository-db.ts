@@ -86,10 +86,7 @@ export class PlayersRepositoryDB {
       const player = await Players.findById(answerData.playerId);
       player!.numberAnswer += 1;
       const currentAnswer = player!.answers![player!.numberAnswer - 1];
-      // console.log(answerData.notCurrentPlayerNumberAnswer, countQuestions, 'startTimmmme');
-      if (answerData.notCurrentPlayerNumberAnswer === countQuestions) {
-        player!.startTimeQuestion = new Date();
-      }
+
       if (answerData.answer === currentAnswer!.correctAnswer) {
         currentAnswer.answerStatus = 'Correct';
         player!.score += 1;
@@ -131,18 +128,20 @@ export class PlayersRepositoryDB {
     if (
       scoreData.firstPlayer.numberAnswer === countQuestions &&
       scoreData.firstPlayer.score >= 1 &&
-      scoreData.secondPlayer.numberAnswer < countQuestions
+      scoreData.secondPlayer.numberAnswer < countQuestions &&
+      scoreData.secondPlayer.startTimeQuestion === null
     ) {
       await Players.findByIdAndUpdate(scoreData.firstPlayer._id, { $inc: { score: 1 } });
-      await Players.findByIdAndUpdate(scoreData.secondPlayer._id, { finishTimeQuestion: new Date() });
+      await Players.findByIdAndUpdate(scoreData.secondPlayer._id, { startTimeQuestion: new Date() });
     }
     if (
       scoreData.secondPlayer.numberAnswer === countQuestions &&
       scoreData.secondPlayer.score >= 1 &&
-      scoreData.firstPlayer.numberAnswer < countQuestions
+      scoreData.firstPlayer.numberAnswer < countQuestions &&
+      scoreData.firstPlayer.startTimeQuestion === null
     ) {
       await Players.findByIdAndUpdate(scoreData.secondPlayer._id, { $inc: { score: 1 } });
-      await Players.findByIdAndUpdate(scoreData.firstPlayer._id, { finishTimeQuestion: new Date() });
+      await Players.findByIdAndUpdate(scoreData.firstPlayer._id, { startTimeQuestion: new Date() });
     }
   }
   // async checkTimer(player: IPlayersSchema) {

@@ -18,15 +18,12 @@ export class QuizService {
     if (typeof player !== 'string' && player) {
       req.currentPlayer = player;
       const activeGame = await this.gamesRepositoryDB.getGameById(player!.gameId);
-      // console.log(activeGame, 'active game');
       if (typeof activeGame !== 'string' && activeGame) {
         const firstPlayer = await this.playersRepositoryDB.getPlayerById(activeGame.firstPlayerId);
         const secondPlayer = await this.playersRepositoryDB.getPlayerById(activeGame.secondPlayerId);
-        // console.log(firstPlayer, secondPlayer, 'playersss');
         req.currentActiveGame = activeGame;
         const gameFirstPlayer = await this.checkTimerService.checkTimer(firstPlayer!, activeGame);
         const gameSecondPlayer = await this.checkTimerService.checkTimer(secondPlayer!, activeGame);
-        console.log(gameFirstPlayer, gameSecondPlayer);
         if (gameFirstPlayer === 'gameOver' || gameSecondPlayer === 'gameOver') {
           return res.sendStatus(403);
         }

@@ -92,7 +92,6 @@ export class QuizController {
     return res.status(200).send(newGame);
   }
   async sendAnswer(req: express.Request, res: express.Response) {
-    console.log(req.currentPlayer.numberAnswer, countQuestions);
     if (
       !req.currentPlayer ||
       (req.currentPlayer && req.currentPlayer.numberAnswer >= countQuestions) ||

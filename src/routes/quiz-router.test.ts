@@ -107,6 +107,8 @@ describe('test quiz-router "/pair-game-quiz"', function () {
     let bearer_2: string;
     let newUser_1: IUser;
     let newUser_2: IUser;
+    const bodyParamsRight = { answer: 'yes' };
+    const bodyParamsWrong = { answer: 'no' };
     beforeEach(async () => {
       await usersRepositoryDB.createUser(
         newUser1.login,
@@ -135,10 +137,7 @@ describe('test quiz-router "/pair-game-quiz"', function () {
       await agent.post(`/pair-game-quiz/pairs/connection`).set('Authorization', bearer_2).expect(200);
     });
 
-    it('create active game,user_1 send 2 correct  answer and win game, user_2 send incorrect answers', async () => {
-      const bodyParamsRight = { answer: 'yes' };
-      const bodyParamsWrong = { answer: 'no' };
-      // process.env.DECIDE_TIME_ANSWERS = '1';
+    it('create active game,user_1 send 3 correct  answer and win game, user_2 send incorrect answers', async () => {
       await agent
         .post(`/pair-game-quiz/pairs/my-current/answers`)
         .set('Authorization', bearer_1)
@@ -213,8 +212,6 @@ describe('test quiz-router "/pair-game-quiz"', function () {
             }),
           );
         });
-      const player_state_answer = (await playersRepositoryDB.findPlayerByUserId(newUser_1._id!)) as IPlayersSchema;
-      console.log(player_state_answer, ';;;;;;;');
       await agent
         .post(`/pair-game-quiz/pairs/my-current/answers`)
         .set('Authorization', bearer_2)
@@ -229,12 +226,109 @@ describe('test quiz-router "/pair-game-quiz"', function () {
             }),
           );
         });
+
       const player_state_2_answer = (await playersRepositoryDB.findPlayerByUserId(newUser_1._id!)) as IPlayersSchema;
-      console.log(player_state_2_answer);
-      // expect(player_state_2_answer.score).toBe(4);
-      // const current_game = (await gamesRepositoryDB.getGameById(player_state_2_answer.gameId)) as IGameSchema;
-      // expect(current_game.gameStatus).toBe('Finished');
-      // expect(current_game.winnerUserId).toStrictEqual(player_state_2_answer._id);
+      expect(player_state_2_answer.score).toBe(4);
+      const current_game = (await gamesRepositoryDB.getGameById(player_state_2_answer.gameId)) as IGameSchema;
+      expect(current_game.gameStatus).toBe('Finished');
+      expect(current_game.winnerUserId).toStrictEqual(player_state_2_answer._id);
+    });
+
+    it('get draw in game,user_1 send 1 correct  answer and finish first, user_2 send 2 correct answers', async () => {
+      await agent
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
+        .set('Authorization', bearer_1)
+        .send(bodyParamsRight)
+        .expect(200)
+        .then(async (res) => {
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              questionId: expect.any(String),
+              answerStatus: 'Correct',
+              addedAt: expect.any(String),
+            }),
+          );
+        });
+
+      await agent
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
+        .set('Authorization', bearer_1)
+        .send(bodyParamsWrong)
+        .expect(200)
+        .then(async (res) => {
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              questionId: expect.any(String),
+              answerStatus: 'Incorrect',
+              addedAt: expect.any(String),
+            }),
+          );
+        });
+
+      await agent
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
+        .set('Authorization', bearer_1)
+        .send(bodyParamsWrong)
+        .expect(200)
+        .then(async (res) => {
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              questionId: expect.any(String),
+              answerStatus: 'Incorrect',
+              addedAt: expect.any(String),
+            }),
+          );
+        });
+
+      await agent
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
+        .set('Authorization', bearer_2)
+        .send(bodyParamsWrong)
+        .expect(200)
+        .then(async (res) => {
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              questionId: expect.any(String),
+              answerStatus: 'Incorrect',
+              addedAt: expect.any(String),
+            }),
+          );
+        });
+
+      await agent
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
+        .set('Authorization', bearer_2)
+        .send(bodyParamsRight)
+        .expect(200)
+        .then(async (res) => {
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              questionId: expect.any(String),
+              answerStatus: 'Correct',
+              addedAt: expect.any(String),
+            }),
+          );
+        });
+      await agent
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
+        .set('Authorization', bearer_2)
+        .send(bodyParamsRight)
+        .expect(200)
+        .then(async (res) => {
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              questionId: expect.any(String),
+              answerStatus: 'Correct',
+              addedAt: expect.any(String),
+            }),
+          );
+        });
+
+      const player_state_2_answer = (await playersRepositoryDB.findPlayerByUserId(newUser_1._id!)) as IPlayersSchema;
+      expect(player_state_2_answer.score).toBe(2);
+      const current_game = (await gamesRepositoryDB.getGameById(player_state_2_answer.gameId)) as IGameSchema;
+      expect(current_game.gameStatus).toBe('Finished');
+      expect(current_game.winnerUserId).toBeNull();
     });
 
     it(
@@ -243,8 +337,7 @@ describe('test quiz-router "/pair-game-quiz"', function () {
         '(for tests waiting time = 0)',
       async () => {
         process.env.DECIDE_TIME_ANSWERS = '1';
-        // jest.setTimeout(10 * 1000);
-        const bodyParamsRight = { answer: 'yes' };
+
         await agent
           .post(`/pair-game-quiz/pairs/my-current/answers`)
           .set('Authorization', bearer_1)
@@ -298,23 +391,8 @@ describe('test quiz-router "/pair-game-quiz"', function () {
           .set('Authorization', bearer_2)
           .send(bodyParamsRight)
           .expect(403);
-        // await agent
-        //   .post(`/pair-game-quiz/pairs/my-current/answers`)
-        //   .set('Authorization', bearer_2)
-        //   .send(bodyParamsRight)
-        //   .expect(200);
-        // await agent
-        //   .post(`/pair-game-quiz/pairs/my-current/answers`)
-        //   .set('Authorization', bearer_1)
-        //   .send(bodyParamsRight)
-        //   .expect(200);
 
-        // const player_state_2_answer = (await playersRepositoryDB.findActivePlayerByUserId(
-        //   newUser_1._id!,
-        // )) as IPlayersSchema;
-        // expect(player_state_2_answer.score).toBe(3);
         const player_state_1_answer = (await playersRepositoryDB.findPlayerByUserId(newUser_1._id!)) as IPlayersSchema;
-        console.log(player_state_1_answer);
         expect(player_state_1_answer.score).toBe(4);
         const current_game = (await gamesRepositoryDB.getGameById(player_state_1_answer.gameId)) as IGameSchema;
         expect(current_game.gameStatus).toBe('Finished');
