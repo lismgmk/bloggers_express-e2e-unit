@@ -20,6 +20,7 @@ import { IpUsersRepositoryDB } from './repositories/ipusers-repository-db';
 import { LikesRepositoryDB } from './repositories/likes-repository-db';
 import { PlayersRepositoryDB } from './repositories/players-repository-db';
 import { PostsRepositoryDB } from './repositories/posts-repository-db';
+import { StatisticsRepositoryDb } from './repositories/statistics-repository-db';
 import { TestingRepositoryDB } from './repositories/testin-repository-db';
 import { UsersRepositoryDB } from './repositories/users-repository-db';
 import { JwtPassService } from './utils/jwt-pass-service';
@@ -46,12 +47,14 @@ container.bind<AttemptsLimit>(AttemptsLimit).toSelf();
 container.bind<PlayersQuestionsAnswersHelper>(PlayersQuestionsAnswersHelper).toSelf();
 container.bind<ResponseHelper>(ResponseHelper).toSelf();
 container.bind<CheckTimerService>(CheckTimerService).toSelf();
+container.bind<StatisticsRepositoryDb>(StatisticsRepositoryDb).toSelf();
 
 //services
 export const checkTokenService = container.resolve(CheckTokenService);
 export const checkIpServiceUser = container.resolve(CheckIpServiceUser);
 export const jwtPassService = container.resolve(JwtPassService);
 export const ipUsersRepositoryDB = container.resolve(IpUsersRepositoryDB);
+export const statisticsRepositoryDb = container.resolve(StatisticsRepositoryDb);
 container.resolve(GamesRepositoryDB);
 container.resolve(AttemptsLimit);
 container.resolve(ResponseHelper);

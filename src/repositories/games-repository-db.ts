@@ -4,12 +4,14 @@ import { Games, IGameSchema } from '../models/gamesModel';
 import { IPlayersSchema } from '../models/playersModel';
 import { PlayersQuestionsAnswersHelper } from '../utils/players-questions-answer-helper';
 import { PlayersRepositoryDB } from './players-repository-db';
+import { StatisticsRepositoryDb } from './statistics-repository-db';
 
 @injectable()
 export class GamesRepositoryDB {
   constructor(
     @inject(PlayersRepositoryDB) protected playersRepositoryDB: PlayersRepositoryDB,
     @inject(PlayersQuestionsAnswersHelper) protected playersQuestionsAnswersHelper: PlayersQuestionsAnswersHelper,
+    @inject(StatisticsRepositoryDb) protected statisticsRepositoryDb: StatisticsRepositoryDb,
   ) {}
 
   async createNewGame(newGameData: {
@@ -103,16 +105,17 @@ export class GamesRepositoryDB {
   ): Promise<IGameSchema | string | null> {
     try {
       let winner: ObjectId | null = null;
-      // const firstPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.firstPlayerId);
-      // const secondPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.secondPlayerId);
       if (firstPlayer!.score < secondPlayer!.score) {
         winner = secondPlayer!._id;
+        await this.statisticsRepositoryDb.setStatisticsHelper(firstPlayer!, secondPlayer!, 'second');
       }
       if (firstPlayer!.score > secondPlayer!.score) {
         winner = firstPlayer!._id;
+        await this.statisticsRepositoryDb.setStatisticsHelper(firstPlayer!, secondPlayer!, 'first');
       }
       if (firstPlayer!.score === secondPlayer!.score) {
         winner = null;
+        await this.statisticsRepositoryDb.setStatisticsHelper(firstPlayer!, secondPlayer!, 'draw');
       }
       const update = {
         finishGameDate: new Date(),

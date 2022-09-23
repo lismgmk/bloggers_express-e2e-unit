@@ -3,6 +3,7 @@ import { injectable, inject } from 'inversify';
 import 'reflect-metadata';
 import { GamesRepositoryDB } from '../repositories/games-repository-db';
 import { PlayersRepositoryDB } from '../repositories/players-repository-db';
+import { StatisticsRepositoryDb } from '../repositories/statistics-repository-db';
 import { CheckTimerService } from './check-timer-service';
 
 @injectable()
@@ -11,6 +12,7 @@ export class QuizService {
     @inject(PlayersRepositoryDB) protected playersRepositoryDB: PlayersRepositoryDB,
     @inject(GamesRepositoryDB) protected gamesRepositoryDB: GamesRepositoryDB,
     @inject(CheckTimerService) protected checkTimerService: CheckTimerService,
+    @inject(StatisticsRepositoryDb) protected statisticsRepositoryDb: StatisticsRepositoryDb,
   ) {}
 
   async getActivePlayerAndGame(req: express.Request, res: express.Response, next: express.NextFunction) {
@@ -25,7 +27,12 @@ export class QuizService {
         req.currentActiveGame = activeGame;
         const gameFirstPlayer = await this.checkTimerService.checkTimer(firstPlayer!, activeGame);
         const gameSecondPlayer = await this.checkTimerService.checkTimer(secondPlayer!, activeGame);
-        if (gameFirstPlayer === 'gameOver' || gameSecondPlayer === 'gameOver') {
+        if (gameFirstPlayer === 'gameOverFirst') {
+          await this.statisticsRepositoryDb.setStatisticsHelper(firstPlayer!, secondPlayer!, 'second');
+          return res.sendStatus(403);
+        }
+        if (gameSecondPlayer === 'gameOverSecond') {
+          await this.statisticsRepositoryDb.setStatisticsHelper(firstPlayer!, secondPlayer!, 'first');
           return res.sendStatus(403);
         }
       }
@@ -33,10 +40,6 @@ export class QuizService {
         return res.status(400).send(`Dd error: ${activeGame}`);
       }
     }
-    // if (player.length === 0) {
-    //   console.log('playyyyyer');
-    //   return res.sendStatus(403);
-    // }
     if (typeof player === 'string') {
       return res.status(400).send(`Dd error: ${player}`);
     }

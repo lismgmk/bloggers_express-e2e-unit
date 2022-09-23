@@ -22,7 +22,7 @@ export class CheckTimerService {
           winnerUserId: activeGame.secondPlayerId!,
           gameStatus: 'Finished',
         });
-        return 'gameOver';
+        return 'gameOverFirst';
       }
       if (player._id.equals(activeGame.secondPlayerId)) {
         await this.gamesRepositoryDB.upDateGameAfterFinish(activeGame._id, {
@@ -30,7 +30,7 @@ export class CheckTimerService {
           winnerUserId: activeGame.firstPlayerId!,
           gameStatus: 'Finished',
         });
-        return 'gameOver';
+        return 'gameOverSecond';
       }
     }
   }
