@@ -20,11 +20,13 @@ import { IpUsersRepositoryDB } from './repositories/ipusers-repository-db';
 import { LikesRepositoryDB } from './repositories/likes-repository-db';
 import { PlayersRepositoryDB } from './repositories/players-repository-db';
 import { PostsRepositoryDB } from './repositories/posts-repository-db';
+import { StatisticsRepositoryDb } from './repositories/statistics-repository-db';
 import { TestingRepositoryDB } from './repositories/testin-repository-db';
 import { UsersRepositoryDB } from './repositories/users-repository-db';
 import { JwtPassService } from './utils/jwt-pass-service';
 import { MailService } from './utils/mail-service';
 import { PlayersQuestionsAnswersHelper } from './utils/players-questions-answer-helper';
+import { ResponseHelper } from './utils/response-helper';
 
 export const container = new Container();
 
@@ -43,24 +45,19 @@ container.bind<GamesRepositoryDB>(GamesRepositoryDB).toSelf();
 container.bind<PlayersRepositoryDB>(PlayersRepositoryDB).toSelf();
 container.bind<AttemptsLimit>(AttemptsLimit).toSelf();
 container.bind<PlayersQuestionsAnswersHelper>(PlayersQuestionsAnswersHelper).toSelf();
-// container.bind<QuestionsAmount>(QuestionsAmount).toSelf();
+container.bind<ResponseHelper>(ResponseHelper).toSelf();
 container.bind<CheckTimerService>(CheckTimerService).toSelf();
+container.bind<StatisticsRepositoryDb>(StatisticsRepositoryDb).toSelf();
+
 //services
 export const checkTokenService = container.resolve(CheckTokenService);
 export const checkIpServiceUser = container.resolve(CheckIpServiceUser);
 export const jwtPassService = container.resolve(JwtPassService);
 export const ipUsersRepositoryDB = container.resolve(IpUsersRepositoryDB);
+export const statisticsRepositoryDb = container.resolve(StatisticsRepositoryDb);
 container.resolve(GamesRepositoryDB);
 container.resolve(AttemptsLimit);
-// container.resolve(QuestionsAmount);
-// export const mailService = container.resolve(MailService);
-
-//validators
-// export const authValidator = container.resolve(AuthValidator);
-// export const bloggersValidator = container.resolve(BloggersValidator);
-// export const userValidator = container.resolve(UserValidator);
-// export const postsValidator = container.resolve(PostsValidator);
-// export const commentsValidator = container.resolve(CommentsValidator);
+container.resolve(ResponseHelper);
 
 //controllers
 export const testingController = container.resolve(TestingController);

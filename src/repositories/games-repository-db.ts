@@ -1,59 +1,18 @@
 import { injectable, inject } from 'inversify';
 import { ObjectId } from 'mongodb';
 import { Games, IGameSchema } from '../models/gamesModel';
+import { IPlayersSchema } from '../models/playersModel';
 import { PlayersQuestionsAnswersHelper } from '../utils/players-questions-answer-helper';
 import { PlayersRepositoryDB } from './players-repository-db';
+import { StatisticsRepositoryDb } from './statistics-repository-db';
 
 @injectable()
 export class GamesRepositoryDB {
   constructor(
     @inject(PlayersRepositoryDB) protected playersRepositoryDB: PlayersRepositoryDB,
     @inject(PlayersQuestionsAnswersHelper) protected playersQuestionsAnswersHelper: PlayersQuestionsAnswersHelper,
+    @inject(StatisticsRepositoryDb) protected statisticsRepositoryDb: StatisticsRepositoryDb,
   ) {}
-
-  // async getAllUserGame(
-  //   pageSize: number,
-  //   pageNumber: number,
-  //   userId: string,
-  // ): IPaginationResponse<IMyCurrentGameResponse[]> {
-  //   let totalCount: number | undefined = 0;
-  //   let totalPages = 0;
-  //   totalCount = await Players.countDocuments({ $or: [{ userId: userId }, { secondPlayerId: userId }] });
-  //   const allPlayers = await Players.find({ $or: [{ userId: userId }, { secondPlayerId: userId }] }).populate([
-  //     // { path: 'userId', select: '_id name', options: { lean: true } },
-  //     // { path: 'secondPlayerId', select: '_id name', options: { lean: true } },
-  //     { path: 'gameId', select: '_id name', options: { lean: true } },
-  //     { path: 'answersId', select: '_id name', options: { lean: true } },
-  //   ]);
-  //   {
-  //     id: string;
-  //     firstPlayer: IPlayer;
-  //     secondPlayer: IPlayer | null;
-  //     questions: IQuestion[];
-  //     status: IGameStatus;
-  //     pairCreatedDate: Date;
-  //     startGameDate: Date;
-  //     finishGameDate: Date;
-  //   }
-  //   const allBloggers = await (
-  //     await Bloggers.find({ name: namePart })
-  //       .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
-  //       .limit(pageSize)
-  //       .lean()
-  //   ).map((i) => {
-  //     return { id: i._id, name: i.name, youtubeUrl: i.youtubeUrl };
-  //   });
-  //   if (allBloggers) {
-  //     totalPages = Math.ceil((totalCount || 0) / pageSize);
-  //   }
-  //   return {
-  //     pagesCount: totalPages,
-  //     page: pageNumber,
-  //     pageSize,
-  //     totalCount,
-  //     items: allBloggers,
-  //   };
-  // }
 
   async createNewGame(newGameData: {
     userId: ObjectId;
@@ -116,9 +75,16 @@ export class GamesRepositoryDB {
     return Games.findOne({ gameStatus: 'PendingSecondPlayer' }).exec();
   }
 
-  async getActiveGameById(id: ObjectId): Promise<IGameSchema | string | null> {
+  async getGameById(id: ObjectId): Promise<IGameSchema | string | null> {
     try {
       return Games.findById(id).exec();
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
+  }
+  async getGameByIdWithPlayersPopulate(id: ObjectId): Promise<IGameSchema | string | null> {
+    try {
+      return Games.findById(id).populate('firstPlayerId secondPlayerId').exec();
     } catch (err) {
       return `Fail in DB: ${err}`;
     }
@@ -133,23 +99,30 @@ export class GamesRepositoryDB {
       return `Fail in DB: ${err}`;
     }
   }
-  async finishActiveGameById(currentGame: IGameSchema): Promise<IGameSchema | string | null> {
+  async finishActiveGameById(
+    firstPlayer: IPlayersSchema,
+    secondPlayer: IPlayersSchema,
+  ): Promise<IGameSchema | string | null> {
     try {
       let winner: ObjectId | null = null;
-      const firstPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.firstPlayerId);
-      const secondPlayer = await this.playersRepositoryDB.getPlayerById(currentGame.secondPlayerId);
       if (firstPlayer!.score < secondPlayer!.score) {
         winner = secondPlayer!._id;
+        await this.statisticsRepositoryDb.setStatisticsHelper(firstPlayer!, secondPlayer!, 'second');
       }
       if (firstPlayer!.score > secondPlayer!.score) {
         winner = firstPlayer!._id;
+        await this.statisticsRepositoryDb.setStatisticsHelper(firstPlayer!, secondPlayer!, 'first');
+      }
+      if (firstPlayer!.score === secondPlayer!.score) {
+        winner = null;
+        await this.statisticsRepositoryDb.setStatisticsHelper(firstPlayer!, secondPlayer!, 'draw');
       }
       const update = {
         finishGameDate: new Date(),
         winnerUserId: winner!,
         gameStatus: 'Finished',
       };
-      return await this.upDateGameAfterFinish(currentGame._id, update);
+      return await this.upDateGameAfterFinish(firstPlayer.gameId, update);
     } catch (err) {
       return `Fail in DB: ${err}`;
     }

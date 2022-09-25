@@ -20,6 +20,14 @@ export const newUser2 = {
   userIp: '2a',
   confirmationCode: '22',
 };
+
+export const newUser3 = {
+  login: 'User-3',
+  password: '123456',
+  email: 'someemail-3@mail.mail',
+  userIp: '3a',
+  confirmationCode: '33',
+};
 export const invalidUser = {
   login: 'Us',
   password: '12',

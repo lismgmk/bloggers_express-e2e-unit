@@ -8,7 +8,7 @@ export interface IPlayersSchema {
   _id: ObjectId;
   userId: ObjectId;
   login: string;
-  gameId: ObjectId;
+  gameId: any;
   answers: IAnswer[] | null;
   numberAnswer: number;
   score: number;

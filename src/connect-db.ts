@@ -12,6 +12,7 @@ export const db_likes_collection_name_str = process.env.LIKES_COLLECTION_NAME ||
 export const db_questions_str = process.env.QUESTIONS_COLLECTION_NAME || '';
 export const db_games_collection_name_str = process.env.GAMES_COLLECTION_NAME || '';
 export const db_players_collection_name_str = process.env.PLAYERS_COLLECTION_NAME || '';
+export const db_statistics_collection_name_str = process.env.STATISTICS_COLLECTION_NAME || '';
 export const db_answers_collection_name_str = process.env.ANSWERS_COLLECTION_NAME || '';
 export const db_black_list_tokens_collection_name_str = process.env.BLACK_LIST_TOKENS_COLLECTION_NAME || '';
 export const db_connection_mongoose_str = process.env.DB_CONN_MONGOOS_STRING || '';
