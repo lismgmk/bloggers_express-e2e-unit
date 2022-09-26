@@ -53,6 +53,9 @@ export class StatisticsRepositoryDb {
       return `Fail in DB: ${err}`;
     }
   }
+  async countAllStatistics(): Promise<number> {
+    return await Statistics.countDocuments().exec();
+  }
 
   async setStatisticsHelper(
     firstPlayer: IPlayersSchema,

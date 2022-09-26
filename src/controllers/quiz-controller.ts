@@ -6,9 +6,9 @@ import { IGameSchema } from '../models/gamesModel';
 import { IPlayersSchema } from '../models/playersModel';
 import { GamesRepositoryDB } from '../repositories/games-repository-db';
 import { PlayersRepositoryDB } from '../repositories/players-repository-db';
+import { StatisticsRepositoryDb } from '../repositories/statistics-repository-db';
 import { IMyCurrentGameResponse, IPlayer, IAnswer, IUserQuiz } from '../types';
 import { ResponseHelper } from '../utils/response-helper';
-import { countQuestions } from '../variables';
 
 @injectable()
 export class QuizController {
@@ -23,6 +23,7 @@ export class QuizController {
     @inject(GamesRepositoryDB) protected gamesRepositoryDB: GamesRepositoryDB,
     @inject(PlayersRepositoryDB) protected playersRepositoryDB: PlayersRepositoryDB,
     @inject(ResponseHelper) protected responseHelper: ResponseHelper,
+    @inject(StatisticsRepositoryDb) protected statisticsRepositoryDb: StatisticsRepositoryDb,
   ) {
     this.user_1 = {
       id: '1234',
@@ -82,6 +83,8 @@ export class QuizController {
   async gameDataHelper(gameId: ObjectId) {
     return async (req: express.Request, res: express.Response, next: express.Response) => {
       const currentGame = await this.gamesRepositoryDB.getGameByIdWithPlayersPopulate(gameId);
+      console.log(currentGame, 'vurrent Gameeeeee');
+      return res.status(200).send(currentGame);
       if (typeof currentGame !== 'string' && currentGame) {
         return res.status(200).send(this.responseHelper.currentPairsResponse(currentGame));
       }
@@ -94,63 +97,66 @@ export class QuizController {
     };
   }
 
+  // async getMyCurrentPair(req: express.Request, res: express.Response) {
+  //   const player = await this.playersRepositoryDB.findActiveOrPendingPlayerByUserId(req.user!._id!);
+  //   console.log(player);
+  //   // return res.status(200).send(player);
+  //   if (typeof player !== 'string' && player) {
+  //     return await this.gameDataHelper(player.gameId._id);
+  //   } else {
+  //     return res.status(400).send(`Dd error: ${player}`);
+  //   }
+  // }
+
+  // async getGameById(req: express.Request, res: express.Response) {
+  //   const player = await this.playersRepositoryDB.findPlayerByGameId(req.params.id);
+  //   if (typeof player !== 'string' && player) {
+  //     await this.gameDataHelper(player.gameId);
+  //   } else {
+  //     return res.status(400).send(`Dd error: ${player}`);
+  //   }
+  // }
+
+  //
   async getMyCurrentPair(req: express.Request, res: express.Response) {
     const player = await this.playersRepositoryDB.findActiveOrPendingPlayerByUserId(req.user!._id!);
     if (typeof player !== 'string' && player) {
-      return await this.gameDataHelper(player.gameId._id);
-    } else {
-      return res.status(400).send(`Dd error: ${player}`);
+      const currentGame = await this.gamesRepositoryDB.getGameByIdWithPlayersPopulate(player.gameId._id);
+      if (typeof currentGame !== 'string' && currentGame) {
+        return res.status(200).send(this.responseHelper.currentPairsResponse(currentGame));
+      }
+      if (typeof currentGame === 'string') {
+        return res.status(400).send(`Dd error: ${currentGame}`);
+      }
+      if (!currentGame) {
+        return res.sendStatus(404);
+      }
     }
   }
 
   async getGameById(req: express.Request, res: express.Response) {
     const player = await this.playersRepositoryDB.findPlayerByGameId(req.params.id);
     if (typeof player !== 'string' && player) {
-      await this.gameDataHelper(player.gameId);
-    } else {
-      return res.status(400).send(`Dd error: ${player}`);
+      const currentGame = await this.gamesRepositoryDB.getGameByIdWithPlayersPopulate(player.gameId);
+      if (typeof currentGame !== 'string' && currentGame) {
+        return res.status(200).send(this.responseHelper.currentPairsResponse(currentGame));
+      }
+      if (typeof currentGame === 'string') {
+        return res.status(400).send(`Dd error: ${currentGame}`);
+      }
+      if (!currentGame) {
+        return res.sendStatus(404);
+      }
     }
   }
 
-  //
-  // async getMyCurrentPair(req: express.Request, res: express.Response) {
-  //   const player = await this.playersRepositoryDB.findActiveOrPendingPlayerByUserId(req.user!._id!);
-  //   if (typeof player !== 'string' && player) {
-  //     const currentGame = await this.gamesRepositoryDB.getGameByIdWithPlayersPopulate(player.gameId._id);
-  //     if (typeof currentGame !== 'string' && currentGame) {
-  //       return res.status(200).send(this.responseHelper.currentPairsResponse(currentGame));
-  //     }
-  //     if (typeof currentGame === 'string') {
-  //       return res.status(400).send(`Dd error: ${currentGame}`);
-  //     }
-  //     if (!currentGame) {
-  //       return res.sendStatus(404);
-  //     }
-  //   }
-  // }
-  //
-  // async getGameById(req: express.Request, res: express.Response) {
-  //   const player = await this.playersRepositoryDB.findPlayerByGameId(req.params.id);
-  //   if (typeof player !== 'string' && player) {
-  //     const currentGame = await this.gamesRepositoryDB.getGameByIdWithPlayersPopulate(player.gameId);
-  //     if (typeof currentGame !== 'string' && currentGame) {
-  //       return res.status(200).send(this.responseHelper.currentPairsResponse(currentGame));
-  //     }
-  //     if (typeof currentGame === 'string') {
-  //       return res.status(400).send(`Dd error: ${currentGame}`);
-  //     }
-  //     if (!currentGame) {
-  //       return res.sendStatus(404);
-  //     }
-  //   }
-  // }
-  //
   async getAllUsersGames(req: express.Request, res: express.Response) {
     const player = await this.playersRepositoryDB.findAllPlayersByUserId(
       req.user!._id!,
-      toNumber(req.query?.PageSize),
-      toNumber(req.query?.PageNumber),
+      toNumber(req.query?.pageSize),
+      toNumber(req.query?.pageNumber),
     );
+
     let allGames: any;
     if (typeof player !== 'string' && player) {
       try {
@@ -165,8 +171,8 @@ export class QuizController {
       }
       let totalCount: number | undefined = 0;
       let totalPages = 0;
-      const pageSize = parseInt(req.query?.PageSize as string) || 10;
-      const pageNumber = parseInt(req.query?.PageNumber as string) || 1;
+      const pageSize = parseInt(req.query?.pageSize as string) || 10;
+      const pageNumber = parseInt(req.query?.pageNumber as string) || 1;
       totalCount = await this.playersRepositoryDB.countAllPlayersByUserId(req.user!._id!);
 
       totalPages = Math.ceil((totalCount || 0) / pageSize);
@@ -209,7 +215,8 @@ export class QuizController {
   async sendAnswer(req: express.Request, res: express.Response) {
     if (
       !req.currentPlayer ||
-      (req.currentPlayer && req.currentPlayer.numberAnswer >= countQuestions) ||
+      // (req.currentPlayer && req.currentPlayer.numberAnswer >= countQuestions) ||
+      (req.currentPlayer && req.currentPlayer.numberAnswer >= toNumber(process.env.COUNT_QUESTIONS)) ||
       !req.currentActiveGame
     ) {
       res.sendStatus(403);
@@ -230,7 +237,11 @@ export class QuizController {
       if (firstPlayer && secondPlayer) {
         await this.playersRepositoryDB.checkSettingBonusScore({ firstPlayer, secondPlayer });
       }
-      if (firstPlayer!.numberAnswer >= countQuestions && secondPlayer!.numberAnswer >= countQuestions) {
+      // if (firstPlayer!.numberAnswer >= countQuestions && secondPlayer!.numberAnswer >= countQuestions) {
+      if (
+        firstPlayer!.numberAnswer >= toNumber(process.env.COUNT_QUESTIONS) &&
+        secondPlayer!.numberAnswer >= toNumber(process.env.COUNT_QUESTIONS)
+      ) {
         await this.gamesRepositoryDB.finishActiveGameById(firstPlayer!, secondPlayer!);
       }
 
@@ -238,21 +249,52 @@ export class QuizController {
     }
   }
   async getTopUsers(req: express.Request, res: express.Response) {
-    res.status(200).send({
-      pagesCount: 0,
-      page: 0,
-      pageSize: 0,
-      totalCount: 0,
-      items: [
-        {
-          user: this.user_1,
-          sumScore: 0,
-          avgScores: 0,
-          gamesCount: 0,
-          winsCount: 0,
-          lossesCount: 0,
-        },
-      ],
-    });
+    const allStatistics = await this.statisticsRepositoryDb.getAllStatistics(
+      toNumber(req.query?.pageSize),
+      toNumber(req.query?.pageNumber),
+    );
+    if (typeof allStatistics !== 'string') {
+      const topGamers = allStatistics?.map((el) => ({
+        user: { id: el.userId, login: el.login },
+        sumScore: el.sumScore,
+        avgScores: el.avgScores,
+        gamesCount: el.gamesCount,
+        winsCount: el.winsCount,
+        lossesCount: el.lossesCount,
+      }));
+      let totalCount: number | undefined = 0;
+      let totalPages = 0;
+      const pageSize = parseInt(req.query?.pageSize as string) || 10;
+      const pageNumber = parseInt(req.query?.pageNumber as string) || 1;
+      totalCount = await this.statisticsRepositoryDb.countAllStatistics();
+
+      totalPages = Math.ceil((totalCount || 0) / pageSize);
+      return res.status(200).send({
+        pagesCount: totalPages,
+        page: pageNumber,
+        pageSize,
+        totalCount,
+        items: topGamers,
+      });
+    } else {
+      return res.status(400).send(`Dd error: ${allStatistics}`);
+    }
+
+    // res.status(200).send({
+    //   pagesCount: 0,
+    //   page: 0,
+    //   pageSize: 0,
+    //   totalCount: 0,
+    //   items: [
+    //     {
+    //       user: this.user_1,
+    //       sumScore: 0,
+    //       avgScores: 0,
+    //       gamesCount: 0,
+    //       winsCount: 0,
+    //       lossesCount: 0,
+    //     },
+    //   ],
+    // });
   }
 }
