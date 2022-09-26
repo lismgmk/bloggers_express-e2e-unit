@@ -181,7 +181,7 @@ describe('test quiz-router "/pair-game-quiz"', function () {
     it('should returns top users', async () => {
       process.env.DECIDE_TIME_ANSWERS = '1';
       process.env.COUNT_QUESTIONS = '2';
-
+      console.log(process.env.COUNT_QUESTIONS, 'envvvv');
       await agent
         .post(`/pair-game-quiz/pairs/my-current/answers`)
         .set('Authorization', bearer_1)
@@ -225,24 +225,26 @@ describe('test quiz-router "/pair-game-quiz"', function () {
         .get(`/pair-game-quiz//users/top?pageNumber=${pageNumber}&pageSize=${pageSize}`)
         .expect(200)
         .then(async (res) => {
-          console.log(res.body.items);
-          // expect(res.body).toMatchObject(
-          //   expect.objectContaining({
-          //     pagesCount: 1,
-          //     page: pageNumber,
-          //     pageSize: pageSize,
-          //     totalCount: 1,
-          //     items: expect.any(Array),
-          //   }),
-          // );
-          // expect(res.body.items.length).toBe(1);
-          // expect(res.body.items[0].secondPlayer.user.login).toBe(player_2.login);
+          console.log(res.body);
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              pagesCount: 1,
+              page: pageNumber,
+              pageSize: pageSize,
+              totalCount: 2,
+              items: expect.any(Array),
+            }),
+          );
+          expect(res.body.items.length).toBe(2);
+          expect(res.body.items[0].sumScore).toBe(3);
         });
     });
   });
 
   describe('test post "/pair-game-quiz/pairs/my-current/answers" endpoint', () => {
     it('should create active game,user_1 send 3 correct  answer and win game, user_2 send incorrect answers', async () => {
+      console.log(process.env.COUNT_QUESTIONS, 'envvvv');
+
       await agent
         .post(`/pair-game-quiz/pairs/my-current/answers`)
         .set('Authorization', bearer_1)
