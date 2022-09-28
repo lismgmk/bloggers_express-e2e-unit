@@ -47,7 +47,7 @@ describe('test players-repository', () => {
           answers: expect.any(Array),
         }),
       );
-      const answerData = { playerId: newPlayer._id, answer: 'no', numberQuestion: 1 };
+      const answerData = { playerId: newPlayer._id, answer: 'no', notCurrentPlayerNumberAnswer: 1 };
       const updatedPlayer = await playersRepository.setAnswerPlayer(answerData);
       expect(updatedPlayer).toMatchObject(
         expect.objectContaining({

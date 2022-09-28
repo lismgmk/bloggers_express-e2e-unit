@@ -8,7 +8,7 @@ import { GamesRepositoryDB } from '../repositories/games-repository-db';
 import { PlayersRepositoryDB } from '../repositories/players-repository-db';
 import { UsersRepositoryDB } from '../repositories/users-repository-db';
 import { fakerConnectDb } from '../testParams/fake-connect-db';
-import { newUser1, newUser2, newUser3 } from '../testParams/test-route-values';
+import { newUser1, newUser2, newUser3, player_2 } from '../testParams/test-route-values';
 import { IUser } from '../types';
 import { JwtPassService } from '../utils/jwt-pass-service';
 import { expiredAccess } from '../variables';
@@ -16,10 +16,15 @@ import { expiredAccess } from '../variables';
 const agent = supertest(app);
 
 describe('test quiz-router "/pair-game-quiz"', function () {
+  process.env.COUNT_QUESTIONS = '3';
   const usersRepositoryDB = new UsersRepositoryDB();
   const playersRepositoryDB = container.get<PlayersRepositoryDB>(PlayersRepositoryDB);
   const gamesRepositoryDB = container.get<GamesRepositoryDB>(GamesRepositoryDB);
   const jwtPassService = new JwtPassService();
+  const pageNumber = 1;
+  const pageSize = 3;
+  let accessToken_1: string;
+  let accessToken_2: string;
   let bearer_1: string;
   let bearer_2: string;
   let newUser_1: IUser;
@@ -48,7 +53,7 @@ describe('test quiz-router "/pair-game-quiz"', function () {
     );
 
     newUser_1 = (await usersRepositoryDB.getUserByLogin(newUser1.login)) as IUser;
-    const accessToken_1 = jwtPassService.createJwt(new ObjectId(newUser_1._id), expiredAccess);
+    accessToken_1 = jwtPassService.createJwt(new ObjectId(newUser_1._id), expiredAccess);
     bearer_1 = `Bearer ${accessToken_1}`;
     await agent
       .post(`/pair-game-quiz/pairs/connection`)
@@ -71,7 +76,7 @@ describe('test quiz-router "/pair-game-quiz"', function () {
       });
 
     newUser_2 = (await usersRepositoryDB.getUserByLogin(newUser2.login)) as IUser;
-    const accessToken_2 = jwtPassService.createJwt(new ObjectId(newUser_2._id), expiredAccess);
+    accessToken_2 = jwtPassService.createJwt(new ObjectId(newUser_2._id), expiredAccess);
     bearer_2 = `Bearer ${accessToken_2}`;
     await agent
       .post(`/pair-game-quiz/pairs/connection`)
@@ -108,8 +113,138 @@ describe('test quiz-router "/pair-game-quiz"', function () {
     });
   });
 
+  describe('test  get  "/pairs/my-current" endpoint ', () => {
+    it('should returns current pair in which current user is taking part', async () => {
+      await agent
+        .get(`/pair-game-quiz/pairs/my-current`)
+        .set('Authorization', bearer_2)
+        .expect(200)
+        .then(async (res) => {
+          console.log(res.body);
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              questions: expect.any(Array),
+              status: 'Active',
+            }),
+          );
+          expect(res.body.secondPlayer.user.login).toBe(player_2.login);
+        });
+    });
+  });
+
+  describe('test  get  "/pairs/get/:id" endpoint ', () => {
+    it('should returns pair by id if current user is taking part in this pair', async () => {
+      const verifyUser = jwtPassService.verifyJwt(accessToken_1);
+      const currentPlayer = await playersRepositoryDB.findPlayerByUserId(verifyUser.id);
+      const gameId = typeof currentPlayer !== 'string' && currentPlayer!.gameId;
+      await agent
+        .get(`/pair-game-quiz/pairs/get/${gameId}`)
+        .set('Authorization', bearer_2)
+        .expect(200)
+        .then(async (res) => {
+          console.log(res.body);
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              questions: expect.any(Array),
+              status: 'Active',
+            }),
+          );
+          expect(res.body.secondPlayer.user.login).toBe(player_2.login);
+        });
+    });
+  });
+
+  describe('test  get  "/pairs/my" endpoint ', () => {
+    it('should returns all pairs by id if current user is taking part in this pair', async () => {
+      await agent
+        .get(`/pair-game-quiz/pairs/my?pageNumber=${pageNumber}&pageSize=${pageSize}`)
+        .set('Authorization', bearer_2)
+        .expect(200)
+        .then(async (res) => {
+          console.log(res.body);
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              pagesCount: 1,
+              page: pageNumber,
+              pageSize: pageSize,
+              totalCount: 1,
+              items: expect.any(Array),
+            }),
+          );
+          expect(res.body.items.length).toBe(1);
+          expect(res.body.items[0].secondPlayer.user.login).toBe(player_2.login);
+        });
+    });
+  });
+
+  describe('test  get  "/users/top" endpoint ', () => {
+    it('should returns top users', async () => {
+      process.env.DECIDE_TIME_ANSWERS = '1';
+      process.env.COUNT_QUESTIONS = '2';
+      console.log(process.env.COUNT_QUESTIONS, 'envvvv');
+      await agent
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
+        .set('Authorization', bearer_1)
+        .send(bodyParamsRight)
+        .expect(200)
+        .then(async (res) => {
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              questionId: expect.any(String),
+              answerStatus: 'Correct',
+              addedAt: expect.any(String),
+            }),
+          );
+        });
+      await agent
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
+        .set('Authorization', bearer_1)
+        .send(bodyParamsRight)
+        .expect(200)
+        .then(async (res) => {
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              questionId: expect.any(String),
+              answerStatus: 'Correct',
+              addedAt: expect.any(String),
+            }),
+          );
+        });
+      await agent
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
+        .set('Authorization', bearer_2)
+        .send(bodyParamsRight)
+        .expect(200);
+      await agent
+        .post(`/pair-game-quiz/pairs/my-current/answers`)
+        .set('Authorization', bearer_2)
+        .send(bodyParamsRight)
+        .expect(403);
+
+      await agent
+        .get(`/pair-game-quiz//users/top?pageNumber=${pageNumber}&pageSize=${pageSize}`)
+        .expect(200)
+        .then(async (res) => {
+          console.log(res.body);
+          expect(res.body).toMatchObject(
+            expect.objectContaining({
+              pagesCount: 1,
+              page: pageNumber,
+              pageSize: pageSize,
+              totalCount: 2,
+              items: expect.any(Array),
+            }),
+          );
+          expect(res.body.items.length).toBe(2);
+          expect(res.body.items[0].sumScore).toBe(3);
+        });
+    });
+  });
+
   describe('test post "/pair-game-quiz/pairs/my-current/answers" endpoint', () => {
     it('should create active game,user_1 send 3 correct  answer and win game, user_2 send incorrect answers', async () => {
+      console.log(process.env.COUNT_QUESTIONS, 'envvvv');
+
       await agent
         .post(`/pair-game-quiz/pairs/my-current/answers`)
         .set('Authorization', bearer_1)

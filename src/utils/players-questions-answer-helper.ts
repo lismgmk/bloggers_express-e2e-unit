@@ -1,8 +1,8 @@
 import { injectable } from 'inversify';
-import _ from 'lodash';
+import _, { toNumber } from 'lodash';
 import { ObjectId } from 'mongodb';
 import { IQuestionSchema, Questions } from '../models/questionsModel';
-import { quizQuestions, countQuestions } from '../variables';
+import { quizQuestions } from '../variables';
 
 @injectable()
 export class PlayersQuestionsAnswersHelper {
@@ -13,7 +13,8 @@ export class PlayersQuestionsAnswersHelper {
   }
 
   async createQuestions() {
-    const fiveRandomQuestions = _.sampleSize(quizQuestions, countQuestions);
+    // const fiveRandomQuestions = _.sampleSize(quizQuestions, countQuestions);
+    const fiveRandomQuestions = _.sampleSize(quizQuestions, toNumber(process.env.COUNT_QUESTIONS));
     return await Promise.all(
       fiveRandomQuestions.map(async (el) => {
         const questionId = new ObjectId();

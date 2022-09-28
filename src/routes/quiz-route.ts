@@ -9,7 +9,7 @@ quizRouter.get(
   quizController.getMyCurrentPair.bind(quizController),
 );
 quizRouter.get(
-  '/pairs/:id',
+  '/pairs/get/:id',
   checkTokenService.accessToken.bind(checkTokenService),
   quizService.getActivePlayerAndGame.bind(quizService),
   quizController.getGameById.bind(quizController),

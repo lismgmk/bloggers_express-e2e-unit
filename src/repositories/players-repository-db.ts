@@ -1,10 +1,10 @@
 import { injectable, inject } from 'inversify';
+import { toNumber } from 'lodash';
 import { ObjectId } from 'mongodb';
 import { Players, IPlayersSchema } from '../models/playersModel';
 import { IQuestionSchema } from '../models/questionsModel';
 import { IResPlayer } from '../types';
 import { PlayersQuestionsAnswersHelper } from '../utils/players-questions-answer-helper';
-import { countQuestions } from '../variables';
 
 @injectable()
 export class PlayersRepositoryDB {
@@ -141,18 +141,22 @@ export class PlayersRepositoryDB {
   }
   async checkSettingBonusScore(scoreData: { firstPlayer: IPlayersSchema; secondPlayer: IPlayersSchema }) {
     if (
-      scoreData.firstPlayer.numberAnswer === countQuestions &&
+      // scoreData.firstPlayer.numberAnswer === countQuestions &&
+      scoreData.firstPlayer.numberAnswer === toNumber(process.env.COUNT_QUESTIONS) &&
       scoreData.firstPlayer.score >= 1 &&
-      scoreData.secondPlayer.numberAnswer < countQuestions &&
+      // scoreData.secondPlayer.numberAnswer < countQuestions &&
+      scoreData.secondPlayer.numberAnswer < toNumber(process.env.COUNT_QUESTIONS) &&
       scoreData.secondPlayer.startTimeQuestion === null
     ) {
       await Players.findByIdAndUpdate(scoreData.firstPlayer._id, { $inc: { score: 1 } });
       await Players.findByIdAndUpdate(scoreData.secondPlayer._id, { startTimeQuestion: new Date() });
     }
     if (
-      scoreData.secondPlayer.numberAnswer === countQuestions &&
+      // scoreData.secondPlayer.numberAnswer === countQuestions &&
+      scoreData.secondPlayer.numberAnswer === toNumber(process.env.COUNT_QUESTIONS) &&
       scoreData.secondPlayer.score >= 1 &&
-      scoreData.firstPlayer.numberAnswer < countQuestions &&
+      // scoreData.firstPlayer.numberAnswer < countQuestions &&
+      scoreData.firstPlayer.numberAnswer < toNumber(process.env.COUNT_QUESTIONS) &&
       scoreData.firstPlayer.startTimeQuestion === null
     ) {
       await Players.findByIdAndUpdate(scoreData.secondPlayer._id, { $inc: { score: 1 } });
