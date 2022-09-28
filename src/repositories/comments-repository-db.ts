@@ -1,70 +1,107 @@
-import { collections } from '../connect-db';
-import { ICommentsRes, IPaginationResponse } from '../types';
-import { ObjectId } from 'mongodb';
+import { injectable } from 'inversify';
+import { Types } from 'mongoose';
+import { Comments } from '../models/commentsModel';
+import { IUser, statusType } from '../types';
+import { RequestBuilder, ICommentsRequest } from '../utils/request-posts-comments';
+import { userStatusUtil } from '../utils/user-status-util';
 
-export const commentsRepositoryDb = {
-  async getAllComments(
-    pageSize: number,
-    pageNumber: number,
-    postId: string,
-  ): Promise<IPaginationResponse<ICommentsRes>> {
-    let commentsPortion: ICommentsRes[] | undefined = [];
-    let totalCount: number | undefined = 0;
-    let totalPages = 0;
-    commentsPortion = await collections.comments
-      ?.find({ postId })
-      .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
-      .limit(pageSize)
-      .toArray();
-    totalCount = await collections.comments?.find({ postId }).count();
-    totalPages = Math.ceil((totalCount || 0) / pageSize);
-    return {
-      pagesCount: totalPages,
-      page: pageNumber,
-      pageSize,
-      totalCount,
-      items: commentsPortion!.map((el) => {
-        return resComment(el);
-      }),
-    };
-  },
+@injectable()
+export class CommentsRepositoryDb {
+  async getAllComments(pageSize: number, pageNumber: number, validUser: IUser, postId: string) {
+    try {
+      let totalCount: number | undefined = 0;
+      let totalPages = 0;
+      const commentsPortion = await Promise.all(
+        (
+          await Comments.find({ postId })
+            .populate({
+              path: 'userId',
+              select: ' _id accountData',
+              options: { lean: true },
+            })
+            .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
+            .limit(pageSize)
+            .exec()
+        ).map(async (el) => {
+          const userStatus = await userStatusUtil(null, el._id, validUser);
+          const comment = new RequestBuilder(null, el.toObject(), userStatus);
+          return await comment.commentObj();
+        }),
+      );
+      totalCount = await Comments.countDocuments({ postId }).lean();
+      totalPages = Math.ceil((totalCount || 0) / pageSize);
+      return {
+        pagesCount: totalPages,
+        page: pageNumber,
+        pageSize,
+        totalCount,
+        items: commentsPortion,
+      };
+    } catch (err) {
+      return err;
+    }
+  }
 
-  async createComment(content: string, userId: string, postId: string): Promise<ICommentsRes> {
-    const existedUser = await collections.users?.findOne({ _id: new ObjectId(userId) });
-    const newComment: ICommentsRes = {
+  async createComment(content: string, userId: Types.ObjectId, postId: Types.ObjectId) {
+    const newComment = new Comments({
       content,
       userId,
-      userLogin: existedUser!.accountData.userName,
       addedAt: new Date(),
       postId: postId,
-    };
-    const insertComment = await collections.comments?.insertOne(newComment);
-    newComment.id = insertComment!.insertedId.toString();
-    delete newComment._id;
-    delete newComment.postId;
-    return newComment;
-  },
+    });
+    try {
+      const insertComment = await Comments.create(newComment);
+      const resCreatedComment = await insertComment.populate({
+        path: 'userId',
+        select: ' _id accountData',
+        options: { lean: true },
+      });
+      const result = resCreatedComment.toObject();
+      const newObjComment = new RequestBuilder(null, result as ICommentsRequest);
+      return await newObjComment.commentObj();
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
+  }
 
   async updateComment(content: string, id: string) {
-    await collections.comments?.updateOne({ _id: new ObjectId(id) }, { $set: { content } });
-  },
-  async getCommentById(id: string) {
-    const comment = await collections.comments?.findOne({ _id: new ObjectId(id) });
-    return comment ? resComment(comment) : comment;
-  },
+    try {
+      const update = {
+        content,
+      };
+      return await Comments.findByIdAndUpdate(id, { $set: update }, { new: true }).exec();
+    } catch (err) {
+      return err;
+    }
+  }
+
+  async checkCommentById(id: string) {
+    const comment = await Comments?.findById(id).exec();
+    return comment;
+  }
+
+  async getCommentById(commentId: string, userStatus: statusType) {
+    const comment = await Comments.findById(commentId)
+      .populate({
+        path: 'userId',
+        select: ' _id accountData',
+        options: { lean: true },
+      })
+      .exec();
+    if (comment) {
+      const result = comment.toObject();
+      const newObjComment = new RequestBuilder(null, result as ICommentsRequest);
+      return await newObjComment.commentObj();
+    } else {
+      return false;
+    }
+  }
 
   async deleteComment(id: string) {
-    const result = await collections.comments?.deleteOne({ _id: new ObjectId(id) });
-    return { deleteState: result?.acknowledged, deleteCount: result?.deletedCount };
-  },
-};
-
-const resComment = (el: ICommentsRes) => {
-  return {
-    id: el._id!.toString(),
-    content: el.content,
-    userLogin: el.userLogin,
-    userId: el.userId,
-    addedAt: el.addedAt,
-  };
-};
+    try {
+      return await Comments.deleteOne({ _id: id });
+    } catch (err) {
+      return err;
+    }
+  }
+}

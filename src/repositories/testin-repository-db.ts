@@ -1,22 +1,20 @@
-import { collections } from '../connect-db';
+import { injectable } from 'inversify';
+import mongoose from 'mongoose';
 
-export const testingRepositoryDB = {
+@injectable()
+export class TestingRepositoryDB {
   async deleteAll() {
-    const resultBloggers = await collections.bloggers?.deleteMany({});
-    const resultPosts = await collections.posts?.deleteMany({});
-    const resultComments = await collections.comments?.deleteMany({});
-    const resultUsers = await collections.users?.deleteMany({});
-    const ipUsers = await collections.ipUsers?.deleteMany({});
-    const blackListTokens = await collections.black_list_tokens?.deleteMany({});
-    if (
-      resultBloggers?.acknowledged &&
-      resultComments?.acknowledged &&
-      resultPosts?.acknowledged &&
-      ipUsers?.acknowledged &&
-      blackListTokens?.acknowledged &&
-      resultUsers?.acknowledged
-    ) {
+    try {
+      const collections = mongoose.connection.collections;
+      await Promise.all(
+        Object.values(collections).map(async (collection) => {
+          await collection.deleteMany({});
+        }),
+      );
       return true;
+    } catch (err) {
+      console.log(err);
+      return false;
     }
-  },
-};
+  }
+}

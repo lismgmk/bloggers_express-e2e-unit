@@ -1,32 +1,28 @@
-import { collections } from '../connect-db';
-import { Bloggers, Posts } from '../models/bloggers';
+import { injectable } from 'inversify';
+import { ObjectId } from 'mongodb';
+import { Bloggers } from '../models/bloggersModel';
 import { IBloggers, IPaginationResponse } from '../types';
 
-export const bloggersRepositoryDB = {
+@injectable()
+export class BloggersRepositoryDB {
   async getAllBloggers(
     pageSize: number,
     pageNumber: number,
     bloggerNamePart: string,
-  ): Promise<IPaginationResponse<Bloggers>> {
-    let bloggersPortion: Bloggers[] | undefined = [];
+  ): Promise<IPaginationResponse<IBloggers>> {
     let totalCount: number | undefined = 0;
     let totalPages = 0;
     const namePart = new RegExp(bloggerNamePart);
-    const allBloggers = await collections.bloggers?.find({ name: namePart });
+    totalCount = await Bloggers.countDocuments({ name: namePart });
+    const allBloggers = await (
+      await Bloggers.find({ name: namePart })
+        .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
+        .limit(pageSize)
+        .lean()
+    ).map((i) => {
+      return { id: i._id, name: i.name, youtubeUrl: i.youtubeUrl };
+    });
     if (allBloggers) {
-      bloggersPortion = await collections.bloggers
-        ?.find(
-          { name: namePart },
-          {
-            projection: {
-              _id: 0,
-            },
-          },
-        )
-        .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
-        .limit(pageSize)
-        .toArray();
-      totalCount = await collections.bloggers?.find({ name: namePart }).count();
       totalPages = Math.ceil((totalCount || 0) / pageSize);
     }
     return {
@@ -34,63 +30,39 @@ export const bloggersRepositoryDB = {
       page: pageNumber,
       pageSize,
       totalCount,
-      items: bloggersPortion,
+      items: allBloggers,
     };
-  },
-  async getAllPostsBloggers(
-    pageSize: number,
-    pageNumber: number,
-    bloggerId: string,
-  ): Promise<IPaginationResponse<Posts>> {
-    let postsPortion: Posts[] | undefined = [];
-    let totalCount: number | undefined = 0;
-    let totalPages = 0;
-    const allBloggersPosts = await collections.posts?.find({ bloggerId });
-    if (allBloggersPosts) {
-      postsPortion = await collections.posts
-        ?.find(
-          { bloggerId },
-          {
-            projection: {
-              _id: 0,
-            },
-          },
-        )
-        .skip(pageNumber > 0 ? (pageNumber - 1) * pageSize : 0)
-        .limit(pageSize)
-        .toArray();
-      totalCount = await collections.posts?.find({ bloggerId }).count();
-      totalPages = Math.ceil((totalCount || 0) / pageSize);
-    }
-    return {
-      pagesCount: totalPages,
-      page: pageNumber,
-      pageSize,
-      totalCount,
-      items: postsPortion,
-    };
-  },
+  }
 
-  async createBlogger(name: string, youtubeUrl: string): Promise<IBloggers> {
-    const newBlogger: Bloggers = {
-      id: (+new Date()).toString(),
+  async createBlogger(name: string, youtubeUrl: string): Promise<IBloggers | string> {
+    const newBlogger = new Bloggers({
       name,
       youtubeUrl,
-    };
-    await collections.bloggers?.insertOne(newBlogger);
-    delete newBlogger._id;
-    return newBlogger;
-  },
+    });
+    try {
+      await Bloggers.create(newBlogger);
+      return { id: newBlogger._id, name: newBlogger.name, youtubeUrl: newBlogger.youtubeUrl };
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
+  }
+
   async getBloggerById(id: string) {
-    const blogger = (await collections.bloggers?.findOne({ id })) as Bloggers;
-    blogger && delete blogger._id;
-    return blogger;
-  },
+    return Bloggers.findById(id);
+  }
   async upDateBlogger(name: string, youtubeUrl: string, id: string) {
-    await collections.bloggers?.updateOne({ id: id }, { $set: { name, youtubeUrl } });
-  },
+    try {
+      return await Bloggers.findByIdAndUpdate(id, { $set: { name, youtubeUrl } });
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
+  }
   async deleteBlogger(id: string) {
-    const result = await collections.bloggers?.deleteOne({ id: id });
-    return { deleteState: result?.acknowledged, deleteCount: result?.deletedCount };
-  },
-};
+    try {
+      const idVal = new ObjectId(id);
+      return await Bloggers.findByIdAndDelete(idVal);
+    } catch (err) {
+      return `Fail in DB: ${err}`;
+    }
+  }
+}

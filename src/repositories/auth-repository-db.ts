@@ -1,39 +1,42 @@
-import { collections } from '../connect-db';
-import bcrypt from 'bcryptjs';
-import { addUserAttempt } from '../utils/add-user-attempt';
-import { jwtPassService } from '../utils/jwt-pass-service';
-import { usersRepositoryDB } from './users-repository-db';
-import { expiredAccess } from '../constants';
+import 'reflect-metadata';
+import { injectable, inject } from 'inversify';
+import { JwtPassService } from '../utils/jwt-pass-service';
+import { expiredAccess } from '../variables';
+import { Users } from '../models/usersModel';
+import { UsersRepositoryDB } from './users-repository-db';
 
-export const authRepositoryDB = {
+@injectable()
+export class AuthRepositoryDB {
+  constructor(
+    @inject(UsersRepositoryDB) protected usersRepositoryDB: UsersRepositoryDB,
+    @inject(JwtPassService) protected jwtPassService: JwtPassService,
+  ) {}
+
   async authUser(login: string, password: string): Promise<{ accessToken: string } | null> {
-    const attemptCountUser = await collections.users?.findOne({ 'accountData.userName': login });
-    const isMatch =
-      attemptCountUser && (await bcrypt.compare(password, attemptCountUser.accountData.passwordHash ?? ''));
-    if (!attemptCountUser || !isMatch) {
-      await addUserAttempt.addAttemptByLogin(login, false);
+    const existentUser = await Users.findOne({ 'accountData.userName': login }).exec();
+    let isMatch = false;
+    if (existentUser) {
+      isMatch = await this.jwtPassService.checkPassBcrypt(password, existentUser.accountData.passwordHash ?? '');
+    }
+    if (!existentUser || !isMatch) {
+      await this.usersRepositoryDB.addAttemptByLogin(login, false);
       return null;
     } else {
-      await addUserAttempt.addAttemptByLogin(login, true);
-      const accessToken = jwtPassService.createJwt(attemptCountUser!._id!, expiredAccess);
-      // const accessToken = JWT.sign({ id: attemptCountUser!._id!.toString() }, process.env.ACCESS_TOKEN_SECRET ?? '');
+      await this.usersRepositoryDB.addAttemptByLogin(login, true);
+      const accessToken = this.jwtPassService.createJwt(existentUser!._id!, expiredAccess);
       return { accessToken };
     }
-  },
+  }
   async confirmEmail(code: string) {
-    const confirmedUser = await collections.users?.findOne({ 'emailConfirmation.confirmationCode': { $eq: code } });
+    const confirmedUser = await Users.findOne({ 'emailConfirmation.confirmationCode': { $eq: code } }).exec();
     if (!confirmedUser) {
       return false;
     }
     if (confirmedUser!.emailConfirmation.isConfirmed === true) {
       return false;
     } else {
-      await usersRepositoryDB.confirmUserById(confirmedUser!._id, true);
-      // await collections.users?.updateOne(
-      //   { _id: confirmedUser!._id },
-      //   { $set: { 'emailConfirmation.isConfirmed': true, 'emailConfirmation.attemptCount': 0 } },
-      // );
+      await this.usersRepositoryDB.confirmUserById(confirmedUser!._id, true);
       return true;
     }
-  },
-};
+  }
+}

@@ -1,23 +1,21 @@
-import { collections } from '../connect-db';
+import 'reflect-metadata';
+import { injectable } from 'inversify';
+import { BlackList } from '../models/blackListModel';
 
-export const blackListTokensRepositoryDB = {
-  async addToken(token: string): Promise<boolean> {
+@injectable()
+export class BlackListTokensRepositoryDB {
+  async addToken(token: string) {
     try {
-      const isAddedToke = await collections.black_list_tokens?.insertOne({ tokenValue: token });
-      return isAddedToke!.acknowledged;
-    } catch (e) {
-      return false;
+      return await BlackList.create({ tokenValue: token });
+    } catch (err) {
+      return `Db error: ${err}`;
     }
-  },
-  async deleteToken(token: string): Promise<boolean> {
-    try {
-      const isAddedToke = await collections.black_list_tokens?.deleteOne({ tokenValue: token });
-      return isAddedToke!.acknowledged;
-    } catch (e) {
-      return false;
-    }
-  },
+  }
   async checkToken(token: string) {
-    return await collections.black_list_tokens?.findOne({ tokenValue: token });
-  },
-};
+    try {
+      return await BlackList.findOne({ tokenValue: token }).exec();
+    } catch (err) {
+      return `Db error: ${err}`;
+    }
+  }
+}

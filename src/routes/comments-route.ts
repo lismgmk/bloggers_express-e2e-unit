@@ -1,61 +1,31 @@
 import { Router } from 'express';
-import { body, validationResult } from 'express-validator';
-import { errorFormatter } from '../utils/error-util';
-import { checkAccessTokenService } from '../application/check-access-token-service';
-import { commentsRepositoryDb } from '../repositories/comments-repository-db';
-import { ObjectId } from 'mongodb';
+import { checkTokenService, commentsController } from '../inversify.config';
+import { commentsValidator } from '../validators/comments-validator';
 
 export const commentsRouter = Router({});
 
-commentsRouter.get('/:id', async (req, res) => {
-  if (!ObjectId.isValid(req.params.id)) {
-    return res.send(404);
-  } else {
-    const comment = await commentsRepositoryDb.getCommentById(req.params?.id);
-    comment ? res.status(200).send(comment) : res.send(404);
-  }
-});
+commentsRouter.get(
+  '/:id',
+  checkTokenService.noBlockToken.bind(checkTokenService),
+  commentsController.getCommentById.bind(commentsController),
+);
 
 commentsRouter.put(
   '/:id',
-  checkAccessTokenService,
-  body('content').trim().isLength({ min: 20, max: 300 }).exists().withMessage('invalid length'),
-  async (req, res) => {
-    const result = validationResult(req).formatWith(errorFormatter);
-    if (!result.isEmpty()) {
-      return res.status(400).send({ errorsMessages: result.array() });
-    } else {
-      if (!ObjectId.isValid(req.params.id)) {
-        return res.send(404);
-      } else {
-        const comment = await commentsRepositoryDb.getCommentById(req.params?.id);
-        if (!comment) {
-          res.send(404);
-        } else if (comment.userId !== req.user) {
-          res.sendStatus(403);
-        } else {
-          await commentsRepositoryDb.updateComment(req.body.content, req.params?.id);
-          res.send(204);
-        }
-      }
-    }
-  },
+  checkTokenService.accessToken.bind(checkTokenService),
+  commentsValidator.changeComment(),
+  commentsController.changeComment.bind(commentsController),
 );
 
-commentsRouter.delete('/:id', checkAccessTokenService, async (req, res) => {
-  if (!ObjectId.isValid(req.params.id)) {
-    return res.send(404);
-  } else {
-    const comment = await commentsRepositoryDb.getCommentById(req.params?.id);
-    if (!comment) {
-      res.sendStatus(404);
-    } else if (comment.userId !== req.user) {
-      res.sendStatus(403);
-    } else {
-      const deletedComment = await commentsRepositoryDb.deleteComment(req.params?.id);
-      if (deletedComment.deleteCount === 1 && deletedComment.deleteState) {
-        res.send(204);
-      }
-    }
-  }
-});
+commentsRouter.delete(
+  '/:id',
+  checkTokenService.accessToken.bind(checkTokenService),
+  commentsController.deleteComment.bind(commentsController),
+);
+
+commentsRouter.put(
+  '/:id/like-status',
+  checkTokenService.accessToken.bind(checkTokenService),
+  commentsValidator.changeLikeStatus(),
+  commentsController.changeLikeStatus.bind(commentsController),
+);

@@ -1,27 +1,25 @@
+import { injectable } from 'inversify';
 import nodemailer from 'nodemailer';
+import { db_service_email_str, db_service_pass_str } from '../connect-db';
 
-export const mailService = {
+@injectable()
+export class MailService {
   async sendEmail(email: string, code: string) {
-    // const clientPort = process.env.CLIENT_PORT || '';
-    // const serviceEmail = process.env.GMAIL_SERVICE_EMAIL || '';
-    // const servicePass = process.env.GMAIL_SERVICE_PASS || '';
     const clientPort = '7000';
-    const serviceEmail = 'lismgmk2@gmail.com';
-    const servicePass = 'gexdmwmdxditrmou';
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: serviceEmail,
-        pass: servicePass,
+        user: db_service_email_str,
+        pass: db_service_pass_str,
       },
     });
 
     const clientSrc = `http://localhost:${clientPort}/client-confirm?code=${code}`;
     const mailOptions = {
-      from: '"lismgmk 👻" <lismgmk2@gmail.com>', // sender address
-      to: email, // list of receivers
-      subject: 'Hello', // Subject line
-      html: `<h1>this is a test mail.<a href=${clientSrc}>Confirm here</a></h1>`, // plain text body
+      from: '"lismgmk 👻" <lismgmk2@gmail.com>',
+      to: email,
+      subject: 'Hello',
+      html: `<h1>this is a test mail.<a href=${clientSrc}>Confirm here</a></h1>`,
     };
     let responseEmail: { error: boolean; data: string };
     try {
@@ -33,5 +31,5 @@ export const mailService = {
       responseEmail = { data: error.response, error: true };
     }
     return responseEmail;
-  },
-};
+  }
+}
